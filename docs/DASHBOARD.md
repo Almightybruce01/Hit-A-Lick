@@ -52,8 +52,13 @@ Redeploy `api` after changing secrets.
 
 ## Public GitHub repo
 
-1. Push this repo to GitHub (same project you use for Cursor).
-2. Optional **GitHub Pages**: Settings → Pages → deploy from `main` / `site` folder (or copy `site/ops-dashboard.html` to `docs/` and enable Pages on `/docs`).
+1. Create an empty repo on GitHub, then from this folder run:
+   ```bash
+   cd /Users/brianbruce/Desktop/Hit-A-Lick
+   git remote add origin https://github.com/<you>/<repo>.git
+   git push -u origin main
+   ```
+2. **GitHub Pages (automated):** This repo includes **`.github/workflows/pages.yml`**. One-time setup in the GitHub repo: **Settings → Pages → Build and deployment → Source: GitHub Actions**. Pushes to **`main`** (or **`master`**) deploy the **`site/`** folder. Your public URL will look like **`https://<user>.github.io/<repo>/`** — open **`ops-dashboard.html`** from that root (or add an `index.html` redirect later).
 3. **Important:** GitHub Pages is on **`github.io`** — API calls are **cross-origin** to your Cloud Run / Firebase API. In the dashboard, set **API base URL** (top of page) to your production API origin, e.g. `https://api-xxxxx-uc.a.run.app` **without** trailing slash. The page sends `X-Ops-Pin` on every request.
 
 ## After using Cursor — improve the dashboard
