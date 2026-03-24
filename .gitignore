@@ -16,6 +16,12 @@ functions/node_modules/
 functions/.env
 functions/.env.*
 
+# Firebase local cache
+.firebase/
+
+# Local Python deps (not for git)
+.pydeps/
+
 # OS
 .DS_Store
 
