@@ -14,7 +14,7 @@ Elite sports analytics: **iOS app** (`HitALick/`), **Firebase Cloud Functions** 
 |--------|------------|
 | Production API | `https://api-lifnvql5aa-uc.a.run.app` |
 | Hosted site | `https://hit-a-lick-database.web.app` |
-| Ops desk | `/ops` (Hosting) or `GET /ops/dashboard` on API |
+| Ops desk | [GitHub Pages ops](https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html) · [Post picks hub](https://almightybruce01.github.io/Hit-A-Lick/picks-hub.html) · `/ops` on Firebase Hosting |
 
 ## Backend
 

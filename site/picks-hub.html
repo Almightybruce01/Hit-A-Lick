@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hit-A-Lick — Post picks (Bruce &amp; Giap)</title>
+  <meta name="description" content="Hit-A-Lick only: post Bruce or Giap picks from the universal pool to subscriber boards." />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050814;
+      --panel: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.14);
+      --accent: #ff9f0a;
+      --mint: #2ee6c6;
+      --ink: #f4f7ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+      background: radial-gradient(900px 600px at 15% 0%, rgba(46,230,198,0.15), transparent),
+        radial-gradient(700px 500px at 95% 10%, rgba(255,159,10,0.12), transparent), var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .lead { color: rgba(255,255,255,0.65); font-size: 0.92rem; line-height: 1.5; margin-bottom: 20px; }
+    .pin-banner {
+      text-align: center;
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(46,230,198,0.35);
+      background: rgba(46,230,198,0.1);
+      margin-bottom: 22px;
+      font-size: 1.05rem;
+    }
+    .pin-banner code { font-size: 1.25rem; font-weight: 800; color: var(--mint); }
+    .grid { display: grid; gap: 16px; }
+    @media (min-width: 720px) { .grid.cols-2 { grid-template-columns: 1fr 1fr; } }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    }
+    .card h2 { margin: 0 0 10px; font-size: 1.1rem; color: var(--accent); }
+    .card.giap h2 { color: var(--mint); }
+    ol { margin: 0; padding-left: 1.2rem; color: rgba(255,255,255,0.82); font-size: 0.88rem; line-height: 1.55; }
+    ol li { margin-bottom: 8px; }
+    .cta {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-decoration: none;
+      background: linear-gradient(120deg, var(--mint), #7aa7ff);
+      color: #050814;
+    }
+    .warn {
+      margin-top: 22px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,159,10,0.35);
+      background: rgba(255,159,10,0.08);
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.45;
+    }
+    .foot { margin-top: 28px; font-size: 0.75rem; color: rgba(255,255,255,0.45); }
+    a.link { color: var(--mint); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Hit-A-Lick — post picks to the live boards</h1>
+    <p class="lead">This page is only for <strong>Hit-A-Lick</strong> (repo <a class="link" href="https://github.com/Almightybruce01/Hit-A-Lick">Almightybruce01/Hit-A-Lick</a>). Use the ops desk below; choose <strong>Bruce Pick's</strong> or <strong>Giap Pick's</strong> when you save. Fans see picks in the iOS app tab <strong>Picks</strong>.</p>
+
+    <div class="pin-banner">
+      Ops desk PIN (both Bruce and Giap type this): <code>2012</code>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="card bruce">
+        <h2>Bruce Pick's lane</h2>
+        <ol>
+          <li>Open the <strong>ops desk</strong> (button below).</li>
+          <li>Type PIN <strong>2012</strong>. Paste <strong>API base</strong> if the page asks (GitHub Pages): e.g. <code>https://api-lifnvql5aa-uc.a.run.app</code> — no trailing slash.</li>
+          <li>Tab <strong>Curator pool</strong> → <strong>Load pool</strong>.</li>
+          <li>Check the rows you want on <strong>Bruce</strong>'s board.</li>
+          <li>Lane dropdown: <strong>Bruce Pick's</strong> → <strong>Save to board</strong>.</li>
+        </ol>
+        <a class="cta" href="https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html">Open ops desk</a>
+      </div>
+      <div class="card giap">
+        <h2>Giap Pick's lane</h2>
+        <ol>
+          <li>Same ops desk and same PIN: <strong>2012</strong>.</li>
+          <li>Same API base URL if prompted.</li>
+          <li>Tab <strong>Curator pool</strong> → <strong>Load pool</strong>.</li>
+          <li>Check the rows for <strong>Giap</strong>.</li>
+          <li>Lane dropdown: <strong>Giap Pick's</strong> → <strong>Save to board</strong>.</li>
+        </ol>
+        <a class="cta" href="https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html">Open ops desk</a>
+      </div>
+    </div>
+
+    <div class="warn">
+      <strong>Before picks show in the pool:</strong> rows must exist in Firestore <code>universalPickPool</code> (Bruce adds them via owner tools / API). If Giap sees a wrong app name or error, confirm the URL starts with <code>almightybruce01.github.io/Hit-A-Lick/</code> — not another project. If unlock fails, click <strong>Lock / change PIN</strong> on the desk and enter <strong>2012</strong> again; set API base every time on a new device.
+    </div>
+
+    <p class="foot">Hit-A-Lick is informational analytics only. No wagers.</p>
+  </div>
+</body>
+</html>

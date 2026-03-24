@@ -40,6 +40,14 @@
     ],
     "rewrites": [
       {
+        "source": "/post-picks",
+        "destination": "/picks-hub.html"
+      },
+      {
+        "source": "/picks-hub",
+        "destination": "/picks-hub.html"
+      },
+      {
         "source": "/ops",
         "destination": "/ops-dashboard.html"
       },

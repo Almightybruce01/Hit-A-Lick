@@ -118,7 +118,7 @@ struct Premium: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
 
-                    Text("Subscribe per curator or all-access on hitalick.org — one bundle avoids paying twice for overlapping feeds.")
+                    Text("Subscribe per curator or all-access on the Hit-A-Lick pricing page — one bundle avoids paying twice for overlapping feeds.")
                         .font(.subheadline)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)

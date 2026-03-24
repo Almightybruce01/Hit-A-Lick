@@ -13,6 +13,9 @@ function firstPriceId(...candidates) {
 }
 
 /** Checkout uses these keys; set secrets in Firebase (see `functions/.env.example`). */
+/** Default return URLs for Stripe — Hit-A-Lick GitHub Pages only (override with APP_SUCCESS_URL / APP_CANCEL_URL). */
+const HITALICK_PAGES_ORIGIN = "https://almightybruce01.github.io/Hit-A-Lick";
+
 const PRICE_IDS = {
   core: firstPriceId(
     process.env.STRIPE_PRICE_CORE_MONTHLY,
@@ -269,7 +272,7 @@ router.post("/customer-portal", async (req, res) => {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: returnUrl || "https://hitalick.org/account",
+      return_url: returnUrl || `${HITALICK_PAGES_ORIGIN}/pricing.html`,
     });
 
     return res.json({ url: session.url });
