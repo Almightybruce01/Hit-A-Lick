@@ -17,6 +17,13 @@ Shortcut file (open in browser):
 Points to:
   $TARGET
 
+Live (GitHub Pages — same files as repo folder site/):
+  https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html
+  https://almightybruce01.github.io/Hit-A-Lick/ops/
+
+GitHub repo:
+  https://github.com/Almightybruce01/Hit-A-Lick
+
 PIN: 5505 (or OPS_DASHBOARD_PIN in production)
 
 Recreate this link after moving the repo:
