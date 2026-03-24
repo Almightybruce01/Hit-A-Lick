@@ -10,9 +10,7 @@
 
 Deployments run on every push to **`main`** via **`.github/workflows/pages.yml`** (GitHub Actions → Pages).
 
-### Custom domain / 404 on `investli.org`
-
-If `github.io` **redirects** to **`investli.org/Hit-A-Lick/...`** and you get **404**, your domain’s **DNS is not pointing at GitHub Pages** (often it points to Vercel or another host). Fix it in your DNS provider using [GitHub’s custom-domain docs](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site), **or** remove the custom domain in **GitHub → Settings → Pages** so **`github.io`** URLs load without that redirect.
+**Use only the `github.io` links in the table.** If GitHub Pages on your account is set to a custom domain and links break, turn that off under **GitHub → Settings → Pages** so **`almightybruce01.github.io/Hit-A-Lick/...`** loads normally.
 
 ## On your Mac (Desktop / repo)
 
@@ -98,4 +96,4 @@ All ops JSON routes require **`X-Ops-Pin`** or owner Bearer token.
 
 ## Curator owners (Mike, Giap, Bruce, Toriano)
 
-Firebase **does not** auto-create users from this repo. Create four users in **Firebase Console → Authentication**, then set secrets **`CURATOR_*_EMAIL`** to match. See **`scripts/setup-curators-auth.md`**.
+Firebase **does not** auto-create users from this repo. See **`docs/CURATOR_ACCOUNTS.md`** (four logins, secrets, Stripe, app). Stripe/env checklist: **`scripts/setup-curators-auth.md`**.

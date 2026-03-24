@@ -74,6 +74,8 @@ struct Premium: View {
         if let e = entitlement, e.active == true {
             if e.curatorAllAccess == true { return true }
             if (e.tier ?? "").lowercased() == "premium" { return true }
+            let tierLower = (e.tier ?? "").lowercased()
+            if tierLower.hasPrefix("curator_") { return true }
             if let ids = e.curatorIds, !ids.isEmpty { return true }
         }
         return hasAccess(tier: userTier, feature: .premiumBoards)
@@ -83,7 +85,9 @@ struct Premium: View {
         if let e = entitlement, e.active == true {
             if e.curatorAllAccess == true { return true }
             if (e.tier ?? "").lowercased() == "premium" { return true }
-            if let ids = e.curatorIds, ids.map({ $0.lowercased() }).contains(slug.lowercased()) {
+            let s = slug.lowercased()
+            if (e.tier ?? "").lowercased() == "curator_\(s)" { return true }
+            if let ids = e.curatorIds, ids.map({ $0.lowercased() }).contains(s) {
                 return true
             }
         }

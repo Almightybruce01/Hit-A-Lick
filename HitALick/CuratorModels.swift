@@ -93,6 +93,7 @@ struct BillingEntitlementResponse: Decodable {
 
 struct CuratorMeResponse: Decodable {
     let curatorId: String?
+    let curatorDisplayName: String?
     let isOwner: Bool?
     let canEditPool: Bool?
 }

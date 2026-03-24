@@ -1,5 +1,7 @@
 # Curator Firebase Auth + Stripe (one-time)
 
+Full step-by-step for the four lanes (emails, secrets, app behavior): **`docs/CURATOR_ACCOUNTS.md`**.
+
 ## 1) Create four curator users in Firebase Auth
 
 In [Firebase Console](https://console.firebase.google.com) → Authentication → Add user:

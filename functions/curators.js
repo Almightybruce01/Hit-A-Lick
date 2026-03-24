@@ -101,6 +101,10 @@ function userCuratorAccess(entitlement = {}) {
   const tier = String(entitlement.tier || "").toLowerCase();
   if (tier === "premium") return ALL_CURATORS;
   if (tier === "bruce") return ["bruce"];
+  if (tier.startsWith("curator_")) {
+    const slug = tier.slice("curator_".length);
+    return CURATOR_SLUGS.includes(slug) ? [slug] : [];
+  }
   return [];
 }
 
@@ -203,6 +207,7 @@ router.get("/me", requireAuthUid, async (req, res) => {
   const isOwner = req.viewer.email === OWNER_EMAIL;
   return res.json({
     curatorId: slug,
+    curatorDisplayName: slug ? CURATOR_LABELS[slug] || slug : null,
     isOwner,
     canEditPool: isOwner,
   });

@@ -114,7 +114,17 @@ async function recomputeEntitlementFromSubscriptions(uid) {
 
     const tier = String(d.tier || "").toLowerCase();
     if (tier === "premium") curatorAllAccess = true;
-    if (tier === "bruce") curatorSet.add("bruce");
+    if (tier.startsWith("curator_")) {
+      const slug = tier.slice("curator_".length);
+      if (ALL_CURATOR_IDS.includes(slug)) curatorSet.add(slug);
+    } else if (tier === "bruce") {
+      const single = cm && !cm.includes(",") && cm !== "all" && cm !== "*" ? cm : "";
+      if (single && ALL_CURATOR_IDS.includes(single)) {
+        curatorSet.add(single);
+      } else {
+        curatorSet.add("bruce");
+      }
+    }
 
     const cid = d.stripeCustomerId || null;
     if (cid) stripeCustomerId = cid;
@@ -127,13 +137,13 @@ async function recomputeEntitlementFromSubscriptions(uid) {
   }
 
   const curatorIds = curatorAllAccess ? ALL_CURATOR_IDS : [...curatorSet];
-  const tierOut = anyActive
-    ? curatorAllAccess
-      ? "premium"
-      : curatorIds.length
-        ? "bruce"
-        : String(prev.tier || "core")
-    : "core";
+  let tierOut = "core";
+  if (anyActive) {
+    if (curatorAllAccess) tierOut = "premium";
+    else if (curatorIds.length === 1) tierOut = `curator_${curatorIds[0]}`;
+    else if (curatorIds.length > 1) tierOut = "premium";
+    else tierOut = String(prev.tier || "core");
+  }
 
   if (!anyActive) {
     await userRef.set(
@@ -210,7 +220,7 @@ function curatorMetaForTier(tierRaw) {
   if (tier === "all_curators") return { tier: "premium", curators: "all" };
   if (tier.startsWith("curator_")) {
     const slug = tier.replace(/^curator_/, "");
-    return { tier: "bruce", curators: slug };
+    return { tier: `curator_${slug}`, curators: slug };
   }
   return { tier, curators: "" };
 }

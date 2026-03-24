@@ -259,7 +259,7 @@ struct AccountView: View {
                         HStack {
                             Image(systemName: "person.crop.rectangle.stack")
                                 .foregroundColor(.orange)
-                            Text("Open \(slugLabel(slug))")
+                            Text("Open \(curatorMe?.curatorDisplayName ?? slugLabel(slug))")
                                 .foregroundColor(.white)
                             Spacer()
                             Image(systemName: "chevron.right")
