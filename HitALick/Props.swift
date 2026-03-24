@@ -55,6 +55,7 @@ struct Props: View {
     @State private var isLoading = true
     @State private var lastRefresh: Date?
     @State private var apiWarning: String?
+    @State private var windowDaysShown: Int = 3
 
     private var baseList: [Prop] {
         props
@@ -99,6 +100,28 @@ struct Props: View {
                 )
                 .padding(.horizontal, 12)
                 .padding(.top, 8)
+
+                if !isLoading {
+                    HStack(spacing: 8) {
+                        Image(systemName: "calendar.badge.clock")
+                            .foregroundColor(.cyan.opacity(0.9))
+                        Text("Next \(windowDaysShown) days • AI confidence on each card • American odds on every leg")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundColor(.white.opacity(0.78))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.black.opacity(0.28))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.cyan.opacity(0.22), lineWidth: 1)
+                    )
+                    .cornerRadius(12)
+                    .padding(.horizontal, 12)
+                    .padding(.top, 6)
+                }
 
                 tabBar
                     .padding(.horizontal, 12)
@@ -235,6 +258,7 @@ struct Props: View {
             let env = try await APIServices.shared.fetchPropsSnapshot(for: selectedSport)
             props = env.props
             apiWarning = env.warning
+            windowDaysShown = env.coverage?.windowDays ?? 3
             lastRefresh = Date()
         } catch {
             print("❌ Props snapshot error:", error.localizedDescription)

@@ -296,12 +296,13 @@ function mergeStaffEntitlement(base, email) {
     };
   }
   if (giap && e === giap) {
+    /** Co-curator: same in-app / board access as owner (both lanes, premium, AI); still labeled staffRole giap for audits. */
     return {
       ...ent,
       active: true,
-      tier: "curator_giap",
-      curatorIds: ["giap"],
-      curatorAllAccess: false,
+      tier: "premium",
+      curatorAllAccess: true,
+      curatorIds: ALL_CURATOR_IDS,
       staffRole: "giap",
       aiUnlimited: true,
     };
@@ -402,4 +403,4 @@ async function handleStripeWebhook(req, res) {
   }
 }
 
-export { router, handleStripeWebhook };
+export { router, handleStripeWebhook, mergeStaffEntitlement };

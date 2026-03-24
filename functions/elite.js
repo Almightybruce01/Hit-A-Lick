@@ -1,5 +1,6 @@
 import express from "express";
 import admin from "firebase-admin";
+import { mergeStaffEntitlement } from "./billing.js";
 import {
   TIER_RANK,
   normalizeTier,
@@ -27,11 +28,13 @@ async function requireAuth(req, res, next) {
     }
 
     let tier = "core";
-    if ((decoded.email || "").toLowerCase() === OWNER_EMAIL) {
+    const email = (decoded.email || "").toLowerCase();
+    if (email === OWNER_EMAIL) {
       tier = "elite";
     } else {
       const userSnap = await admin.firestore().collection("users").doc(uid).get();
-      const entitlement = userSnap.exists ? userSnap.data()?.entitlement || {} : {};
+      const rawEnt = userSnap.exists ? userSnap.data()?.entitlement || {} : {};
+      const entitlement = mergeStaffEntitlement({ ...rawEnt }, email);
       const active = entitlement.active === true;
       const rawTier = normalizeTier(entitlement.tier || "core");
       tier = active ? rawTier : "core";

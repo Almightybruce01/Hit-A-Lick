@@ -185,6 +185,7 @@
       <button type="button" class="tab" data-tab="guide">Dashboard AI</button>
       <button type="button" class="tab" data-tab="insights">AI insights</button>
       <button type="button" class="tab" data-tab="pricing">Stripe prices</button>
+      <button type="button" class="tab" data-tab="props">Props (3 days)</button>
       <button type="button" class="tab" data-tab="curator">Curator pool</button>
       <button type="button" class="tab" data-tab="help">Deploy / checklist</button>
     </div>
@@ -225,6 +226,28 @@
       <div class="panel full">
         <h2>Stripe price IDs (masked)</h2>
         <pre id="pricing"></pre>
+      </div>
+    </div>
+
+    <div id="pane-props" class="grid hidden">
+      <div class="panel full">
+        <h2>Props — rolling 3-day window</h2>
+        <p class="sub">Matches the iOS props board: <code>GET /api/props?sport=…&amp;windowDays=3&amp;includeBooks=1</code>. Each row shows matchup, <strong>AI confidence %</strong>, and core lines (spread / total / ML). Leg odds appear in the JSON panel.</p>
+        <label for="propsSportSel" style="font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase">Sport</label>
+        <select id="propsSportSel" style="display:block;margin:8px 0 12px;padding:10px 12px;border-radius:10px;width:100%;max-width:280px;background:rgba(0,0,0,0.35);color:#fff;border:1px solid var(--border)">
+          <option value="all">ALL</option>
+          <option value="nba">NBA</option>
+          <option value="nfl">NFL</option>
+          <option value="mlb">MLB</option>
+          <option value="wnba">WNBA</option>
+        </select>
+        <div class="row" style="margin-bottom:12px">
+          <button type="button" class="secondary" id="btnLoadProps">Load props</button>
+        </div>
+        <p id="propsMeta" class="sug" style="margin-bottom:10px"></p>
+        <div id="propsCards" style="max-height:380px;overflow:auto;margin-bottom:14px"></div>
+        <h2 style="font-size:0.9rem">Sample JSON (first event)</h2>
+        <pre id="propsRaw" style="max-height:220px"></pre>
       </div>
     </div>
 
@@ -284,7 +307,7 @@
           <ul>
             <li><strong>Load pool</strong> — <code>GET /api/ops/universal-pool</code> (Firestore universal pool).</li>
             <li>Check rows, choose lane <strong>Bruce Pick's</strong> or <strong>Giap Pick's</strong>, <strong>Save to board</strong> — <code>POST /api/ops/curator-board/select</code>.</li>
-            <li>Paid subscribers see these boards in the iOS app <strong>Premium</strong> tab.</li>
+            <li>Paid subscribers see these boards in the iOS app <strong>Picks</strong> tab (bottom bar).</li>
             <li>Pool rows are created with <strong>owner</strong> tools (API / scripts), not by subscribers.</li>
           </ul>
         </div>
@@ -292,7 +315,7 @@
         <div class="feat-section">
           <h3>iOS app (not on this page)</h3>
           <ul>
-            <li><strong>Premium</strong> — subscribe / view Bruce &amp; Giap boards.</li>
+            <li><strong>Picks</strong> — subscribe / view Bruce &amp; Giap boards.</li>
             <li><strong>Account → Curator Studio</strong> — Bruce (owner) can manage lanes; Giap only the Giap lane.</li>
             <li><strong>AI Lab</strong> — separate from this ops desk; pick/copilot quota for users; unlimited for staff / eligible subs (see app + <code>functions/ai.js</code>).</li>
             <li><strong>Props &amp; slates</strong> — live odds/props; props hide after game start (second-half markets need backend tags).</li>
@@ -330,7 +353,7 @@
     <div id="pane-curator" class="grid hidden">
       <div class="panel full">
         <h2>Universal pool → Bruce / Giap boards</h2>
-        <p class="sub">Load rows from Firestore, select checkboxes, choose lane, save. Subscribers see boards in the iOS <strong>Premium</strong> tab.</p>
+        <p class="sub">Load rows from Firestore, select checkboxes, choose lane, save. Subscribers see boards in the iOS <strong>Picks</strong> tab.</p>
         <label for="curatorLane" style="font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase">Lane</label>
         <select id="curatorLane" style="display:block;margin:8px 0 12px;padding:10px 12px;border-radius:10px;width:100%;max-width:320px;background:rgba(0,0,0,0.35);color:#fff;border:1px solid var(--border)">
           <option value="bruce">Bruce Pick's</option>
@@ -528,12 +551,58 @@
     tabs.forEach(function (t) {
       t.classList.toggle("active", t.getAttribute("data-tab") === name);
     });
-    ["desk", "features", "guide", "insights", "pricing", "curator", "help"].forEach(function (id) {
+    ["desk", "features", "guide", "insights", "pricing", "props", "curator", "help"].forEach(function (id) {
       document.getElementById("pane-" + id).classList.toggle("hidden", id !== name);
     });
     if (name === "desk") loadDesk();
     if (name === "insights") loadInsights();
     if (name === "pricing") loadPricing();
+  }
+
+  function escapeHtml(s) {
+    var t = String(s == null ? "" : s);
+    return t
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  async function loadPropsDesk() {
+    var sport = (document.getElementById("propsSportSel").value || "nba").toLowerCase();
+    var cards = document.getElementById("propsCards");
+    var raw = document.getElementById("propsRaw");
+    var meta = document.getElementById("propsMeta");
+    meta.textContent = "";
+    cards.innerHTML = "";
+    raw.textContent = "";
+    setStatus("Loading props (3-day window)…", "");
+    try {
+      var path = "/api/props?sport=" + encodeURIComponent(sport) + "&windowDays=3&includeBooks=1";
+      var res = await apiFetch(path);
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      var list = data.props || [];
+      var wd = (data.coverage && data.coverage.windowDays) || 3;
+      meta.textContent = "Events: " + list.length + " • windowDays=" + wd + (data.warning ? " • " + data.warning : "");
+      list.slice(0, 60).forEach(function (p) {
+        var conf = Math.round(Number(p.confidence != null ? p.confidence : 0));
+        var div = document.createElement("div");
+        div.style.cssText = "border:1px solid rgba(255,255,255,0.14);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:rgba(0,0,0,0.25)";
+        div.innerHTML =
+          '<div style="font-weight:800;color:#fff;margin-bottom:6px">' + escapeHtml(p.matchup || "(game)") + "</div>" +
+          '<div style="font-size:0.8rem;line-height:1.45;color:rgba(255,255,255,0.82)">' +
+          "<strong>AI confidence</strong> " + conf + "% • Spread " + escapeHtml(p.spread || "—") +
+          " • Total " + escapeHtml(p.total || "—") + " • ML " + escapeHtml(p.moneyline || "—") +
+          "</div>";
+        cards.appendChild(div);
+      });
+      raw.textContent = list.length ? JSON.stringify(list[0], null, 2) : "(empty)";
+      setStatus("Props OK", "ok");
+    } catch (e) {
+      setStatus("Props failed: " + e.message, "err");
+      meta.textContent = e.message || String(e);
+    }
   }
 
   async function askDashboardGuide() {
@@ -612,6 +681,10 @@
   });
   document.getElementById("btnSaveBoard").addEventListener("click", function () {
     saveCuratorBoard();
+  });
+
+  document.getElementById("btnLoadProps").addEventListener("click", function () {
+    loadPropsDesk();
   });
 
   document.getElementById("btnAskGuide").addEventListener("click", function () {

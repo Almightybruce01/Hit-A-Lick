@@ -1,5 +1,20 @@
 # Bruce + Giap curator logins (two lanes only)
 
+## Sites to bookmark
+
+| What | URL |
+|------|-----|
+| **Ops desk** (PIN, curator pool, **Props 3-day** tab) | [almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html](https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html) |
+| **Web hub** (cards to ops, picks guide, pricing) | [almightybruce01.github.io/Hit-A-Lick/app-access.html](https://almightybruce01.github.io/Hit-A-Lick/app-access.html) |
+| **Picks & staff steps** (this flow in one page) | [almightybruce01.github.io/Hit-A-Lick/curators-picks.html](https://almightybruce01.github.io/Hit-A-Lick/curators-picks.html) |
+| **Elite web desk** (props + confidence UI; set API origin in page if needed) | [almightybruce01.github.io/Hit-A-Lick/app.html](https://almightybruce01.github.io/Hit-A-Lick/app.html) |
+| **Pricing** | [almightybruce01.github.io/Hit-A-Lick/pricing.html](https://almightybruce01.github.io/Hit-A-Lick/pricing.html) |
+| **GitHub** | [github.com/Almightybruce01/Hit-A-Lick](https://github.com/Almightybruce01/Hit-A-Lick) |
+
+**iOS:** install your Hit-A-Lick build → sign in with Firebase → bottom tab **Picks** = Bruce & Giap boards. **Home → Open Props** = 3-day slate with AI confidence + leg odds.
+
+---
+
 ## Exact steps to get picks live (subscribers see them)
 
 ### One-time setup (Bruce or dev)
@@ -33,13 +48,13 @@
 
 ### Subscribers (not admins)
 
-- Pay via Stripe in the app → **Premium** tab shows **Bruce** / **Giap** boards you published.
+- Pay via Stripe in the app → **Picks** tab (bottom bar) shows **Bruce** / **Giap** boards you published.
 
 ---
 
 **Bruce** (`brucebrian50@gmail.com`) is **main admin**: Firebase `OWNER_EMAIL`, universal pick pool, ops desk PIN, all curator studios, full entitlements in-app when signed in.
 
-**Giap** (`giap.social1@gmail.com`) is **co-curator**: only the **Giap** lane in Curator Studio and API; gets **complimentary** Premium-tier + **unlimited AI** when that exact email signs in (see `mergeStaffEntitlement` in `functions/billing.js` and AI gate in `functions/ai.js`). Fans still **pay Stripe** to view Giap’s board unless they’re staff.
+**Giap** (`giap.social1@gmail.com`) is **co-curator**: in **Curator Studio** he only **edits** the **Giap** lane, but the API treats him like staff for **viewing**: **both boards**, **premium-tier features**, **unlimited AI**, and **stream center** when signed in with that email (`mergeStaffEntitlement` in `functions/billing.js` + board gate in `functions/curators.js`). Fans still **pay Stripe** to view boards unless they’re staff.
 
 | Lane | Firebase display name (recommended) | Secret |
 |------|----------------------------------------|--------|

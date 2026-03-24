@@ -55,6 +55,7 @@ private let curatorSlugs = ["bruce", "giap"]
 
 struct Premium: View {
     @AppStorage("hitalick_tier") private var tierRaw: String = UserTier.core.rawValue
+    @AppStorage("hitalick_staff_unlock") private var staffVIPUnlock: Bool = false
     @State private var curatorTab = "bruce"
     @State private var boards: [String: CuratorBoardAPIResponse] = [:]
     @State private var entitlement: BillingEntitlementPayload?
@@ -111,6 +112,12 @@ struct Premium: View {
                         .bold()
                         .foregroundColor(.orange)
 
+                    Text("Same boards on the bottom tab: Picks (Bruce & Giap).")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
                     Text("Subscribe per curator or all-access on hitalick.org — one bundle avoids paying twice for overlapping feeds.")
                         .font(.subheadline)
                         .foregroundColor(.white)
@@ -122,7 +129,7 @@ struct Premium: View {
                         .foregroundColor(.cyan.opacity(0.9))
 
                     if isPreviewMode {
-                        Text("Preview mode: log in with an active curator pass to load live boards.")
+                        Text("Preview mode: log in with a curator pass or Bruce/Giap staff email to load live boards.")
                             .font(.caption)
                             .foregroundColor(.yellow.opacity(0.95))
                             .padding(.horizontal)
@@ -135,7 +142,7 @@ struct Premium: View {
                             Text("Membership")
                                 .font(.headline)
                                 .foregroundColor(.white)
-                            Text("Bruce Pick’s and Giap Pick’s each publish a board from the universal pool. Past results only show picks that were officially logged.")
+                            Text("Bruce Pick’s and Giap Pick’s each publish a board from the universal pool (fans open the Picks tab). Past results only show picks that were officially logged.")
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.82))
                             HStack(spacing: 8) {
@@ -481,11 +488,13 @@ struct Premium: View {
         do {
             guard let user = Auth.auth().currentUser else {
                 isPreviewMode = true
+                staffVIPUnlock = false
                 boards = CuratorBoardAPIResponse.previewAll()
                 return
             }
             let token = try await user.getIDToken()
-            entitlement = try await fetchEntitlement(uid: user.uid, token: token)
+            entitlement = try await APIServices.shared.fetchBillingEntitlement(uid: user.uid, token: token)
+            staffVIPUnlock = entitlement?.unlocksStaffVIPFeatures ?? false
 
             if !entitlementUnlocked {
                 isPreviewMode = true
@@ -504,6 +513,7 @@ struct Premium: View {
             loadError = nil
         } catch {
             isPreviewMode = true
+            staffVIPUnlock = false
             loadError = error.localizedDescription
             boards = CuratorBoardAPIResponse.previewAll()
         }
@@ -523,15 +533,6 @@ struct Premium: View {
         } catch {
             loadError = error.localizedDescription
         }
-    }
-
-    private func fetchEntitlement(uid: String, token: String) async throws -> BillingEntitlementPayload? {
-        let url = URL(string: "\(APIConfig.baseURL)/api/billing/entitlements/\(uid)")!
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let decoded = try JSONDecoder().decode(BillingEntitlementResponse.self, from: data)
-        return decoded.entitlement
     }
 
     private func fetchCuratorBoard(slug: String, uid: String, token: String) async throws -> CuratorBoardAPIResponse {

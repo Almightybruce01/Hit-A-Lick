@@ -12,11 +12,11 @@ Tabs after unlock:
 1) Environment — GET /api/ops/dashboard: env flags, marketsBySport per nba/nfl/mlb/wnba, raw ops JSON. Use to confirm Odds API key presence, bookmakers, prop market tier.
 2) AI insights — GET /api/ops/insights: rule-based suggestions (quota, Stripe prices missing, curator emails), optional OpenAI paragraph if OPENAI_API_KEY set.
 3) Stripe prices — GET /api/billing/pricing-status: which Stripe price env vars are set (masked).
-4) Curator pool — GET /api/ops/universal-pool lists Firestore universal pool rows. User checks rows, picks lane "bruce" or "giap", Save calls POST /api/ops/curator-board/select with { curatorId, pickIds }. Those picks appear on subscriber-facing curator boards (iOS Premium tab). Only Bruce (owner) or anyone with valid ops PIN can use this tab; Giap normally uses iOS Curator Studio for his lane only.
+4) Curator pool — GET /api/ops/universal-pool lists Firestore universal pool rows. User checks rows, picks lane "bruce" or "giap", Save calls POST /api/ops/curator-board/select with { curatorId, pickIds }. Those picks appear on subscriber-facing curator boards (iOS bottom tab "Picks"). Only Bruce (owner) or anyone with valid ops PIN can use this tab; Giap normally uses iOS Curator Studio for his lane only.
 5) All features — static list in UI (same as this catalog).
 6) Dashboard AI — this assistant; POST /api/ops/dashboard-guide with { message }.
 
-iOS app: Premium tab shows paid curator boards. Account → Curator Studio: owner Bruce can push/select for lanes; Giap only manages Giap lane. Universal pool rows are created with owner-authenticated API (e.g. POST /api/curators/pool/add with Bearer).
+iOS app: "Picks" tab shows paid curator boards. Account → Curator Studio: Bruce can push/select for lanes; Giap only manages Giap lane for edits. Universal pool rows are created with owner-authenticated API (e.g. POST /api/curators/pool/add with Bearer).
 
 Accounts: OWNER / main admin email brucebrian50@gmail.com. Co-curator giap.social1@gmail.com (CURATOR_GIAP_EMAIL). Two lanes only: bruce, giap.
 

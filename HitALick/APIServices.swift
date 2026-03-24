@@ -660,6 +660,15 @@ extension APIServices {
         }
         return try JSONDecoder().decode(OpsDashboardResponse.self, from: data)
     }
+
+    func fetchBillingEntitlement(uid: String, token: String) async throws -> BillingEntitlementPayload? {
+        let url = URL(string: "\(baseURL)/api/billing/entitlements/\(uid)")!
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, _) = try await urlSession.data(for: request)
+        let decoded = try JSONDecoder().decode(BillingEntitlementResponse.self, from: data)
+        return decoded.entitlement
+    }
 }
 
 // MARK: - Safe Array

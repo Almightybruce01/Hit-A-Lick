@@ -81,7 +81,7 @@ struct HomeScreen: View {
 
                     Premium()
                         .tag(5)
-                        .tabItem { Label("Premium", systemImage: "star.fill") }
+                        .tabItem { Label("Picks", systemImage: "person.3.fill") }
                 }
                 .accentColor(.orange)
                 .overlay(
@@ -109,9 +109,14 @@ struct HomeScreen: View {
 // MARK: - Embedded Home Content
 struct HomeContent: View {
     @AppStorage("hitalick_tier") private var tierRaw: String = UserTier.core.rawValue
+    @AppStorage("hitalick_staff_unlock") private var staffVIPUnlock: Bool = false
     @State private var selectedSport: String = "NBA"
     private let sports = ["NBA", "NFL", "MLB", "WNBA"]
     private var userTier: UserTier { UserTier(rawValue: tierRaw) ?? .core }
+
+    private var streamUnlocked: Bool {
+        staffVIPUnlock || hasAccess(tier: userTier, feature: .streamCenter)
+    }
 
     var body: some View {
         ZStack {
@@ -155,7 +160,7 @@ struct HomeContent: View {
                                 }
                                 .simultaneousGesture(TapGesture().onEnded { EliteHaptics.medium() })
                                 NavigationLink(destination: Premium()) {
-                                    Text("Premium Board")
+                                    Text("Bruce & Giap Picks")
                                         .font(.subheadline.weight(.semibold))
                                         .foregroundColor(.white)
                                         .padding(.vertical, 8)
@@ -167,17 +172,17 @@ struct HomeContent: View {
                                 NavigationLink(destination: OfficialStreamsView()) {
                                     Text("Official Streams")
                                         .font(.subheadline.weight(.semibold))
-                                        .foregroundColor(hasAccess(tier: userTier, feature: .streamCenter) ? .white : .white.opacity(0.45))
+                                        .foregroundColor(streamUnlocked ? .white : .white.opacity(0.45))
                                         .padding(.vertical, 8)
                                         .padding(.horizontal, 12)
                                         .background(Color.white.opacity(0.14))
                                         .cornerRadius(10)
                                 }
-                                .disabled(!hasAccess(tier: userTier, feature: .streamCenter))
+                                .disabled(!streamUnlocked)
                                 .simultaneousGesture(TapGesture().onEnded { EliteHaptics.medium() })
                             }
-                            if !hasAccess(tier: userTier, feature: .streamCenter) {
-                                Text("Pro required for stream center.")
+                            if !streamUnlocked {
+                                Text("Pro tier or Bruce/Giap staff login unlocks Official Streams.")
                                     .font(.caption2)
                                     .foregroundColor(.yellow.opacity(0.9))
                             }
@@ -187,6 +192,9 @@ struct HomeContent: View {
                                 MetricChip(title: "Mode", value: "Pro", isPositive: true)
                             }
                         }
+                    }
+                    .task {
+                        await syncStaffVIPFromServer()
                     }
 
                     ElitePanel {
@@ -241,6 +249,25 @@ struct HomeContent: View {
             }
         }
         .screenEntrance()
+    }
+
+    @MainActor
+    private func syncStaffVIPFromServer() async {
+        guard Auth.auth().currentUser != nil else {
+            staffVIPUnlock = false
+            return
+        }
+        guard let user = Auth.auth().currentUser else {
+            staffVIPUnlock = false
+            return
+        }
+        do {
+            let token = try await user.getIDToken()
+            let ent = try await APIServices.shared.fetchBillingEntitlement(uid: user.uid, token: token)
+            staffVIPUnlock = ent?.unlocksStaffVIPFeatures ?? false
+        } catch {
+            staffVIPUnlock = false
+        }
     }
 
     func propsForSport(_ sport: String) -> [String] {

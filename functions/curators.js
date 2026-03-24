@@ -1,5 +1,6 @@
 import express from "express";
 import admin from "firebase-admin";
+import { mergeStaffEntitlement } from "./billing.js";
 
 const router = express.Router();
 const OWNER_EMAIL = (process.env.OWNER_EMAIL || "brucebrian50@gmail.com").toLowerCase();
@@ -125,7 +126,8 @@ async function requireCuratorSubscriber(req, res, next) {
       return res.status(400).json({ error: "Unknown curator." });
     }
     const snap = await admin.firestore().collection("users").doc(uid).get();
-    const ent = snap.exists ? snap.data()?.entitlement || {} : {};
+    const rawEnt = snap.exists ? snap.data()?.entitlement || {} : {};
+    const ent = mergeStaffEntitlement({ ...rawEnt }, req.viewer.email);
     const active = ent.active === true;
     const access = userCuratorAccess(ent);
     const expectedCuratorEmail = curatorEmailEnv(curatorId);

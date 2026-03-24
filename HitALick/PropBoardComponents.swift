@@ -299,7 +299,25 @@ struct PropEventBoardCard: View {
             HStack(alignment: .top) {
                 PropGameHeaderStrip(prop: prop)
                 Spacer(minLength: 8)
-                PropConfidenceBadge(percent: prop.confidencePercent, tint: prop.confidenceTint)
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("AI")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.white.opacity(0.45))
+                    PropConfidenceBadge(percent: prop.confidencePercent, tint: prop.confidenceTint)
+                    Text("\(prop.confidencePercent)%")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white.opacity(0.55))
+                }
+            }
+
+            HStack {
+                Text("Game AI confidence")
+                    .font(.caption2.weight(.bold))
+                    .foregroundColor(.white.opacity(0.5))
+                Spacer()
+                Text("\(prop.confidencePercent)% • \(prop.confidenceTint.uppercased()) band")
+                    .font(.caption2.weight(.heavy))
+                    .foregroundColor(.cyan.opacity(0.92))
             }
 
             PropCoreLinesRow(prop: prop)

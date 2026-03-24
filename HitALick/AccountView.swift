@@ -11,6 +11,7 @@ import FirebaseAuth
 struct AccountView: View {
     @AppStorage("isUserLoggedIn") var isUserLoggedIn: Bool = false
     @AppStorage("hitalick_tier") private var tierRaw: String = UserTier.core.rawValue
+    @AppStorage("hitalick_staff_unlock") private var staffVIPUnlock: Bool = false
     @State private var glow = false
     @State private var userEmail = "Guest"
     @State private var userUid = "-"
@@ -173,6 +174,7 @@ struct AccountView: View {
 #endif
 
                     Button("Log Out") {
+                        staffVIPUnlock = false
                         try? Auth.auth().signOut()
                         isUserLoggedIn = false
                     }
@@ -191,6 +193,7 @@ struct AccountView: View {
         .screenEntrance()
         .task(id: userUid) {
             await loadCuratorMe()
+            await refreshStaffEntitlement()
         }
         .onAppear {
             withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
@@ -284,6 +287,21 @@ struct AccountView: View {
         case "giap": return "Giap Pick's"
         case "bruce": return "Bruce Pick's"
         default: return slug.uppercased()
+        }
+    }
+
+    @MainActor
+    private func refreshStaffEntitlement() async {
+        guard let user = Auth.auth().currentUser else {
+            staffVIPUnlock = false
+            return
+        }
+        do {
+            let token = try await user.getIDToken()
+            let ent = try await APIServices.shared.fetchBillingEntitlement(uid: user.uid, token: token)
+            staffVIPUnlock = ent?.unlocksStaffVIPFeatures ?? false
+        } catch {
+            staffVIPUnlock = false
         }
     }
 

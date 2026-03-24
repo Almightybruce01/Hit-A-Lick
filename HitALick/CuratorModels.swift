@@ -87,6 +87,14 @@ struct BillingEntitlementPayload: Decodable {
     let curatorIds: [String]?
     let staffRole: String?
     let aiUnlimited: Bool?
+
+    /// Bruce + Giap staff accounts: unlock stream center + tier-gated UI without changing the debug tier picker.
+    var unlocksStaffVIPFeatures: Bool {
+        guard active == true else { return false }
+        if let s = staffRole, !s.isEmpty { return true }
+        if curatorAllAccess == true { return true }
+        return (tier ?? "").lowercased() == "premium"
+    }
 }
 
 struct BillingEntitlementResponse: Decodable {
