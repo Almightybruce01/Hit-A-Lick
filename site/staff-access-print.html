@@ -46,6 +46,7 @@
 
   <h1>Hit-A-Lick — Access guide</h1>
   <p class="tag">Staff logins, URLs, and step-by-step flows. To save as PDF: open this page in a browser → Print → Save as PDF.</p>
+  <p class="box" style="font-family:-apple-system,sans-serif;"><strong>Ops desk PIN (type in the unlock field):</strong> 2012</p>
 
   <p class="no-print" style="font-family:-apple-system,sans-serif;font-size:10pt;">
     Live copy of this file:<br />
@@ -90,9 +91,10 @@
   </table>
 
   <h2>Ops desk — Bruce (or anyone with PIN)</h2>
+  <p><strong>Type this in the PIN field on the unlock screen:</strong> <span class="mono" style="font-size:1.1em;font-weight:700">2012</span> — unless your server secret <code>OPS_DASHBOARD_PIN</code> was set to something else.</p>
   <ol>
     <li>Open the ops URL above (or Desktop file <code>Hit-A-Lick-Ops-Desk.webloc</code> after running <code>bash scripts/install-live-dashboard-desktop.sh</code> in the repo — file sits on Desktop root, not in a folder).</li>
-    <li>Enter PIN: default <strong>2012</strong> unless <code>OPS_DASHBOARD_PIN</code> was changed on the server.</li>
+    <li>When the page asks for a PIN, type: <strong>2012</strong></li>
     <li>If the page is hosted on <code>github.io</code>, paste your <strong>API base URL</strong> (Cloud Run or Firebase API origin, no trailing slash).</li>
     <li>Tab <strong>Curator pool</strong> → <strong>Load pool</strong> → check rows → choose lane <strong>Bruce Pick's</strong> or <strong>Giap Pick's</strong> → <strong>Save to board</strong>.</li>
     <li>Optional: tab <strong>Props (3 days)</strong> → pick sport → <strong>Load props</strong> to verify slate and AI confidence.</li>
