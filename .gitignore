@@ -15,6 +15,7 @@ Pods/
 functions/node_modules/
 functions/.env
 functions/.env.*
+!functions/.env.example
 
 # Firebase local cache
 .firebase/
