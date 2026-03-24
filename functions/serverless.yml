@@ -1,0 +1,174 @@
+service: hit-a-lick-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-2
+  timeout: 30
+  architecture: arm64   # ⚡ 40% cheaper & faster
+  environment:
+    NODE_OPTIONS: '--enable-source-maps'
+    FIREBASE_PROJECT_ID: ${env:FIREBASE_PROJECT_ID}
+    FIREBASE_CLIENT_EMAIL: ${env:FIREBASE_CLIENT_EMAIL}
+    FIREBASE_PRIVATE_KEY: ${env:FIREBASE_PRIVATE_KEY}
+
+  logs:
+    http: true
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+custom:
+  dotenv:
+    path: .env
+
+# ----------------------------------------------------
+# 🔥 ALL FUNCTIONS — ALL USING ESM `export const handler`
+# ----------------------------------------------------
+
+functions:
+  # --- SCRAPING ROUTES (STANDINGS / LEAGUES) ---
+  nba:
+    handler: sportsdataapi/nba.handler
+    events:
+      - http:
+          path: nba
+          method: get
+          cors: true
+
+  nfl:
+    handler: sportsdataapi/nfl.handler
+    events:
+      - http:
+          path: nfl
+          method: get
+          cors: true
+
+  mlb:
+    handler: sportsdataapi/mlb.handler
+    events:
+      - http:
+          path: mlb
+          method: get
+          cors: true
+
+  wnba:
+    handler: sportsdataapi/wnba.handler
+    events:
+      - http:
+          path: wnba
+          method: get
+          cors: true
+
+  # --- GAME SCRAPERS ---
+  liveGame:
+    handler: sportsdataapi/liveGame.handler
+    events:
+      - http:
+          path: liveGame
+          method: get
+          cors: true
+
+  upcomingGames:
+    handler: sportsdataapi/upcomingGames.handler
+    events:
+      - http:
+          path: upcomingGames
+          method: get
+          cors: true
+
+  # --- PLAYER & TEAM STATS ---
+  playerStats:
+    handler: sportsdataapi/playerStats.handler
+    events:
+      - http:
+          path: playerStats
+          method: get
+          cors: true
+
+  teamStats:
+    handler: sportsdataapi/teamStats.handler
+    events:
+      - http:
+          path: teamStats
+          method: get
+          cors: true
+
+  # --- SCRAPERS FOR FIRESTORE POPULATION ---
+  scrapePlayers:
+    handler: sportsdataapi/playerScraper.handler
+    events:
+      - http:
+          path: scrapePlayers
+          method: get
+          cors: true
+
+  scrapeTeams:
+    handler: sportsdataapi/teamScraper.handler
+    events:
+      - http:
+          path: scrapeTeams
+          method: get
+          cors: true
+
+  setupSports:
+    handler: sportsdataapi/sportSetup.handler
+    events:
+      - http:
+          path: setupSports
+          method: get
+          cors: true
+
+  # --- CACHING (SCHEDULED) ---
+  cacheStats:
+    handler: sportsdataapi/cacheStats.handler
+    events:
+      - schedule: rate(6 hours)
+
+  cacheLiveGame:
+    handler: sportsdataapi/cacheLiveGame.handler
+    events:
+      - schedule: rate(2 minutes)
+
+  cacheUpcomingGames:
+    handler: sportsdataapi/cacheUpcomingGames.handler
+    events:
+      - schedule: rate(1 hour)
+
+  # --- DIAGNOSTICS / UTILITIES ---
+  debugStructure:
+    handler: sportsdataapi/debugStructure.handler
+    events:
+      - http:
+          path: debugStructure
+          method: get
+          cors: true
+
+  teamMatchTester:
+    handler: sportsdataapi/teamMatchTester.handler
+    events:
+      - http:
+          path: teamMatchTester
+          method: get
+          cors: true
+
+  callAll:
+    handler: sportsdataapi/callAll.handler
+    events:
+      - http:
+          path: callAll
+          method: get
+          cors: true

@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Account | HitALick</title>
+  <style>
+    :root {
+      --bg: #060912;
+      --panel: rgba(13, 20, 42, 0.78);
+      --line: rgba(107, 145, 217, 0.35);
+      --text: #eaf0ff;
+      --muted: #9fb0d1;
+      --brand-a: #4ea8ff;
+      --brand-b: #8affd4;
+      --danger: #ff9f9f;
+      --success: #8affd4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #132351 0%, #060912 58%);
+      color: var(--text);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -20%;
+      background:
+        radial-gradient(circle at 18% 28%, rgba(78,168,255,0.18), transparent 34%),
+        radial-gradient(circle at 82% 16%, rgba(138,255,212,0.14), transparent 36%),
+        radial-gradient(circle at 60% 78%, rgba(99,116,255,0.18), transparent 34%);
+      animation: floatGlow 14s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes floatGlow {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      100% { transform: translate3d(0, -18px, 0) scale(1.03); }
+    }
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 26px 20px 34px;
+      animation: riseIn .55s ease both;
+    }
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(14px) scale(.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(9,16,35,.82), rgba(13,20,42,.72));
+      backdrop-filter: blur(8px);
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 20px 40px rgba(1, 6, 15, .45);
+    }
+    .brand-row {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .brand-row img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: 1px solid rgba(142,179,240,.5);
+      object-fit: cover;
+      box-shadow: 0 0 22px rgba(78,168,255,.35);
+    }
+    .brand-chip {
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #0a1b30;
+      background: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      backdrop-filter: blur(8px);
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(138,255,212,.4);
+    }
+    h1, h2 { margin-top: 0; }
+    h1 { font-size: clamp(28px, 4vw, 36px); margin-bottom: 8px; }
+    h2 { font-size: 18px; margin-bottom: 10px; }
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 11px;
+      border: 1px solid #334e7d;
+      background: #0a1020;
+      color: #eaf0ff;
+      margin-bottom: 10px;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    input:focus {
+      outline: none;
+      border-color: #7fb5ff;
+      box-shadow: 0 0 0 3px rgba(78,168,255,.2);
+    }
+    button, .link-btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+      color: #03101f;
+      text-decoration: none;
+      display: inline-block;
+      transition: transform .16s ease, filter .16s ease;
+    }
+    button:hover, .link-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+    .btn-secondary { background: #23395f; color: #dce9ff; }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 10px; line-height: 1.45; }
+    .status { font-size: 14px; color: var(--success); min-height: 20px; margin: 8px 0 0; }
+    .session-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .state-pill {
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 700;
+      color: #061322;
+      background: #8da3c8;
+    }
+    .state-pill.on {
+      background: linear-gradient(135deg, #59b6ff, #8affd4);
+    }
+    @media (max-width: 680px) {
+      .wrap { padding: 20px 14px 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="brand-row">
+        <img src="/logo.png" alt="HitALick logo" />
+        <strong>HitALick</strong>
+        <span class="brand-chip">Account Hub</span>
+      </div>
+      <h1>HitALick Account Hub</h1>
+      <p class="hint">Secure web-first access gateway. Create account, activate membership, and enter the elite analytics workspace instantly.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Create Account</h2>
+        <input id="signupEmail" type="email" placeholder="Email" />
+        <input id="signupPassword" type="password" placeholder="Password (min 6 chars)" />
+        <button id="signupBtn">Create Account</button>
+        <p class="hint">Account is created in Firebase Auth and becomes your app login identity.</p>
+      </article>
+
+      <article class="card">
+        <h2>Log In</h2>
+        <input id="loginEmail" type="email" placeholder="Email" />
+        <input id="loginPassword" type="password" placeholder="Password" />
+        <button id="loginBtn">Log In</button>
+        <div style="margin-top: 12px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="logoutBtn" class="btn-secondary">Log Out</button>
+        </div>
+      </article>
+      <article class="card">
+        <h2>What You Unlock</h2>
+        <p class="hint">- Pro Props Board with advanced filters</p>
+        <p class="hint">- Multi-book odds comparison and movement views</p>
+        <p class="hint">- AI picks, parlay tools, and premium boards</p>
+        <p class="hint">- Full web + iOS companion experience</p>
+      </article>
+    </section>
+
+    <section class="card" id="sessionCard" style="margin-top:14px;">
+      <div class="session-head">
+        <h2 style="margin:0;">Account State</h2>
+        <span class="state-pill" id="sessionState">Offline</span>
+      </div>
+      <p class="hint">Account identity details are hidden in this UI for privacy. Login state only is shown.</p>
+      <p class="status" id="status"></p>
+      <a class="link-btn" href="/pricing.html">Continue to Membership Plans</a>
+    </section>
+  </main>
+
+  <script>
+    const API_KEY = "AIzaSyAUF7Oz6ZQMBTuMw2cyPUzjEg7RwUP1ngA";
+    const signUpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`;
+    const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`;
+
+    const statusEl = document.getElementById("status");
+    const sessionCardEl = document.getElementById("sessionCard");
+    const sessionStateEl = document.getElementById("sessionState");
+
+    function setStatus(msg, isError) {
+      statusEl.style.color = isError ? "#ff9f9f" : "#8affd4";
+      statusEl.textContent = msg;
+    }
+
+    function routeToWebApp(delayMs = 80) {
+      setTimeout(() => {
+        window.location.href = "/app.html";
+      }, delayMs);
+    }
+
+    function persistSession(email, uid, idToken) {
+      localStorage.setItem("hitalick_email", email);
+      localStorage.setItem("hitalick_uid", uid);
+      localStorage.setItem("hitalick_token", idToken);
+      renderSession();
+    }
+
+    function clearSession() {
+      localStorage.removeItem("hitalick_email");
+      localStorage.removeItem("hitalick_uid");
+      localStorage.removeItem("hitalick_token");
+      renderSession();
+    }
+
+    function renderSession() {
+      const email = localStorage.getItem("hitalick_email");
+      const uid = localStorage.getItem("hitalick_uid");
+      const token = localStorage.getItem("hitalick_token");
+      const active = Boolean(email && uid && token);
+      sessionStateEl.textContent = active ? "Connected" : "Offline";
+      sessionStateEl.classList.toggle("on", active);
+      const keepOnAccountPage = new URLSearchParams(window.location.search).get("stay") === "1";
+      if (active && !keepOnAccountPage) routeToWebApp(40);
+    }
+
+    async function authRequest(url, email, password) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, returnSecureToken: true })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || "Auth request failed");
+      return data;
+    }
+
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      try {
+        const email = document.getElementById("signupEmail").value.trim();
+        const password = document.getElementById("signupPassword").value;
+        if (!email || !password) return setStatus("Enter email and password.", true);
+        const data = await authRequest(signUpUrl, email, password);
+        persistSession(data.email, data.localId, data.idToken);
+        setStatus("Account created. Opening HitALick Web App...");
+        routeToWebApp();
+      } catch (e) {
+        setStatus(e.message, true);
+      }
+    });
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      try {
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        if (!email || !password) return setStatus("Enter email and password.", true);
+        const data = await authRequest(signInUrl, email, password);
+        persistSession(data.email, data.localId, data.idToken);
+        setStatus("Logged in. Opening HitALick Web App...");
+        routeToWebApp();
+      } catch (e) {
+        setStatus(e.message, true);
+      }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      clearSession();
+      setStatus("Logged out.");
+    });
+
+    renderSession();
+  </script>
+</body>
+</html>

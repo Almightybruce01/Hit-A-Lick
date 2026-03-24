@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Hit-A-Lick Admin Panel</title>
+
+<style>
+/* GLOBAL ------------------------------------------------------------*/
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #111 0, #050505 55%, #000 100%);
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  color: #f5f5f5;
+  display: flex;
+}
+
+/* SIDEBAR -----------------------------------------------------------*/
+#sidebar {
+  width: 250px;
+  height: 100vh;
+  background: linear-gradient(180deg, #050509 0%, #050510 40%, #050505 100%);
+  border-right: 2px solid #00ff99;
+  padding: 20px;
+  position: fixed;
+  box-shadow: 0 0 20px rgba(0, 255, 153, 0.3);
+  z-index: 3;
+}
+
+.sidebarTitle {
+  font-size: 26px;
+  margin-bottom: 6px;
+  color: #00ff99;
+  text-align: center;
+  font-weight: 800;
+  text-shadow: 0 0 10px #00ff99;
+}
+
+.sidebarSub {
+  font-size: 13px;
+  text-align: center;
+  color: #999;
+  margin-bottom: 24px;
+}
+
+.navItem {
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  color: #b9fff0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.3s;
+  border: 1px solid transparent;
+}
+.navItem span.icon {
+  font-size: 18px;
+}
+.navItem:hover {
+  background: #071a16;
+  border: 1px solid #00ff99;
+  box-shadow: 0 0 12px #00ff99;
+  transform: translateX(2px);
+}
+
+/* MAIN --------------------------------------------------------------*/
+#main {
+  margin-left: 250px;
+  padding: 24px;
+  width: calc(100% - 250px);
+}
+
+/* TOP SUMMARY CARDS -------------------------------------------------*/
+.summaryRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.summaryCard {
+  flex: 1;
+  min-width: 190px;
+  background: linear-gradient(135deg, #070b10 0, #020406 100%);
+  border-radius: 10px;
+  border: 1px solid #00ff99;
+  padding: 14px 16px;
+  box-shadow: 0 0 12px rgba(0,255,153,.25);
+}
+.summaryTitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #82ffd2;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.summaryValue {
+  font-size: 20px;
+  font-weight: 700;
+}
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+.badge-ok {
+  background: rgba(0,255,153,.18);
+  color: #00ff99;
+}
+.badge-warn {
+  background: rgba(255,199,0,.18);
+  color: #ffdd55;
+}
+.badge-err {
+  background: rgba(255,0,102,.18);
+  color: #ff4b8b;
+}
+
+/* SECTION HEADERS & CARDS -------------------------------------------*/
+.sectionHeader {
+  font-size: 26px;
+  color: #00ffcc;
+  margin-bottom: 12px;
+  font-weight: 700;
+  text-shadow: 0 0 10px #00d1ff;
+}
+.card {
+  background: rgba(4, 8, 14, 0.96);
+  padding: 18px;
+  border-radius: 11px;
+  border: 1px solid #00ff99;
+  margin-bottom: 22px;
+  box-shadow: 0 0 16px rgba(0,255,153,0.23);
+}
+
+/* BUTTONS -----------------------------------------------------------*/
+.btn {
+  padding: 11px 18px;
+  margin: 8px 6px 0 0;
+  font-size: 15px;
+  background: linear-gradient(135deg, #00ff99 0, #00e1ff 100%);
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 0 14px rgba(0,255,153,.45);
+  transition: 0.25s;
+}
+.btn:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 20px rgba(0,255,204,.55);
+  transform: translateY(-1px);
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid #00ff99;
+  color: #00ffcc;
+}
+.btn-outline:hover {
+  background: rgba(0,255,153,.1);
+}
+.bigBtn {
+  width: 100%;
+  padding: 14px;
+  font-size: 17px;
+}
+
+/* LOADER ------------------------------------------------------------*/
+#loader {
+  display: none;
+  margin-top: 10px;
+  text-align: center;
+}
+.loaderSpin {
+  border: 5px solid #222;
+  border-top: 5px solid #00ff99;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin: 6px auto;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* LOG BOX -----------------------------------------------------------*/
+.logBox {
+  height: 270px;
+  background: #020304;
+  border: 1px solid #00ff99;
+  border-radius: 8px;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+.logEntry {
+  margin-bottom: 4px;
+}
+.logHeader { color: #00d1ff; font-weight: 600; }
+.logSuccess { color: #00ff9a; }
+.logError { color: #ff4b8b; }
+.logInfo { color: #cfcfcf; }
+
+/* CANVAS GRAPH ------------------------------------------------------*/
+.graphWrapper {
+  position: relative;
+  height: 220px;
+}
+#scrapeChart {
+  width: 100%;
+  height: 220px;
+}
+
+/* PIN SCREEN --------------------------------------------------------*/
+#pinScreen {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, #111 0, #000 50%, #000 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+#pinBox {
+  background: #05070b;
+  padding: 28px 30px 24px;
+  border-radius: 12px;
+  border: 1px solid #00ff99;
+  box-shadow: 0 0 18px rgba(0,255,153,0.45);
+  text-align: center;
+}
+#pinInput {
+  padding: 11px;
+  font-size: 22px;
+  width: 200px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px solid #00ff99;
+  background: #020305;
+  color: #00ff99;
+}
+.pinBtn {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #00ff99 0, #00e1ff 100%);
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 17px;
+  box-shadow: 0 0 16px rgba(0,255,153,.55);
+}
+.pinTitle {
+  color: #00ffcc;
+  font-size: 22px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+.pinSub {
+  font-size: 13px;
+  color: #aaa;
+}
+.shake {
+  animation: shakeAnim 0.4s;
+}
+@keyframes shakeAnim {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
+}
+
+/* MODAL -------------------------------------------------------------*/
+#modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9;
+}
+#modal {
+  background: #05080c;
+  border-radius: 10px;
+  border: 1px solid #00ff99;
+  padding: 18px;
+  width: 90%;
+  max-width: 640px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 0 20px rgba(0,255,153,0.5);
+}
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.modalTitle {
+  font-size: 18px;
+  color: #00ffcc;
+}
+.modalClose {
+  cursor: pointer;
+  font-size: 20px;
+  color: #ff4b8b;
+}
+.entityList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+.entityCard {
+  background: #050509;
+  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid #00ff99;
+  font-size: 13px;
+}
+
+/* RESPONSIVE --------------------------------------------------------*/
+@media (max-width: 800px) {
+  #sidebar {
+    display: none;
+  }
+  #main {
+    margin-left: 0;
+    width: 100%;
+    padding: 16px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div id="pinScreen">
+  <div id="pinBox">
+    <div class="pinTitle">Hit-A-Lick Admin</div>
+    <div class="pinSub">Enter admin PIN to access control center</div>
+    <input id="pinInput" type="password" maxlength="6" placeholder="PIN" />
+    <button class="pinBtn" onclick="unlock()">Unlock</button>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sidebarTitle">⚡ Hit-A-Lick</div>
+  <div class="sidebarSub">Sports Data Control Center</div>
+
+  <div class="navItem" onclick="showPanel('scrapers')">
+    <span class="icon">🕸️</span> Scrapers
+  </div>
+  <div class="navItem" onclick="showPanel('games')">
+    <span class="icon">🏟️</span> Games
+  </div>
+  <div class="navItem" onclick="showPanel('stats')">
+    <span class="icon">📊</span> Stats
+  </div>
+  <div class="navItem" onclick="showPanel('system')">
+    <span class="icon">🚀</span> System
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main">
+  <!-- SUMMARY CARDS -->
+  <div class="summaryRow">
+    <div class="summaryCard">
+      <div class="summaryTitle">Last Run</div>
+      <div class="summaryValue" id="lastRunValue">Never</div>
+      <div id="lastRunBadge" class="badge badge-warn">No history</div>
+    </div>
+    <div class="summaryCard">
+      <div class="summaryTitle">API Health</div>
+      <div class="summaryValue" id="apiHealthValue">Unknown</div>
+      <div id="apiHealthBadge" class="badge badge-warn">Check Needed</div>
+    </div>
+    <div class="summaryCard">
+      <div class="summaryTitle">Requests (This Session)</div>
+      <div class="summaryValue" id="reqCountValue">0</div>
+      <div id="reqErrorBadge" class="badge badge-ok">No errors</div>
+    </div>
+  </div>
+
+  <!-- PANELS ------------------------------------------------------->
+
+  <!-- SCRAPERS -->
+  <div id="scrapers" class="panel">
+    <div class="sectionHeader">🕸️ Scrapers</div>
+    <div class="card">
+      <p style="margin-top:0;margin-bottom:10px;font-size:13px;color:#ccc;">
+        Use these to populate base data in Firestore from ESPN.
+      </p>
+      <button class="btn" onclick="call('/scrapeTeams')">Scrape Teams (All Leagues)</button>
+      <button class="btn" onclick="call('/scrapePlayers?sport=nba')">Scrape Players (NBA)</button>
+      <button class="btn" onclick="call('/scrapePlayers?sport=mlb')">Scrape Players (MLB)</button>
+      <button class="btn" onclick="call('/scrapePlayers?sport=nfl')">Scrape Players (NFL)</button>
+      <button class="btn" onclick="call('/scrapePlayers?sport=wnba')">Scrape Players (WNBA)</button>
+      <button class="btn btn-outline" onclick="call('/setupSports')">Setup Sports Collection</button>
+      <button class="btn btn-outline" onclick="openEntityBrowser('teams')">Browse Teams (from /teamStats)</button>
+      <button class="btn btn-outline" onclick="openEntityBrowser('players')">Browse Players (from /playerStats)</button>
+    </div>
+  </div>
+
+  <!-- GAMES -->
+  <div id="games" class="panel" style="display:none;">
+    <div class="sectionHeader">🏟️ Games</div>
+    <div class="card">
+      <button class="btn" onclick="call('/cacheUpcomingGames')">Cache Upcoming Games (all)</button>
+      <button class="btn" onclick="call('/cacheLiveGame')">Cache Live Games</button>
+      <button class="btn btn-outline" onclick="call('/upcomingGames?sport=nba')">Upcoming NBA</button>
+      <button class="btn btn-outline" onclick="call('/upcomingGames?sport=mlb')">Upcoming MLB</button>
+      <button class="btn btn-outline" onclick="call('/upcomingGames?sport=nfl')">Upcoming NFL</button>
+      <button class="btn btn-outline" onclick="call('/upcomingGames?sport=wnba')">Upcoming WNBA</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div id="stats" class="panel" style="display:none;">
+    <div class="sectionHeader">📊 Stats & Health</div>
+    <div class="card">
+      <button class="btn" onclick="call('/cacheStats')">Cache All Stats</button>
+      <button class="btn btn-outline" onclick="call('/playerStats?sport=nba')">NBA Player Stats</button>
+      <button class="btn btn-outline" onclick="call('/teamStats?sport=nba')">NBA Team Stats</button>
+      <button class="btn btn-outline" onclick="runHealthCheck()">Run API Health Check</button>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;margin-bottom:6px;color:#00ffcc;">Scrape History (Session)</h3>
+      <p style="margin-top:0;margin-bottom:8px;font-size:12px;color:#ccc;">
+        Each successful call is plotted as a point (response time in ms).
+      </p>
+      <div class="graphWrapper">
+        <canvas id="scrapeChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYSTEM -->
+  <div id="system" class="panel" style="display:none;">
+    <div class="sectionHeader">🚀 System Controls</div>
+    <div class="card">
+      <button class="btn bigBtn" onclick="runAll()">⚡ RUN EVERYTHING</button>
+      <button class="btn btn-outline bigBtn" onclick="simulateCron()">Simulate Cron Cycle (Caches Only)</button>
+      <div id="loader"><div class="loaderSpin"></div></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;margin-bottom:6px;color:#00ffcc;">Console Log</h3>
+      <div id="log" class="logBox">
+        <div class="logEntry logInfo">Waiting for commands...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FOR TEAM/PLAYER BROWSER ----------------------------------->
+<div id="modalOverlay">
+  <div id="modal">
+    <div class="modalHeader">
+      <div class="modalTitle" id="modalTitle">Entities</div>
+      <div class="modalClose" onclick="closeModal()">✕</div>
+    </div>
+    <div id="modalBody">Loading...</div>
+  </div>
+</div>
+
+<script>
+/* CONFIG ------------------------------------------------------------*/
+const PIN = "246810"; // 🔐 change this
+const BASE = "https://xmsi72yc6d.execute-api.us-east-2.amazonaws.com";
+
+let requestCount = 0;
+let errorCount = 0;
+let lastRunTime = null;
+let responseTimes = []; // for graph (ms)
+
+/* PIN LOGIC ---------------------------------------------------------*/
+function unlock() {
+  const input = document.getElementById("pinInput");
+  if (input.value === PIN) {
+    document.getElementById("pinScreen").style.display = "none";
+  } else {
+    input.classList.add("shake");
+    setTimeout(() => input.classList.remove("shake"), 400);
+  }
+}
+
+/* PANEL NAVIGATION --------------------------------------------------*/
+function showPanel(panelId) {
+  document.querySelectorAll(".panel").forEach(p => p.style.display = "none");
+  document.getElementById(panelId).style.display = "block";
+}
+
+/* SUMMARY CARD UPDATES ----------------------------------------------*/
+function updateLastRun() {
+  lastRunTime = new Date();
+  const el = document.getElementById("lastRunValue");
+  el.textContent = lastRunTime.toLocaleTimeString();
+  const badge = document.getElementById("lastRunBadge");
+  badge.textContent = "Recent";
+  badge.className = "badge badge-ok";
+}
+
+function updateRequestCounts(success) {
+  requestCount++;
+  document.getElementById("reqCountValue").textContent = requestCount.toString();
+  if (!success) {
+    errorCount++;
+  }
+  const badge = document.getElementById("reqErrorBadge");
+  if (errorCount === 0) {
+    badge.textContent = "No errors";
+    badge.className = "badge badge-ok";
+  } else {
+    badge.textContent = `${errorCount} errors`;
+    badge.className = "badge badge-err";
+  }
+}
+
+function setApiHealth(status, type) {
+  document.getElementById("apiHealthValue").textContent = status;
+  const badge = document.getElementById("apiHealthBadge");
+  badge.textContent = status;
+  badge.className =
+    type === "ok"
+      ? "badge badge-ok"
+      : type === "warn"
+      ? "badge badge-warn"
+      : "badge badge-err";
+}
+
+/* LOGGING -----------------------------------------------------------*/
+function addLog(msg, type = "info") {
+  const logBox = document.getElementById("log");
+  const div = document.createElement("div");
+  div.classList.add("logEntry");
+  if (type === "header") div.classList.add("logHeader");
+  else if (type === "success") div.classList.add("logSuccess");
+  else if (type === "error") div.classList.add("logError");
+  else div.classList.add("logInfo");
+  div.textContent = msg;
+  logBox.appendChild(div);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+/* LOADER ------------------------------------------------------------*/
+function showLoader(show) {
+  document.getElementById("loader").style.display = show ? "block" : "none";
+}
+
+/* BASIC API CALL ----------------------------------------------------*/
+async function call(path) {
+  const url = BASE + path;
+  const start = performance.now();
+
+  addLog("➡️ Calling " + url, "header");
+  showLoader(true);
+
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": "HitALickAdmin" } });
+    const text = await res.text();
+    const ms = Math.round(performance.now() - start);
+
+    addLog(`✅ SUCCESS (${ms} ms): ${path}`, "success");
+    addLog(text, "info");
+
+    responseTimes.push(ms);
+    if (responseTimes.length > 20) responseTimes.shift();
+    drawGraph();
+
+    updateLastRun();
+    updateRequestCounts(true);
+    setApiHealth("Healthy", "ok");
+  } catch (err) {
+    addLog(`❌ ERROR: ${path} — ${err.message}`, "error");
+    updateRequestCounts(false);
+    setApiHealth("Issues", "err");
+  } finally {
+    showLoader(false);
+  }
+}
+
+/* RUN EVERYTHING ----------------------------------------------------*/
+async function runAll() {
+  const endpoints = [
+    "/scrapeTeams",
+    "/scrapePlayers?sport=nba",
+    "/scrapePlayers?sport=mlb",
+    "/scrapePlayers?sport=nfl",
+    "/scrapePlayers?sport=wnba",
+    "/setupSports",
+    "/cacheStats",
+    "/cacheLiveGame",
+    "/cacheUpcomingGames"
+  ];
+
+  addLog("🚀 Running FULL SYSTEM...", "header");
+  showLoader(true);
+
+  for (const e of endpoints) {
+    await call(e);
+  }
+
+  addLog("🎉 FULL SYSTEM FINISHED", "success");
+  showLoader(false);
+}
+
+/* CRON SIM ----------------------------------------------------------*/
+async function simulateCron() {
+  const endpoints = ["/cacheStats", "/cacheLiveGame", "/cacheUpcomingGames"];
+  addLog("🕒 Simulating cron cycle for caches...", "header");
+  showLoader(true);
+  for (const e of endpoints) {
+    await call(e);
+  }
+  addLog("⌛ Cron simulation complete.", "success");
+  showLoader(false);
+}
+
+/* API HEALTH CHECK --------------------------------------------------*/
+async function runHealthCheck() {
+  addLog("🧪 Running health check via /teamStats?sport=nba...", "header");
+  showLoader(true);
+  try {
+    const start = performance.now();
+    const res = await fetch(BASE + "/teamStats?sport=nba");
+    const ms = Math.round(performance.now() - start);
+    if (res.ok) {
+      setApiHealth("Healthy", "ok");
+      addLog(`✅ API Healthy (teamStats responded in ${ms} ms)`, "success");
+    } else {
+      setApiHealth("Degraded", "warn");
+      addLog(`⚠️ API Degraded (HTTP ${res.status})`, "error");
+    }
+  } catch (err) {
+    setApiHealth("Down", "err");
+    addLog("❌ Health check failed: " + err.message, "error");
+  } finally {
+    showLoader(false);
+  }
+}
+
+/* ENTITY BROWSER MODAL ----------------------------------------------*/
+async function openEntityBrowser(type) {
+  document.getElementById("modalOverlay").style.display = "flex";
+  const title = document.getElementById("modalTitle");
+  const body = document.getElementById("modalBody");
+  body.innerHTML = "Loading...";
+
+  let url;
+  if (type === "teams") {
+    title.textContent = "Teams (from /teamStats?sport=nba)";
+    url = "/teamStats?sport=nba";
+  } else {
+    title.textContent = "Players (from /playerStats?sport=nba)";
+    url = "/playerStats?sport=nba";
+  }
+
+  try {
+    const res = await fetch(BASE + url);
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      body.textContent = "Could not parse JSON response. Raw:\n" + text;
+      return;
+    }
+
+    if (!Array.isArray(data)) {
+      body.textContent = "Unexpected response format.";
+      return;
+    }
+
+    if (data.length === 0) {
+      body.textContent = "No entities found.";
+      return;
+    }
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "entityList";
+
+    data.slice(0, 200).forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "entityCard";
+      const title = item.name || item.teamId || item.playerId || "Unknown";
+      card.innerHTML = `<strong>${title}</strong><br/>
+        <span style="font-size:11px;color:#aaa;">${item.team || item.teamId || item.position || ""}</span>`;
+      wrapper.appendChild(card);
+    });
+
+    body.innerHTML = "";
+    body.appendChild(wrapper);
+  } catch (err) {
+    body.textContent = "Error loading entities: " + err.message;
+  }
+}
+
+function closeModal() {
+  document.getElementById("modalOverlay").style.display = "none";
+}
+
+/* GRAPH -------------------------------------------------------------*/
+function drawGraph() {
+  const canvas = document.getElementById("scrapeChart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width = canvas.clientWidth;
+  const h = canvas.height = canvas.clientHeight;
+
+  ctx.clearRect(0, 0, w, h);
+
+  if (responseTimes.length === 0) {
+    ctx.fillStyle = "#444";
+    ctx.font = "12px -apple-system";
+    ctx.fillText("No data yet. Run some scrapes.", 10, 20);
+    return;
+  }
+
+  const max = Math.max(...responseTimes);
+  const min = Math.min(...responseTimes);
+  const padding = 20;
+  const range = max - min || 1;
+  const stepX = (w - padding * 2) / Math.max(responseTimes.length - 1, 1);
+
+  // grid
+  ctx.strokeStyle = "rgba(0,255,153,0.15)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, h - padding);
+  ctx.lineTo(w - padding, h - padding);
+  ctx.stroke();
+
+  // line
+  ctx.beginPath();
+  responseTimes.forEach((val, i) => {
+    const x = padding + stepX * i;
+    const y = h - padding - ((val - min) / range) * (h - padding * 2);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  const grad = ctx.createLinearGradient(0, 0, w, 0);
+  grad.addColorStop(0, "#00ff99");
+  grad.addColorStop(1, "#00e1ff");
+  ctx.strokeStyle = grad;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = "#00ffcc";
+  ctx.shadowBlur = 8;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // dots
+  responseTimes.forEach((val, i) => {
+    const x = padding + stepX * i;
+    const y = h - padding - ((val - min) / range) * (h - padding * 2);
+    ctx.beginPath();
+    ctx.fillStyle = "#00ffcc";
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = "#888";
+  ctx.font = "11px -apple-system";
+  ctx.fillText(`min ${min} ms`, padding + 4, padding + 12);
+  ctx.fillText(`max ${max} ms`, padding + 4, padding + 24);
+}
+
+/* INITIAL -----------------------------------------------------------*/
+showPanel("scrapers");
+setApiHealth("Unknown", "warn");
+</script>
+
+</body>
+</html>

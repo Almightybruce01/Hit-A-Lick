@@ -1,0 +1,393 @@
+{
+  "/Users/brianbruce/Desktop/Hit-A-Lick/functions/serverless.yml": {
+    "versionFramework": "4.23.0",
+    "servicePath": "/Users/brianbruce/Desktop/Hit-A-Lick/functions/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "hit-a-lick-api",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs18.x",
+        "region": "us-east-2",
+        "environment": {
+          "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+          "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+          "FIREBASE_PRIVATE_KEY": "<REDACTED>"
+        },
+        "iam": {
+          "role": {
+            "statements": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:*"
+                ],
+                "Resource": "*"
+              }
+            ]
+          }
+        },
+        "stage": "dev",
+        "versionFunctions": true
+      },
+      "plugins": [
+        "serverless-offline"
+      ],
+      "functions": {
+        "nba": {
+          "handler": "sportsdataapi/nba.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/nba",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/nba"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-nba"
+        },
+        "nfl": {
+          "handler": "sportsdataapi/nfl.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/nfl",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/nfl"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-nfl"
+        },
+        "mlb": {
+          "handler": "sportsdataapi/mlb.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/mlb",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/mlb"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-mlb"
+        },
+        "wnba": {
+          "handler": "sportsdataapi/wnba.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/wnba",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/wnba"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-wnba"
+        },
+        "liveGame": {
+          "handler": "sportsdataapi/liveGame.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/liveGame",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/liveGame"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-liveGame"
+        },
+        "upcomingGames": {
+          "handler": "sportsdataapi/upcomingGames.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/upcomingGames",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/upcomingGames"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-upcomingGames"
+        },
+        "playerStats": {
+          "handler": "sportsdataapi/playerStats.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/playerStats",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/playerStats"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-playerStats"
+        },
+        "teamStats": {
+          "handler": "sportsdataapi/teamStats.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/teamStats",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/teamStats"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-teamStats"
+        },
+        "cacheLiveGame": {
+          "handler": "sportsdataapi/cacheLiveGame.cacheLiveGame",
+          "events": [
+            {
+              "schedule": "rate(2 minutes)"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-cacheLiveGame"
+        },
+        "cacheUpcomingGames": {
+          "handler": "sportsdataapi/cacheUpcomingGames.cacheUpcomingGames",
+          "events": [
+            {
+              "schedule": "rate(1 hour)"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-cacheUpcomingGames"
+        },
+        "cacheStats": {
+          "handler": "sportsdataapi/cacheStats.cacheStats",
+          "events": [
+            {
+              "schedule": "rate(6 hours)"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-cacheStats"
+        },
+        "scrapePlayers": {
+          "handler": "sportsdataapi/playerScraper.scrapePlayers",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/scrapePlayers",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/scrapePlayers"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-scrapePlayers"
+        },
+        "scrapeTeams": {
+          "handler": "sportsdataapi/teamScraper.scrapeTeams",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/scrapeTeams",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/scrapeTeams"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-scrapeTeams"
+        },
+        "setupSports": {
+          "handler": "sportsdataapi/sportSetup.setupSports",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/setupSports",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/setupSports"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-setupSports"
+        },
+        "callAll": {
+          "handler": "sportsdataapi/callAll.handler",
+          "events": [
+            {
+              "httpApi": {
+                "path": "/callAll",
+                "method": "GET"
+              },
+              "resolvedMethod": "GET",
+              "resolvedPath": "/callAll"
+            }
+          ],
+          "name": "hit-a-lick-api-dev-callAll"
+        }
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs18.x",
+      "region": "us-east-2",
+      "environment": {
+        "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+        "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+        "FIREBASE_PRIVATE_KEY": "<REDACTED>"
+      },
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      },
+      "stage": "dev",
+      "versionFunctions": true
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "service: hit-a-lick-api\n\nprovider:\n  name: aws\n  runtime: nodejs18.x\n  region: us-east-2\n  environment:\n    FIREBASE_PROJECT_ID: ${env:FIREBASE_PROJECT_ID}\n    FIREBASE_CLIENT_EMAIL: ${env:FIREBASE_CLIENT_EMAIL}\n    FIREBASE_PRIVATE_KEY: ${env:FIREBASE_PRIVATE_KEY}\n\n  iam:\n    role:\n      statements:\n        - Effect: Allow\n          Action:\n            - logs:*\n          Resource: \"*\"\n\nplugins:\n  - serverless-offline\n\nfunctions:\n  nba:\n    handler: sportsdataapi/nba.handler\n    events:\n      - httpApi:\n          path: /nba\n          method: GET\n\n  nfl:\n    handler: sportsdataapi/nfl.handler\n    events:\n      - httpApi:\n          path: /nfl\n          method: GET\n\n  mlb:\n    handler: sportsdataapi/mlb.handler\n    events:\n      - httpApi:\n          path: /mlb\n          method: GET\n\n  wnba:\n    handler: sportsdataapi/wnba.handler\n    events:\n      - httpApi:\n          path: /wnba\n          method: GET\n\n  liveGame:\n    handler: sportsdataapi/liveGame.handler\n    events:\n      - httpApi:\n          path: /liveGame\n          method: GET\n\n  upcomingGames:\n    handler: sportsdataapi/upcomingGames.handler\n    events:\n      - httpApi:\n          path: /upcomingGames\n          method: GET\n\n  playerStats:\n    handler: sportsdataapi/playerStats.handler\n    events:\n      - httpApi:\n          path: /playerStats\n          method: GET\n\n  teamStats:\n    handler: sportsdataapi/teamStats.handler\n    events:\n      - httpApi:\n          path: /teamStats\n          method: GET\n\n  cacheLiveGame:\n    handler: sportsdataapi/cacheLiveGame.cacheLiveGame\n    events:\n      - schedule: rate(2 minutes)\n\n  cacheUpcomingGames:\n    handler: sportsdataapi/cacheUpcomingGames.cacheUpcomingGames\n    events:\n      - schedule: rate(1 hour)\n\n  cacheStats:\n    handler: sportsdataapi/cacheStats.cacheStats\n    events:\n      - schedule: rate(6 hours)\n\n  scrapePlayers:\n    handler: sportsdataapi/playerScraper.scrapePlayers\n    events:\n      - httpApi:\n          path: /scrapePlayers\n          method: GET\n\n  scrapeTeams:\n    handler: sportsdataapi/teamScraper.scrapeTeams\n    events:\n      - httpApi:\n          path: /scrapeTeams\n          method: GET\n\n  setupSports:\n    handler: sportsdataapi/sportSetup.setupSports\n    events:\n      - httpApi:\n          path: /setupSports\n          method: GET\n\n  callAll:\n    handler: sportsdataapi/callAll.handler\n    events:\n      - httpApi:\n          path: /callAll\n          method: GET\n",
+    "command": [
+      "info"
+    ],
+    "options": {},
+    "orgId": "cd298466-895a-419a-b360-98cc51eb20c6",
+    "orgName": "hitalick",
+    "userId": "Z9bPLKjVqxKjPLj1Nj",
+    "userName": "hitalick",
+    "serviceProviderAwsAccountId": "816313119772",
+    "serviceProviderAwsCfStackName": "hit-a-lick-api-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-2:816313119772:stack/hit-a-lick-api-dev/655c5920-61f8-11f0-8dae-06229905db93",
+    "serviceProviderAwsCfStackCreated": "2025-07-16T03:53:13.036Z",
+    "serviceProviderAwsCfStackUpdated": "2025-11-06T18:44:20.645Z",
+    "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "MlbLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-mlb:10",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-MlbLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ScrapePlayersLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-scrapePlayers:8",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-ScrapePlayersLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "SetupSportsLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-setupSports:8",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-SetupSportsLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "HttpApiId",
+        "OutputValue": "xmsi72yc6d",
+        "Description": "Id of the HTTP API",
+        "ExportName": "sls-hit-a-lick-api-dev-HttpApiId"
+      },
+      {
+        "OutputKey": "CacheUpcomingGamesLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-cacheUpcomingGames:9",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-CacheUpcomingGamesLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ScrapeTeamsLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-scrapeTeams:8",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-ScrapeTeamsLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "NflLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-nfl:10",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-NflLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+        "ExportName": "sls-hit-a-lick-api-dev-ServerlessDeploymentBucketName"
+      },
+      {
+        "OutputKey": "HttpApiUrl",
+        "OutputValue": "https://xmsi72yc6d.execute-api.us-east-2.amazonaws.com",
+        "Description": "URL of the HTTP API",
+        "ExportName": "sls-hit-a-lick-api-dev-HttpApiUrl"
+      },
+      {
+        "OutputKey": "CacheLiveGameLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-cacheLiveGame:9",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-CacheLiveGameLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "WnbaLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-wnba:10",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-WnbaLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "LiveGameLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-liveGame:10",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-LiveGameLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "TeamStatsLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-teamStats:9",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-TeamStatsLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "CacheStatsLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-cacheStats:8",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-CacheStatsLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "NbaLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-nba:10",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-NbaLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "UpcomingGamesLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-upcomingGames:10",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-UpcomingGamesLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "CallAllLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-callAll:5",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-CallAllLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "PlayerStatsLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-2:816313119772:function:hit-a-lick-api-dev-playerStats:9",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-hit-a-lick-api-dev-PlayerStatsLambdaFunctionQualifiedArn"
+      }
+    ]
+  }
+}

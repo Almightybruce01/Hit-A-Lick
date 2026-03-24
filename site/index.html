@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HitALick | Futuristic Sports Analytics</title>
+  <meta name="description" content="HitALick is an elite sports analytics platform with AI picks, FanDuel and major-book odds symbols, and subscriber-only premium insights." />
+  <meta property="og:title" content="HitALick | Futuristic Sports Analytics" />
+  <meta property="og:description" content="AI Picks Lab, multi-book odds intelligence, and Bruce premium boards." />
+  <meta property="og:image" content="/logo.png" />
+  <meta property="og:type" content="website" />
+  <style>
+    :root {
+      --bg-0: #04060f;
+      --bg-1: #0a1433;
+      --bg-2: #0c2154;
+      --panel: rgba(10, 17, 38, 0.68);
+      --panel-border: rgba(111, 170, 255, 0.3);
+      --ink: #eef3ff;
+      --muted: #9cb2de;
+      --brand: #56b6ff;
+      --accent: #7fffd8;
+      --pink: #cf7fff;
+      --shadow: 0 26px 50px rgba(0, 0, 0, 0.38);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 10%, #1a2a61 0%, var(--bg-1) 25%, var(--bg-0) 65%);
+      overflow-x: hidden;
+    }
+    .bg-flow {
+      position: fixed;
+      inset: -30%;
+      z-index: -2;
+      background:
+        radial-gradient(42% 45% at 18% 30%, rgba(86, 182, 255, 0.24), transparent 72%),
+        radial-gradient(35% 40% at 80% 12%, rgba(127, 255, 216, 0.18), transparent 78%),
+        radial-gradient(34% 35% at 70% 80%, rgba(207, 127, 255, 0.17), transparent 73%),
+        linear-gradient(125deg, var(--bg-0), var(--bg-1), var(--bg-2), var(--bg-0));
+      background-size: 160% 160%;
+      animation: shift 16s ease-in-out infinite alternate;
+      filter: blur(8px);
+      transform: translateZ(0);
+    }
+    .scan {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,0.03) 0px,
+        rgba(255,255,255,0.03) 1px,
+        transparent 2px,
+        transparent 5px
+      );
+      animation: pulse 6s linear infinite;
+      opacity: 0.32;
+    }
+    @keyframes shift {
+      0% { transform: translate3d(-2%, -1%, 0) scale(1.02); }
+      100% { transform: translate3d(2%, 1%, 0) scale(1.07); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.25; }
+      50% { opacity: 0.38; }
+    }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 26px; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 18px;
+      border: 1px solid var(--panel-border);
+      border-radius: 14px; padding: 12px 14px;
+      backdrop-filter: blur(8px);
+      background: rgba(8, 14, 33, 0.6);
+    }
+    .brand-wrap { display: flex; align-items: center; gap: 10px; }
+    .brand-wrap img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(142,179,240,.45); }
+    .brand { font-weight: 800; letter-spacing: .08em; color: var(--accent); font-size: 13px; text-transform: uppercase; }
+    .links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-btn {
+      text-decoration: none;
+      color: var(--ink);
+      border: 1px solid rgba(150,180,235,0.35);
+      background: rgba(16, 28, 66, 0.55);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 13px;
+      transition: all .2s ease;
+    }
+    .nav-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+    .hero {
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 34px;
+      box-shadow: var(--shadow);
+      background: linear-gradient(150deg, rgba(17, 26, 59, 0.84), rgba(8, 15, 31, 0.74));
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -180px; top: -140px;
+      width: 440px; height: 440px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(127,255,216,0.22), transparent 68%);
+      animation: drift 9s ease-in-out infinite alternate;
+    }
+    @keyframes drift {
+      from { transform: translateY(-8px) scale(1); }
+      to { transform: translateY(10px) scale(1.08); }
+    }
+    h1 {
+      margin: 8px 0 0;
+      font-size: clamp(34px, 5.2vw, 58px);
+      line-height: 1.05;
+      max-width: 920px;
+      text-shadow: 0 10px 30px rgba(0, 0, 0, 0.44);
+    }
+    .sub {
+      margin-top: 14px;
+      max-width: 860px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .cta-row { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+    .btn {
+      border: 0; border-radius: 999px; cursor: pointer; padding: 12px 18px;
+      font-weight: 700; text-decoration: none; display: inline-block; transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 24px rgba(0,0,0,.28); }
+    .btn-primary { background: linear-gradient(135deg, var(--brand), var(--accent)); color: #041423; }
+    .btn-secondary { background: rgba(9, 18, 41, 0.62); color: var(--ink); border: 1px solid rgba(156, 178, 222, .35); }
+
+    .preview-grid {
+      margin-top: 26px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    .preview-card {
+      position: relative;
+      border-radius: 14px;
+      border: 1px solid rgba(121, 169, 255, 0.32);
+      background: rgba(12, 20, 46, 0.7);
+      padding: 16px;
+      min-height: 160px;
+      transition: transform .2s ease, border-color .2s ease;
+      overflow: hidden;
+    }
+    .preview-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .preview-card h3 { margin: 0 0 8px; font-size: 18px; }
+    .preview-card p { margin: 0; color: var(--muted); font-size: 14px; }
+    .preview-card .chip {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      color: #00111f;
+      background: linear-gradient(135deg, var(--accent), #b3fff6);
+      font-weight: 700;
+    }
+    .lock-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(4, 7, 16, 0.43);
+      backdrop-filter: blur(3px);
+      opacity: 1;
+      transition: opacity .2s ease;
+    }
+    .lock-pill {
+      border: 1px solid rgba(255,255,255,.5);
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(8, 15, 34, 0.8);
+      color: #fff;
+      font-weight: 700;
+    }
+    .preview-card:hover .lock-overlay { opacity: .88; }
+
+    .studio {
+      margin-top: 20px;
+      border: 1px solid rgba(122, 165, 238, 0.34);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(8, 14, 33, 0.62);
+    }
+    .studio-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab-btn {
+      border: 1px solid rgba(156,178,222,.42);
+      background: rgba(9,17,40,.75);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .tab-btn.active { border-color: var(--accent); color: var(--accent); }
+    .studio-panel { margin-top: 10px; display: none; }
+    .studio-panel.active { display: block; animation: fadeIn .25s ease; }
+    .scroll-cards {
+      display: grid;
+      gap: 8px;
+      max-height: 220px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .mini-card {
+      border: 1px solid rgba(120,165,245,.3);
+      border-radius: 10px;
+      background: rgba(5,10,24,.75);
+      padding: 10px;
+    }
+    .mini-card strong { display: block; font-size: 13px; margin-bottom: 3px; }
+    .mini-card span { color: var(--muted); font-size: 12px; }
+    .fake-chart {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 6px;
+      align-items: end;
+      height: 100px;
+      margin-top: 8px;
+    }
+    .bar {
+      background: linear-gradient(180deg, rgba(127,255,216,.86), rgba(86,182,255,.72));
+      border-radius: 6px 6px 3px 3px;
+      animation: grow 1.2s ease forwards;
+      transform-origin: bottom;
+      opacity: .95;
+    }
+    @keyframes grow {
+      from { transform: scaleY(.2); opacity: .3; }
+      to { transform: scaleY(1); opacity: .95; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .locked-cta {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--warn);
+      font-weight: 700;
+      letter-spacing: .03em;
+    }
+
+    .tiers {
+      margin-top: 26px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    }
+    .tier {
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid rgba(130, 166, 236, 0.33);
+      background: rgba(8, 14, 31, 0.72);
+    }
+    .tier h3 { margin: 0; font-size: 18px; }
+    .tier .price { margin-top: 8px; font-size: 34px; font-weight: 900; }
+    .tier .meta { color: var(--accent); font-size: 12px; margin-top: 6px; text-transform: uppercase; letter-spacing: .08em; }
+
+    .note {
+      margin-top: 22px;
+      border-top: 1px solid rgba(141, 168, 225, 0.27);
+      padding-top: 12px;
+      font-size: 12px;
+      color: #b8c7e6;
+      line-height: 1.6;
+    }
+    .note strong { color: #eaf3ff; }
+
+    @media (max-width: 700px) {
+      .wrap { padding: 16px; }
+      .hero { padding: 22px; border-radius: 18px; }
+      .topbar { padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-flow"></div>
+  <div class="scan"></div>
+
+  <main class="wrap">
+    <section class="topbar">
+      <div class="brand-wrap">
+        <img src="/logo.png" alt="HitALick logo" />
+        <div class="brand">HitALick // Elite Analytics</div>
+      </div>
+      <div class="links">
+        <a class="nav-btn" href="/app.html">Web App</a>
+        <a class="nav-btn" href="/account.html">Account</a>
+        <a class="nav-btn" href="/pricing.html">Membership</a>
+        <a class="nav-btn" href="/ai-lab.html">AI Picks Lab</a>
+        <a class="nav-btn" href="/setup.html">Setup</a>
+        <a class="nav-btn" href="/ops">Ops Desk</a>
+      </div>
+    </section>
+
+    <section class="hero">
+      <h1>See every elite feature live.<br/>Unlock usage after account creation.</h1>
+      <p class="sub">
+        HitALick previews full player panels, multi-chart intelligence, and Bruce boards directly on the landing page.
+        Interactions and full pick boards require an active paid account created on web.
+        iOS remains companion viewer access only.
+      </p>
+      <p class="sub" style="margin-top:8px;">
+        Sportsbook coverage includes FanDuel plus other major books, with normalized odds and symbol badges throughout the web app.
+      </p>
+
+      <div class="cta-row">
+        <a class="btn btn-primary" href="/app.html">Open Web App</a>
+        <a class="btn btn-primary" href="/account.html">Create Account To Unlock</a>
+        <a class="btn btn-secondary" href="/pricing.html">View Membership Pricing</a>
+        <a class="btn btn-secondary" href="/ai-lab.html">Open AI Picks Lab</a>
+        <a class="btn btn-secondary" href="/app-access.html">App Access Guide</a>
+      </div>
+
+      <section class="preview-grid">
+        <article class="preview-card">
+          <h3>Player Lab Preview</h3>
+          <p>Headshots, trend velocity, matchup splits, home/away, minutes profile and filters.</p>
+          <span class="chip">Live Preview</span>
+          <div class="lock-overlay"><span class="lock-pill">Locked • Create Account</span></div>
+        </article>
+        <article class="preview-card">
+          <h3>Team + Defense Matchup</h3>
+          <p>Defense vs role overlays, pace context, performance trends, and all-major-platform odds snapshots.</p>
+          <span class="chip">Live Preview</span>
+          <div class="lock-overlay"><span class="lock-pill">Locked • Membership Required</span></div>
+        </article>
+        <article class="preview-card">
+          <h3>Bruce Picks Board</h3>
+          <p>Daily board updates from your dashboard for Bruce Picks and Bruce Premium Picks feeds.</p>
+          <span class="chip">Live Preview</span>
+          <div class="lock-overlay"><span class="lock-pill">Locked • Subscriber Only</span></div>
+        </article>
+      </section>
+
+      <section class="studio">
+        <div class="studio-tabs">
+          <button class="tab-btn active" data-tab="players">Players Preview</button>
+          <button class="tab-btn" data-tab="team">Team Matchup Preview</button>
+          <button class="tab-btn" data-tab="picks">Picks Feed Preview</button>
+        </div>
+
+        <div class="studio-panel active" id="tab-players">
+          <div class="scroll-cards">
+            <article class="mini-card"><strong>LeBron James • LAL</strong><span>PTS Trend +9.2% • Home/Away Split: Home Edge</span></article>
+            <article class="mini-card"><strong>Jayson Tatum • BOS</strong><span>Usage Spike +3.1 • Defense Matchup: favorable wing lane</span></article>
+            <article class="mini-card"><strong>Luka Doncic • DAL</strong><span>Minutes Projection: 37.4 • Assists ladder in range</span></article>
+            <article class="mini-card"><strong>Tyrese Haliburton • IND</strong><span>Playmaking pressure + pace boost indicator</span></article>
+            <article class="mini-card"><strong>Anthony Edwards • MIN</strong><span>Shot volume heatmap trending green</span></article>
+          </div>
+          <div class="locked-cta">Preview only. Create account + membership to filter, compare, and unlock full player intelligence.</div>
+        </div>
+
+        <div class="studio-panel" id="tab-team">
+          <div class="fake-chart">
+            <div class="bar" style="height:42%"></div><div class="bar" style="height:54%"></div><div class="bar" style="height:63%"></div><div class="bar" style="height:58%"></div><div class="bar" style="height:71%"></div>
+            <div class="bar" style="height:74%"></div><div class="bar" style="height:61%"></div><div class="bar" style="height:79%"></div><div class="bar" style="height:68%"></div><div class="bar" style="height:82%"></div>
+          </div>
+          <div class="scroll-cards" style="margin-top:8px; max-height:120px;">
+            <article class="mini-card"><strong>Top Defense Matchup Panel</strong><span>Opponent transition defense vulnerable • pace up • rebounding edge.</span></article>
+            <article class="mini-card"><strong>Home vs Away Differential</strong><span>Home offense efficiency +4.7 • road turnover risk up.</span></article>
+          </div>
+          <div class="locked-cta">Preview only. Unlock team filters, defensive splits, and custom matchup boards after signup.</div>
+        </div>
+
+        <div class="studio-panel" id="tab-picks">
+          <div class="scroll-cards">
+            <article class="mini-card"><strong>Bruce Picks Preview</strong><span>Certain Play #1 • confidence 90%</span></article>
+            <article class="mini-card"><strong>Bruce Picks Preview</strong><span>Certain Play #2 • confidence 89%</span></article>
+            <article class="mini-card"><strong>Premium Preview</strong><span>Premium Angle #1 • confidence 93%</span></article>
+            <article class="mini-card"><strong>Premium Preview</strong><span>Premium Angle #2 • confidence 92%</span></article>
+          </div>
+          <div class="locked-cta">Preview only. Full daily boards unlock with active Bruce or Premium membership.</div>
+        </div>
+      </section>
+
+      <section class="tiers">
+        <article class="tier">
+          <h3>Core Membership</h3>
+          <div class="price">$19.99</div>
+          <div class="meta">Monthly Access</div>
+        </article>
+        <article class="tier">
+          <h3>Bruce Picks</h3>
+          <div class="price">$20</div>
+          <div class="meta">Monthly Board</div>
+        </article>
+        <article class="tier">
+          <h3>Bruce Premium Picks</h3>
+          <div class="price">$50</div>
+          <div class="meta">Premium Board</div>
+        </article>
+      </section>
+
+      <p class="note">
+        <strong>Compliance:</strong> HitALick is an informational analytics product. No in-app purchases, no betting transactions, and no simulated wagering mechanics in iOS.
+        Data architecture supports all major platform odds ingestion with normalized market formatting.
+      </p>
+    </section>
+  </main>
+  <script>
+    const tabs = document.querySelectorAll(".tab-btn");
+    const panels = {
+      players: document.getElementById("tab-players"),
+      team: document.getElementById("tab-team"),
+      picks: document.getElementById("tab-picks"),
+    };
+    tabs.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        tabs.forEach((t) => t.classList.remove("active"));
+        btn.classList.add("active");
+        const key = btn.getAttribute("data-tab");
+        Object.values(panels).forEach((p) => p.classList.remove("active"));
+        panels[key].classList.add("active");
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#050814" />
+  <meta name="description" content="Hit-A-Lick ops desk — PIN + API base. Deploy with Firebase Hosting or GitHub Pages." />
+  <title>Hit-A-Lick · Ops Desk</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050814;
+      --panel: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.14);
+      --accent: #2ee6c6;
+      --warn: #f5c542;
+      --bad: #ff6b6b;
+      --good: #5ef3a9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(46,230,198,0.2), transparent),
+        radial-gradient(900px 600px at 90% 20%, rgba(120,80,255,0.18), transparent),
+        var(--bg);
+      color: #f4f7ff;
+      min-height: 100vh;
+      padding: 0;
+    }
+    h1 { font-size: 1.45rem; margin: 0 0 6px; letter-spacing: -0.02em; }
+    h2 { font-size: 0.95rem; margin: 0 0 10px; color: rgba(255,255,255,0.92); }
+    p.sub { margin: 0 0 14px; color: rgba(255,255,255,0.62); font-size: 0.88rem; line-height: 1.45; }
+    code { font-size: 0.78em; background: rgba(0,0,0,0.35); padding: 2px 6px; border-radius: 6px; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 22px 16px 48px; }
+    .topbar {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+      justify-content: space-between; margin-bottom: 18px;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.72rem; font-weight: 800; padding: 6px 12px;
+      border-radius: 999px; background: rgba(46,230,198,0.14); color: var(--accent);
+      letter-spacing: 0.06em;
+    }
+    .grid { display: grid; gap: 14px; }
+    @media (min-width: 900px) { .grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    }
+    .panel.full { grid-column: 1 / -1; }
+    pre {
+      margin: 0; white-space: pre-wrap; word-break: break-word;
+      font-size: 0.72rem; color: rgba(255,255,255,0.82);
+      max-height: 360px; overflow: auto;
+      line-height: 1.35;
+    }
+    .status { font-size: 0.85rem; color: var(--warn); min-height: 1.2em; }
+    .status.ok { color: var(--good); }
+    .status.err { color: var(--bad); }
+    label { display: block; font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.55); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    input[type="text"], input[type="password"] {
+      width: 100%; max-width: 420px;
+      padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.35); color: #fff; font-size: 0.9rem;
+    }
+    button {
+      border: 0; border-radius: 10px; padding: 10px 18px;
+      font-weight: 800; cursor: pointer;
+      background: linear-gradient(120deg, #2ee6c6, #7aa7ff);
+      color: #050814;
+      font-size: 0.85rem;
+    }
+    button.secondary {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border: 1px solid var(--border);
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
+    .tabs button {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.85);
+      border: 1px solid var(--border);
+    }
+    .tabs button.active {
+      background: linear-gradient(120deg, rgba(46,230,198,0.35), rgba(122,167,255,0.25));
+      border-color: rgba(46,230,198,0.5);
+      color: #fff;
+    }
+    .hidden { display: none !important; }
+    .lock-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .lock-card {
+      width: 100%; max-width: 420px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 22px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+    }
+    .lock-card h1 { margin-bottom: 8px; }
+    ul.hint { margin: 12px 0 0; padding-left: 18px; color: rgba(255,255,255,0.65); font-size: 0.82rem; line-height: 1.5; }
+    .sug { font-size: 0.78rem; color: rgba(255,255,255,0.55); margin-top: 10px; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    a.link { color: var(--accent); text-decoration: none; font-weight: 700; font-size: 0.85rem; }
+    a.link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div id="lock" class="lock-screen">
+    <div class="lock-card">
+      <div class="pill">SECURE OPS</div>
+      <h1>Hit-A-Lick Ops Desk</h1>
+      <p class="sub">Enter your 4-digit PIN. It is checked on the server (<code>X-Ops-Pin</code>). Default server PIN is <strong>5505</strong> unless you set <code>OPS_DASHBOARD_PIN</code>.</p>
+      <label for="pinInput">PIN</label>
+      <input id="pinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="one-time-code" placeholder="••••" />
+      <label for="apiBaseLock" style="margin-top:14px">API base URL</label>
+      <input id="apiBaseLock" type="text" placeholder="Leave empty for same-origin (Firebase Hosting)" />
+      <p class="sug">GitHub Pages: paste your Cloud Run / API origin, e.g. <code>https://api-xxxxx-uc.a.run.app</code></p>
+      <div class="row" style="margin-top:16px">
+        <button type="button" id="unlockBtn">Unlock</button>
+      </div>
+      <ul class="hint">
+        <li>Repo path on disk: <code>site/ops-dashboard.html</code></li>
+        <li>Docs: <code>docs/DASHBOARD.md</code></li>
+        <li>After Cursor edits: deploy hosting + functions</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="app" class="wrap hidden">
+    <div class="topbar">
+      <div>
+        <div class="pill">LIVE OPS</div>
+        <h1>Prop &amp; infrastructure desk</h1>
+        <p class="sub">Connected to <code id="apiShow"></code> — uses saved PIN for every API call. <a class="link" href="#" id="logoutLink">Lock / change PIN</a></p>
+      </div>
+      <div class="row">
+        <button type="button" class="secondary" id="btnRefresh">Refresh tab</button>
+      </div>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button type="button" class="tab active" data-tab="desk">Environment</button>
+      <button type="button" class="tab" data-tab="insights">AI insights</button>
+      <button type="button" class="tab" data-tab="pricing">Stripe prices</button>
+      <button type="button" class="tab" data-tab="help">How to use</button>
+    </div>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+
+    <div id="pane-desk" class="grid cols-2">
+      <div class="panel">
+        <h2>Environment</h2>
+        <pre id="env"></pre>
+      </div>
+      <div class="panel">
+        <h2>Markets by sport</h2>
+        <pre id="markets"></pre>
+      </div>
+      <div class="panel full">
+        <h2>Raw ops dashboard JSON</h2>
+        <pre id="rawDesk"></pre>
+      </div>
+    </div>
+
+    <div id="pane-insights" class="grid hidden">
+      <div class="panel full">
+        <h2>Rule-based suggestions</h2>
+        <pre id="suggestions"></pre>
+      </div>
+      <div class="panel full">
+        <h2>AI narrative (if OPENAI_API_KEY on server)</h2>
+        <pre id="aiNarrative"></pre>
+      </div>
+      <div class="panel full">
+        <h2>Full insights JSON</h2>
+        <pre id="rawInsights"></pre>
+      </div>
+    </div>
+
+    <div id="pane-pricing" class="grid hidden">
+      <div class="panel full">
+        <h2>Stripe price IDs (masked)</h2>
+        <pre id="pricing"></pre>
+      </div>
+    </div>
+
+    <div id="pane-help" class="grid hidden">
+      <div class="panel full">
+        <h2>Checklist after Cursor</h2>
+        <pre id="helpText"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+(function () {
+  var STORAGE_PIN = "hitalick_ops_pin_v1";
+  var STORAGE_API = "hitalick_ops_api_base_v1";
+  var SESSION_OK = "hitalick_ops_session_ok_v1";
+
+  function apiBase() {
+    var s = localStorage.getItem(STORAGE_API);
+    return (s || "").trim().replace(/\/$/, "");
+  }
+
+  function getPin() {
+    return (localStorage.getItem(STORAGE_PIN) || "").trim();
+  }
+
+  function setPin(p) {
+    if (p) localStorage.setItem(STORAGE_PIN, p);
+    else localStorage.removeItem(STORAGE_PIN);
+  }
+
+  function apiUrl(path) {
+    var base = apiBase();
+    if (!base) return path;
+    return base + path;
+  }
+
+  async function apiFetch(path, opts) {
+    opts = opts || {};
+    var headers = Object.assign({}, opts.headers || {});
+    var pin = getPin();
+    if (pin) headers["X-Ops-Pin"] = pin;
+    return fetch(apiUrl(path), Object.assign({}, opts, { headers: headers }));
+  }
+
+  function showLock() {
+    document.getElementById("lock").classList.remove("hidden");
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("apiBaseLock").value = localStorage.getItem(STORAGE_API) || "";
+  }
+
+  function showApp() {
+    document.getElementById("lock").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    document.getElementById("apiShow").textContent = apiBase() || "(same origin — Firebase Hosting + /api rewrite)";
+  }
+
+  function setStatus(msg, cls) {
+    var el = document.getElementById("status");
+    el.textContent = msg || "";
+    el.className = "status" + (cls ? " " + cls : "");
+  }
+
+  async function loadDesk() {
+    setStatus("Loading ops dashboard…", "");
+    try {
+      var res = await apiFetch("/api/ops/dashboard");
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      setStatus("OK — " + (data.generatedAt || ""), "ok");
+      document.getElementById("env").textContent = JSON.stringify(data.env || {}, null, 2);
+      document.getElementById("markets").textContent = JSON.stringify(data.marketsBySport || {}, null, 2);
+      document.getElementById("rawDesk").textContent = JSON.stringify(data, null, 2);
+    } catch (e) {
+      setStatus("Failed: " + e.message, "err");
+    }
+  }
+
+  async function loadInsights() {
+    setStatus("Loading insights…", "");
+    try {
+      var res = await apiFetch("/api/ops/insights");
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      setStatus("Insights OK — " + (data.generatedAt || ""), "ok");
+      document.getElementById("suggestions").textContent = JSON.stringify(data.suggestions || [], null, 2);
+      document.getElementById("aiNarrative").textContent = data.aiNarrative || "(no OpenAI narrative — set OPENAI_API_KEY on server)";
+      document.getElementById("rawInsights").textContent = JSON.stringify(data, null, 2);
+    } catch (e) {
+      setStatus("Insights failed: " + e.message, "err");
+    }
+  }
+
+  async function loadPricing() {
+    setStatus("Loading Stripe pricing status…", "");
+    try {
+      var res = await fetch(apiUrl("/api/billing/pricing-status"));
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      setStatus("Pricing status OK", "ok");
+      document.getElementById("pricing").textContent = JSON.stringify(data, null, 2);
+    } catch (e) {
+      setStatus("Pricing failed: " + e.message, "err");
+    }
+  }
+
+  var helpBody = [
+    "LOCAL FILE ON YOUR DESKTOP / REPO",
+    "  site/ops-dashboard.html",
+    "",
+    "DEPLOYED (bookmark this)",
+    "  https://<project>.web.app/ops",
+    "",
+    "PIN",
+    "  Stored in localStorage after unlock. Server validates X-Ops-Pin (default 5505).",
+    "  Change with: firebase functions:secrets:set OPS_DASHBOARD_PIN",
+    "",
+    "GITHUB",
+    "  Push this repo to GitHub. For GitHub Pages, set API base URL at unlock to your Cloud Run URL.",
+    "",
+    "CURATOR USERS (Giap, Bruce, Mike, Toriano)",
+    "  Create users in Firebase Console; set CURATOR_*_EMAIL secrets.",
+    "  See scripts/setup-curators-auth.md",
+    "",
+    "CURSOR WORKFLOW",
+    "  1) Edit site/ops-dashboard.html or functions/",
+    "  2) firebase deploy --only hosting,functions:api",
+    "",
+  ].join("\n");
+
+  document.getElementById("helpText").textContent = helpBody;
+
+  function activateTab(name) {
+    var tabs = document.querySelectorAll(".tab");
+    tabs.forEach(function (t) {
+      t.classList.toggle("active", t.getAttribute("data-tab") === name);
+    });
+    ["desk", "insights", "pricing", "help"].forEach(function (id) {
+      document.getElementById("pane-" + id).classList.toggle("hidden", id !== name);
+    });
+    if (name === "desk") loadDesk();
+    if (name === "insights") loadInsights();
+    if (name === "pricing") loadPricing();
+  }
+
+  document.getElementById("tabs").addEventListener("click", function (e) {
+    var t = e.target.closest(".tab");
+    if (!t) return;
+    activateTab(t.getAttribute("data-tab"));
+  });
+
+  document.getElementById("unlockBtn").addEventListener("click", async function () {
+    var pin = (document.getElementById("pinInput").value || "").trim();
+    var base = (document.getElementById("apiBaseLock").value || "").trim().replace(/\/$/, "");
+    if (!pin) {
+      alert("Enter PIN.");
+      return;
+    }
+    localStorage.setItem(STORAGE_API, base);
+    setPin(pin);
+    try {
+      var test = await apiFetch("/api/ops/dashboard");
+      if (!test.ok) {
+        var err = await test.json().catch(function () { return {}; });
+        throw new Error(err.error || test.statusText);
+      }
+      sessionStorage.setItem(SESSION_OK, "1");
+      showApp();
+      activateTab("desk");
+    } catch (e) {
+      setPin("");
+      alert("PIN rejected or API unreachable: " + e.message);
+    }
+  });
+
+  document.getElementById("logoutLink").addEventListener("click", function (e) {
+    e.preventDefault();
+    setPin("");
+    sessionStorage.removeItem(SESSION_OK);
+    showLock();
+  });
+
+  document.getElementById("btnRefresh").addEventListener("click", function () {
+    var active = document.querySelector(".tab.active");
+    if (active) activateTab(active.getAttribute("data-tab"));
+  });
+
+  (function init() {
+    if (getPin() && sessionStorage.getItem(SESSION_OK) === "1") {
+      showApp();
+      activateTab("desk");
+    } else {
+      showLock();
+    }
+  })();
+})();
+  </script>
+</body>
+</html>

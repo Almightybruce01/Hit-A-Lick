@@ -1,0 +1,25 @@
+# Xcode
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+
+# SwiftPM
+.build/
+.swiftpm/
+
+# CocoaPods
+Pods/
+
+# Node / Firebase functions
+functions/node_modules/
+functions/.env
+functions/.env.*
+
+# OS
+.DS_Store
+
+# Secrets
+*.pem
+.env
+.env.*

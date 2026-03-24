@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Setup Guide | HitALick</title>
+  <style>
+    :root {
+      --bg: #050a14;
+      --panel: rgba(12, 20, 44, 0.8);
+      --line: rgba(124, 165, 235, 0.32);
+      --ink: #ebf3ff;
+      --muted: #a3b8df;
+      --brand: #5ab8ff;
+      --accent: #8affd4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #13265d 0%, #050a14 68%);
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .nav a {
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 12px;
+      color: var(--ink);
+      background: rgba(10, 18, 42, 0.7);
+      margin-right: 6px;
+      font-size: 12px;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .title { margin: 0 0 6px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .step { border: 1px solid rgba(129,168,235,.28); border-radius: 12px; padding: 12px; background: rgba(8, 15, 34, .75); }
+    pre {
+      margin: 8px 0 0;
+      padding: 10px;
+      border-radius: 10px;
+      background: #07112a;
+      border: 1px solid rgba(126,166,234,.22);
+      overflow: auto;
+      font-size: 12px;
+      color: #d7e9ff;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .ok { color: #9fffe6; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="top">
+      <h1 class="title">HitALick Setup Guide</h1>
+      <div class="nav">
+        <a href="/">Home</a>
+        <a href="/app.html">Web App</a>
+        <a href="/pricing.html">Pricing</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <p class="muted">Run these in order to get full props, games, players, billing, and deployment running. Check readiness anytime at <code>/api/setup/check</code>.</p>
+      <pre><code>GET https://api-lifnvql5aa-uc.a.run.app/api/setup/check</code></pre>
+    </section>
+
+    <section class="grid">
+      <article class="step">
+        <h3>1) Firebase Auth + Deploy</h3>
+        <pre><code>firebase login --reauth
+firebase use hit-a-lick-database
+firebase deploy --only functions,hosting</code></pre>
+      </article>
+
+      <article class="step">
+        <h3>2) Odds API (Required)</h3>
+        <pre><code>firebase functions:secrets:set ODDS_API_KEY
+firebase functions:secrets:set ODDS_API_BOOKMAKERS
+# Suggested value:
+# fanduel,draftkings,betmgm,caesars,espnbet,pointsbetus</code></pre>
+      </article>
+
+      <article class="step">
+        <h3>3) Stripe (Required for memberships)</h3>
+        <pre><code>firebase functions:secrets:set STRIPE_SECRET_KEY
+firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
+firebase functions:secrets:set STRIPE_PRICE_CORE_MONTHLY
+firebase functions:secrets:set STRIPE_PRICE_BRUCE_PICKS_MONTHLY
+firebase functions:secrets:set STRIPE_PRICE_BRUCE_PREMIUM_MONTHLY</code></pre>
+      </article>
+
+      <article class="step">
+        <h3>4) Optional Second Provider</h3>
+        <p class="muted">RapidAPI can help as backup provider only. Keep The Odds API primary.</p>
+        <pre><code>firebase functions:secrets:set RAPIDAPI_KEY
+firebase functions:secrets:set RAPIDAPI_ODDS_HOST
+# Suggested host:
+# odds.p.rapidapi.com</code></pre>
+      </article>
+
+      <article class="step">
+        <h3>5) Verify Coverage</h3>
+        <pre><code>/api/games?sport=all
+/api/players?sport=all&limit=200
+/api/playerStats?sport=all&limit=200
+/api/props?sport=all&allEventProps=1&includeBooks=1</code></pre>
+      </article>
+
+      <article class="step">
+        <h3>6) Frontend Usage</h3>
+        <p class="muted">In <span class="ok">Web App</span>, turn on <b>Max Coverage</b> for fullest props + books mode.</p>
+        <pre><code>Open /app.html
+Enable: Max Coverage
+Click: Refresh Data</code></pre>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

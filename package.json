@@ -1,0 +1,15 @@
+{
+  "name": "hit-a-lick",
+  "private": true,
+  "description": "Monorepo scripts (iOS app in HitALick/, Firebase in functions/, static site in site/)",
+  "scripts": {
+    "deploy:backend": "bash scripts/deploy-backend.sh",
+    "smoke": "bash scripts/smoke-test.sh",
+    "provider-test": "bash scripts/provider-test.sh",
+    "verify:functions": "node --input-type=module -e \"import('./functions/index.js').then(()=>console.log('functions: import OK')).catch(e=>{console.error(e);process.exit(1)})\"",
+    "emulators": "firebase emulators:start --only functions,hosting"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

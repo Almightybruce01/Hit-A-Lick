@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pricing | HitALick</title>
+  <style>
+    :root {
+      --bg0: #040811;
+      --bg1: #0b1530;
+      --panel: rgba(14, 24, 52, 0.72);
+      --line: rgba(117, 163, 243, 0.33);
+      --ink: #ecf3ff;
+      --muted: #9ab1db;
+      --brand: #56b6ff;
+      --accent: #89ffd7;
+    }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #112453 0%, var(--bg1) 38%, var(--bg0) 85%);
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 24px; }
+    .brand-row { display:flex; align-items:center; gap:10px; margin-bottom: 8px; }
+    .brand-row img { width: 40px; height: 40px; border-radius: 8px; border: 1px solid #35548a; object-fit: cover; }
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      padding: 16px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(10px);
+    }
+    .row { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; backdrop-filter: blur(10px); }
+    .price { font-size: 38px; font-weight: 900; margin: 6px 0 12px; }
+    .unit { font-size: 14px; color: var(--muted); margin-left: 4px; }
+    button {
+      border: 0; border-radius: 999px; padding: 10px 14px; cursor: pointer; font-weight: 700;
+      background: linear-gradient(135deg, var(--brand), var(--accent)); color: #03101f;
+    }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 16px; }
+    .feature { font-size: 12px; color: #d8e6ff; margin-top: 6px; }
+    .badge {
+      display: inline-block;
+      margin-bottom: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: #031120;
+      background: linear-gradient(135deg, #7fffd8, #89c6ff);
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="brand-row">
+      <img src="/logo.png" alt="HitALick logo" />
+      <strong>HitALick</strong>
+    </div>
+    <section class="hero">
+      <h1 style="margin:0 0 8px;">Choose Your Membership</h1>
+      <p class="hint">No free tier. Web account + active paid membership unlocks full app/site analytics.</p>
+      <p class="hint"><a href="/account.html" style="color:#8affd4;">Create/login account first</a> to attach entitlement to your identity.</p>
+      <p class="hint"><a href="/app.html" style="color:#8affd4;">Open HitALick Web App</a> for Pro Props Board, FanDuel + major book symbols, Games, AI Engine, and Premium picks.</p>
+    </section>
+
+    <section class="row">
+      <article class="card">
+        <span class="badge">Core</span>
+        <h2>Core Membership</h2>
+        <div class="price">$19.99<span class="unit">/mo</span></div>
+        <div class="feature">- Thousands of props & games</div>
+        <div class="feature">- Advanced visual analytics boards</div>
+        <div class="feature">- Odds comparison and market movement</div>
+        <button onclick="startCheckout('core')">Start Core</button>
+      </article>
+      <article class="card">
+        <span class="badge">Bruce</span>
+        <h2>Bruce Picks</h2>
+        <div class="price">$20<span class="unit">/mo</span></div>
+        <div class="feature">- Daily curated Bruce board</div>
+        <div class="feature">- Certain plays + confidence context</div>
+        <div class="feature">- AI engine access bundle</div>
+        <button onclick="startCheckout('bruce')">Start Bruce Picks</button>
+      </article>
+      <article class="card">
+        <span class="badge">Premium</span>
+        <h2>Bruce Premium Picks</h2>
+        <div class="price">$50<span class="unit">/mo</span></div>
+        <div class="feature">- Premium board and advanced stacks</div>
+        <div class="feature">- Higher-confidence curated portfolio</div>
+        <div class="feature">- Full AI + premium insights layer</div>
+        <button onclick="startCheckout('premium')">Start Premium Picks</button>
+      </article>
+    </section>
+
+    <p class="hint" id="sessionHint"></p>
+  </main>
+
+  <script>
+    const sessionHint = document.getElementById("sessionHint");
+
+    function readSession() {
+      return {
+        uid: localStorage.getItem("hitalick_uid") || "",
+        email: localStorage.getItem("hitalick_email") || "",
+      };
+    }
+
+    function renderSessionHint() {
+      const { uid, email } = readSession();
+      if (!uid || !email) {
+        sessionHint.innerHTML = 'No active account session. <a href="/account.html" style="color:#8affd4;">Open account hub</a>.';
+        return;
+      }
+      sessionHint.innerHTML = 'Account connected. Subscription entitlement updates are enabled. <a href="/app.html" style="color:#8affd4;">Open Web App</a>.';
+    }
+
+    async function startCheckout(tier) {
+      const { uid, email } = readSession();
+      if (!uid || !email) {
+        alert("Create/login on the website first so we can attach your entitlement.");
+        return;
+      }
+
+      const res = await fetch("/api/billing/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid, email, tier }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Checkout failed");
+        return;
+      }
+      window.location.href = data.url;
+    }
+
+    renderSessionHint();
+  </script>
+</body>
+</html>

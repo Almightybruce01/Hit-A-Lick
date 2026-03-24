@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Owner Dashboard | HitALick</title>
+  <style>
+    :root {
+      --bg: #060912;
+      --panel: rgba(13, 21, 44, 0.86);
+      --line: rgba(103, 144, 214, 0.35);
+      --ink: #eaf2ff;
+      --muted: #9fb4da;
+      --brand: #5bb7ff;
+      --accent: #8affd4;
+      --warn: #ffd37a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #15224c 0%, #060912 58%);
+    }
+    .gate {
+      position: fixed; inset: 0; z-index: 20;
+      background: radial-gradient(circle at top, #142555, #050812 68%);
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
+    .gate-card {
+      width: 100%; max-width: 480px; padding: 20px;
+      border-radius: 16px; border: 1px solid var(--line);
+      background: rgba(11, 18, 40, 0.85);
+      box-shadow: 0 30px 50px rgba(0,0,0,.4);
+    }
+    .gate-title { margin: 0 0 8px; font-size: 26px; }
+    .hint { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+
+    #dashboardShell { display: none; }
+    .wrap { max-width: 1220px; margin: 0 auto; padding: 22px; }
+    .topbar {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 12px 14px;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      margin-bottom: 14px;
+    }
+    .top-brand { display:flex; align-items:center; gap:10px; }
+    .top-brand img { width: 38px; height: 38px; border-radius: 8px; border: 1px solid rgba(121,160,226,.45); object-fit: cover; }
+    .badge { font-size: 12px; color: #00111f; background: linear-gradient(135deg,var(--brand),var(--accent)); padding: 5px 10px; border-radius: 999px; font-weight: 700; }
+    .grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 14px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      padding: 14px;
+      min-height: 220px;
+    }
+    .card h2 { margin: 0 0 6px; font-size: 18px; }
+    .small { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid rgba(111, 150, 212, 0.4);
+      border-radius: 10px;
+      background: #09122b;
+      color: var(--ink);
+      padding: 10px;
+      margin-top: 8px;
+    }
+    textarea { min-height: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--brand), var(--accent));
+      color: #041222;
+      margin-top: 10px;
+    }
+    .btn-outline { background: transparent; color: var(--ink); border: 1px solid rgba(143,177,233,.5); }
+    .status { font-size: 13px; margin-top: 8px; color: var(--accent); min-height: 18px; }
+    .bets-list { max-height: 310px; overflow: auto; padding-right: 4px; }
+    .bet-item {
+      border: 1px solid rgba(115, 155, 222, 0.33);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(7, 14, 32, 0.7);
+      margin-bottom: 8px;
+    }
+    .bet-item strong { display: block; margin-bottom: 4px; }
+    .bet-meta { font-size: 12px; color: var(--muted); }
+    .bet-actions { display:flex; gap:8px; margin-top:8px; }
+    .bet-actions button { margin-top: 0; font-size: 12px; padding: 8px 10px; }
+    .board-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    @media (max-width: 1080px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <section class="gate" id="ownerGate">
+    <div class="gate-card">
+      <h1 class="gate-title">Owner Dashboard Access</h1>
+      <p class="hint">Owner account + access key required. Public users cannot view this dashboard.</p>
+      <input id="ownerKeyInput" type="password" placeholder="Owner access key" />
+      <button style="margin-top:10px;" onclick="unlockDashboard()">Unlock Dashboard</button>
+      <div class="status" id="gateStatus"></div>
+    </div>
+  </section>
+
+  <main class="wrap" id="dashboardShell">
+    <section class="topbar">
+      <div class="top-brand">
+        <img src="/logo.png" alt="HitALick logo" />
+        <div>
+        <strong>HitALick Owner Control Center</strong><br/>
+        <span class="small">Session: <span id="sessionLabel">-</span></span>
+        </div>
+      </div>
+      <span class="badge">Owner Mode</span>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Current Bets Panel</h2>
+        <p class="small">Add live/current bets, then route each bet to Bruce or Premium boards with one click.</p>
+        <div class="row">
+          <input id="betTitle" placeholder="Bet title" />
+          <input id="betLeague" placeholder="League (NBA/NFL...)" />
+        </div>
+        <input id="betPick" placeholder="Pick (e.g. Player Points Over 24.5)" />
+        <textarea id="betNotes" placeholder="Why this bet is on the board"></textarea>
+        <div class="row">
+          <input id="betConfidence" type="number" min="1" max="100" value="90" />
+          <input id="betDate" placeholder="Game date (YYYY-MM-DD)" />
+        </div>
+        <button onclick="addCurrentBet()">Add To Current Bets</button>
+        <button class="btn-outline" onclick="saveCurrentBets()">Save Current Bets Panel</button>
+        <div class="status" id="currentBetsStatus"></div>
+      </article>
+
+      <article class="card">
+        <h2>Current Bets (Live)</h2>
+        <p class="small">Click a bet to push it into Bruce Picks or Bruce Premium Picks.</p>
+        <div class="bets-list" id="currentBetsList"></div>
+      </article>
+
+      <article class="card">
+        <h2>Board Publishing</h2>
+        <p class="small">Edit board metadata and publish selected bets quickly.</p>
+        <input id="bruceHeadline" placeholder="Bruce Picks headline" />
+        <input id="bruceHitRate" placeholder="Bruce hit-rate claim" value="90%" />
+        <textarea id="bruceItems" placeholder="Bruce board JSON items"></textarea>
+        <div class="board-actions">
+          <button onclick="saveTier('bruce')">Save Bruce Board</button>
+          <button class="btn-outline" onclick="clearTier('bruce')">Clear Bruce JSON</button>
+        </div>
+        <div class="status" id="bruceStatus"></div>
+
+        <input id="premiumHeadline" placeholder="Headline (e.g. Bruce Premium Board)" />
+        <input id="premiumHitRate" placeholder="Hit-rate claim (e.g. 90%)" value="90%" />
+        <textarea id="premiumItems" placeholder="Premium board JSON items"></textarea>
+        <div class="board-actions">
+          <button onclick="saveTier('premium')">Save Premium Board</button>
+          <button class="btn-outline" onclick="clearTier('premium')">Clear Premium JSON</button>
+        </div>
+        <div class="status" id="premiumStatus"></div>
+        <div class="status" id="globalStatus"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const API = "/api";
+    const ownerEmail = "brucebrian50@gmail.com";
+    const ownerAccessKey = "HAL-OWNER-246810";
+    let currentBets = [];
+
+    function getSession() {
+      return {
+        email: localStorage.getItem("hitalick_email") || "",
+        token: localStorage.getItem("hitalick_token") || "",
+        uid: localStorage.getItem("hitalick_uid") || "",
+      };
+    }
+
+    function setStatus(id, msg, isErr = false) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.style.color = isErr ? "#ff9f9f" : "#8affd4";
+    }
+
+    async function unlockDashboard() {
+      const key = (document.getElementById("ownerKeyInput").value || "").trim();
+      if (key !== ownerAccessKey) {
+        setStatus("gateStatus", "Invalid access key.", true);
+        return;
+      }
+
+      const session = getSession();
+      if (!session.token || !session.uid || !session.email) {
+        setStatus("gateStatus", "Log in at /account.html first.", true);
+        return;
+      }
+      if (session.email.toLowerCase() !== ownerEmail) {
+        setStatus("gateStatus", "Owner account required.", true);
+        return;
+      }
+
+      // Server-side owner validation check
+      const probe = await fetch(`${API}/picks/bruce?uid=${encodeURIComponent(session.uid)}`, {
+        headers: { Authorization: `Bearer ${session.token}` },
+      });
+      if (!probe.ok) {
+        const data = await probe.json().catch(() => ({}));
+        setStatus("gateStatus", data.error || "Access validation failed.", true);
+        return;
+      }
+
+      document.getElementById("ownerGate").style.display = "none";
+      document.getElementById("dashboardShell").style.display = "block";
+      await init();
+    }
+
+    async function loadTier(tier) {
+      const session = getSession();
+      const res = await fetch(`${API}/picks/${tier}?uid=${encodeURIComponent(session.uid)}`, {
+        headers: {
+          "Authorization": `Bearer ${session.token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed load");
+      document.getElementById(`${tier}Headline`).value = data.headline || "";
+      document.getElementById(`${tier}HitRate`).value = data.hitRateClaim || "90%";
+      document.getElementById(`${tier}Items`).value = JSON.stringify(data.items || [], null, 2);
+    }
+
+    async function loadCurrentBets() {
+      const session = getSession();
+      const res = await fetch(`${API}/picks/current-bets/list?uid=${encodeURIComponent(session.uid)}`, {
+        headers: { "Authorization": `Bearer ${session.token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load current bets.");
+      currentBets = Array.isArray(data.items) ? data.items : [];
+      renderCurrentBets();
+    }
+
+    function renderCurrentBets() {
+      const list = document.getElementById("currentBetsList");
+      if (!currentBets.length) {
+        list.innerHTML = '<p class="small">No current bets yet.</p>';
+        return;
+      }
+      list.innerHTML = currentBets.map((item, idx) => `
+        <div class="bet-item">
+          <strong>${escapeHtml(item.title || "Untitled Bet")}</strong>
+          <div class="bet-meta">${escapeHtml(item.league || "League")} • ${escapeHtml(item.pick || "Pick")} • ${Number(item.confidence || 0)}%</div>
+          <div class="bet-meta">${escapeHtml(item.gameDate || "")}</div>
+          <div class="bet-meta">${escapeHtml(item.notes || "")}</div>
+          <div class="bet-actions">
+            <button onclick="pushToBoard(${idx}, 'bruce')">Add To Bruce</button>
+            <button onclick="pushToBoard(${idx}, 'premium')">Add To Premium</button>
+            <button class="btn-outline" onclick="removeBet(${idx})">Remove</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function addCurrentBet() {
+      const title = document.getElementById("betTitle").value.trim();
+      const league = document.getElementById("betLeague").value.trim();
+      const pick = document.getElementById("betPick").value.trim();
+      const notes = document.getElementById("betNotes").value.trim();
+      const confidence = Number(document.getElementById("betConfidence").value || 0);
+      const gameDate = document.getElementById("betDate").value.trim();
+      if (!title || !pick) {
+        setStatus("currentBetsStatus", "Title and pick are required.", true);
+        return;
+      }
+      currentBets.unshift({ title, league, pick, notes, confidence, gameDate });
+      renderCurrentBets();
+      setStatus("currentBetsStatus", "Added to current bets list.");
+    }
+
+    function removeBet(idx) {
+      currentBets.splice(idx, 1);
+      renderCurrentBets();
+      setStatus("currentBetsStatus", "Removed bet.");
+    }
+
+    async function saveCurrentBets() {
+      const session = getSession();
+      const res = await fetch(`${API}/picks/current-bets/save`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.token}`,
+        },
+        body: JSON.stringify({
+          headline: "Current Bets Board",
+          items: currentBets,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus("currentBetsStatus", data.error || "Failed to save.", true);
+        return;
+      }
+      setStatus("currentBetsStatus", `Saved ${data.count} current bets.`);
+    }
+
+    function pushToBoard(idx, tier) {
+      const el = document.getElementById(`${tier}Items`);
+      let items = [];
+      try {
+        items = JSON.parse(el.value || "[]");
+      } catch {
+        items = [];
+      }
+      items.unshift(currentBets[idx]);
+      el.value = JSON.stringify(items, null, 2);
+      setStatus(tier === "bruce" ? "bruceStatus" : "premiumStatus", "Bet added to board JSON.");
+    }
+
+    function clearTier(tier) {
+      document.getElementById(`${tier}Items`).value = "[]";
+      setStatus(tier === "bruce" ? "bruceStatus" : "premiumStatus", "Cleared board JSON.");
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    async function saveTier(tier) {
+      const session = getSession();
+      const statusId = tier === "bruce" ? "bruceStatus" : "premiumStatus";
+      if (!session.token || !session.uid) return setStatus(statusId, "Log in on /account.html first.", true);
+      if (session.email.toLowerCase() !== ownerEmail) return setStatus(statusId, "Owner email required.", true);
+
+      let items = [];
+      try {
+        items = JSON.parse(document.getElementById(`${tier}Items`).value || "[]");
+      } catch {
+        return setStatus(statusId, "Invalid JSON in items box.", true);
+      }
+
+      const payload = {
+        headline: document.getElementById(`${tier}Headline`).value,
+        hitRateClaim: document.getElementById(`${tier}HitRate`).value || "90%",
+        items,
+      };
+
+      const res = await fetch(`${API}/picks/${tier}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) return setStatus(statusId, data.error || "Save failed.", true);
+      setStatus(statusId, `Saved ${data.count} picks.`);
+    }
+
+    async function init() {
+      const session = getSession();
+      const label = session.email ? `${session.email}` : "No account session found";
+      document.getElementById("sessionLabel").textContent = label;
+      if (!session.token || !session.uid) setStatus("globalStatus", "Log in at /account.html to edit picks.", true);
+      if (session.email && session.email.toLowerCase() !== ownerEmail) setStatus("globalStatus", "Viewer mode only. Owner account required for edits.", true);
+
+      try {
+        await loadTier("bruce");
+        await loadTier("premium");
+        await loadCurrentBets();
+      } catch (e) {
+        setStatus("globalStatus", e.message, true);
+      }
+    }
+
+    // Wait for owner gate unlock before init
+  </script>
+</body>
+</html>

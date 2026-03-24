@@ -1,0 +1,727 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B7BB78132DF3C6E600B22C41 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB78122DF3C6E600B22C41 /* FirebaseAnalytics */; };
+		B7BB78152DF3C6E600B22C41 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB78142DF3C6E600B22C41 /* FirebaseAnalyticsCore */; };
+		B7BB78172DF3C6E600B22C41 /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB78162DF3C6E600B22C41 /* FirebaseAppCheck */; };
+		B7BB78192DF3C6E600B22C41 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB78182DF3C6E600B22C41 /* FirebaseAuth */; };
+		B7BB781B2DF3C6E600B22C41 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB781A2DF3C6E600B22C41 /* FirebaseCore */; };
+		B7BB781D2DF3C6E600B22C41 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB781C2DF3C6E600B22C41 /* FirebaseCrashlytics */; };
+		B7BB781F2DF3C6E600B22C41 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB781E2DF3C6E600B22C41 /* FirebaseFirestore */; };
+		B7BB78212DF3C6E600B22C41 /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB78202DF3C6E600B22C41 /* FirebaseInAppMessaging-Beta */; };
+		B7BB78232DF3C6E600B22C41 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB78222DF3C6E600B22C41 /* FirebaseMessaging */; };
+		B7BB78252DF3C6E600B22C41 /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB78242DF3C6E600B22C41 /* FirebasePerformance */; };
+		B7BB78272DF3C6E600B22C41 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB78262DF3C6E600B22C41 /* FirebaseRemoteConfig */; settings = {ATTRIBUTES = (Required, ); }; };
+		B7BB78602DFA073300B22C41 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB785F2DFA073300B22C41 /* GoogleSignIn */; };
+		B7BB78622DFA073300B22C41 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = B7BB78612DFA073300B22C41 /* GoogleSignInSwift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B79196022DD6D352003505CB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B79195EC2DD6D34E003505CB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B79195F32DD6D34E003505CB;
+			remoteInfo = "Hit-A-Lick";
+		};
+		B791960C2DD6D352003505CB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B79195EC2DD6D34E003505CB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B79195F32DD6D34E003505CB;
+			remoteInfo = "Hit-A-Lick";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		24C7DA5E2888BBCD7644B1D2 /* Pods_HitALick.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_HitALick.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B79195F42DD6D34E003505CB /* HitALick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HitALick.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B79196012DD6D352003505CB /* HitALickTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HitALickTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B791960B2DD6D352003505CB /* HitALickUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HitALickUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B756F1642E03945600752B17 /* Exceptions for "HitALick" folder in "HitALick" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B79195F32DD6D34E003505CB /* HitALick */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		B79195F62DD6D34E003505CB /* HitALick */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B756F1642E03945600752B17 /* Exceptions for "HitALick" folder in "HitALick" target */,
+			);
+			path = HitALick;
+			sourceTree = "<group>";
+		};
+		B79196042DD6D352003505CB /* HitALickTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HitALickTests;
+			sourceTree = "<group>";
+		};
+		B791960E2DD6D352003505CB /* HitALickUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HitALickUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B79195F12DD6D34E003505CB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B7BB78272DF3C6E600B22C41 /* FirebaseRemoteConfig in Frameworks */,
+				B7BB78232DF3C6E600B22C41 /* FirebaseMessaging in Frameworks */,
+				B7BB78132DF3C6E600B22C41 /* FirebaseAnalytics in Frameworks */,
+				B7BB78252DF3C6E600B22C41 /* FirebasePerformance in Frameworks */,
+				B7BB781B2DF3C6E600B22C41 /* FirebaseCore in Frameworks */,
+				B7BB78622DFA073300B22C41 /* GoogleSignInSwift in Frameworks */,
+				B7BB78602DFA073300B22C41 /* GoogleSignIn in Frameworks */,
+				B7BB78172DF3C6E600B22C41 /* FirebaseAppCheck in Frameworks */,
+				B7BB78212DF3C6E600B22C41 /* FirebaseInAppMessaging-Beta in Frameworks */,
+				B7BB781D2DF3C6E600B22C41 /* FirebaseCrashlytics in Frameworks */,
+				B7BB78152DF3C6E600B22C41 /* FirebaseAnalyticsCore in Frameworks */,
+				B7BB78192DF3C6E600B22C41 /* FirebaseAuth in Frameworks */,
+				B7BB781F2DF3C6E600B22C41 /* FirebaseFirestore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B79195FE2DD6D352003505CB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B79196082DD6D352003505CB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		64835A1966FE4D15EA39B13E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				24C7DA5E2888BBCD7644B1D2 /* Pods_HitALick.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B79195EB2DD6D34E003505CB = {
+			isa = PBXGroup;
+			children = (
+				B79195F62DD6D34E003505CB /* HitALick */,
+				B79196042DD6D352003505CB /* HitALickTests */,
+				B791960E2DD6D352003505CB /* HitALickUITests */,
+				B79195F52DD6D34E003505CB /* Products */,
+				64835A1966FE4D15EA39B13E /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		B79195F52DD6D34E003505CB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B79195F42DD6D34E003505CB /* HitALick.app */,
+				B79196012DD6D352003505CB /* HitALickTests.xctest */,
+				B791960B2DD6D352003505CB /* HitALickUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B79195F32DD6D34E003505CB /* HitALick */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B79196152DD6D352003505CB /* Build configuration list for PBXNativeTarget "HitALick" */;
+			buildPhases = (
+				B79195F02DD6D34E003505CB /* Sources */,
+				B79195F12DD6D34E003505CB /* Frameworks */,
+				B79195F22DD6D34E003505CB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B79195F62DD6D34E003505CB /* HitALick */,
+			);
+			name = HitALick;
+			packageProductDependencies = (
+				B7BB78122DF3C6E600B22C41 /* FirebaseAnalytics */,
+				B7BB78142DF3C6E600B22C41 /* FirebaseAnalyticsCore */,
+				B7BB78162DF3C6E600B22C41 /* FirebaseAppCheck */,
+				B7BB78182DF3C6E600B22C41 /* FirebaseAuth */,
+				B7BB781A2DF3C6E600B22C41 /* FirebaseCore */,
+				B7BB781C2DF3C6E600B22C41 /* FirebaseCrashlytics */,
+				B7BB781E2DF3C6E600B22C41 /* FirebaseFirestore */,
+				B7BB78202DF3C6E600B22C41 /* FirebaseInAppMessaging-Beta */,
+				B7BB78222DF3C6E600B22C41 /* FirebaseMessaging */,
+				B7BB78242DF3C6E600B22C41 /* FirebasePerformance */,
+				B7BB78262DF3C6E600B22C41 /* FirebaseRemoteConfig */,
+				B7BB785F2DFA073300B22C41 /* GoogleSignIn */,
+				B7BB78612DFA073300B22C41 /* GoogleSignInSwift */,
+			);
+			productName = "Hit-A-Lick";
+			productReference = B79195F42DD6D34E003505CB /* HitALick.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B79196002DD6D352003505CB /* HitALickTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B79196182DD6D352003505CB /* Build configuration list for PBXNativeTarget "HitALickTests" */;
+			buildPhases = (
+				B79195FD2DD6D352003505CB /* Sources */,
+				B79195FE2DD6D352003505CB /* Frameworks */,
+				B79195FF2DD6D352003505CB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B79196032DD6D352003505CB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B79196042DD6D352003505CB /* HitALickTests */,
+			);
+			name = HitALickTests;
+			productName = "Hit-A-LickTests";
+			productReference = B79196012DD6D352003505CB /* HitALickTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B791960A2DD6D352003505CB /* HitALickUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B791961B2DD6D352003505CB /* Build configuration list for PBXNativeTarget "HitALickUITests" */;
+			buildPhases = (
+				B79196072DD6D352003505CB /* Sources */,
+				B79196082DD6D352003505CB /* Frameworks */,
+				B79196092DD6D352003505CB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B791960D2DD6D352003505CB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B791960E2DD6D352003505CB /* HitALickUITests */,
+			);
+			name = HitALickUITests;
+			productName = "Hit-A-LickUITests";
+			productReference = B791960B2DD6D352003505CB /* HitALickUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B79195EC2DD6D34E003505CB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1630;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					B79195F32DD6D34E003505CB = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					B79196002DD6D352003505CB = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = B79195F32DD6D34E003505CB;
+					};
+					B791960A2DD6D352003505CB = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = B79195F32DD6D34E003505CB;
+					};
+				};
+			};
+			buildConfigurationList = B79195EF2DD6D34E003505CB /* Build configuration list for PBXProject "HitALick" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B79195EB2DD6D34E003505CB;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				B7BB785E2DFA073300B22C41 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = B79195F52DD6D34E003505CB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B79195F32DD6D34E003505CB /* HitALick */,
+				B79196002DD6D352003505CB /* HitALickTests */,
+				B791960A2DD6D352003505CB /* HitALickUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B79195F22DD6D34E003505CB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B79195FF2DD6D352003505CB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B79196092DD6D352003505CB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B79195F02DD6D34E003505CB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B79195FD2DD6D352003505CB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B79196072DD6D352003505CB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B79196032DD6D352003505CB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B79195F32DD6D34E003505CB /* HitALick */;
+			targetProxy = B79196022DD6D352003505CB /* PBXContainerItemProxy */;
+		};
+		B791960D2DD6D352003505CB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B79195F32DD6D34E003505CB /* HitALick */;
+			targetProxy = B791960C2DD6D352003505CB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		B79196132DD6D352003505CB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = VAWDYZ2B9U;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B79196142DD6D352003505CB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = VAWDYZ2B9U;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B79196162DD6D352003505CB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = HitALick/HitALick.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VAWDYZ2B9U;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HitALick/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hitalick.hitalick;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B79196172DD6D352003505CB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = HitALick/HitALick.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VAWDYZ2B9U;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HitALick/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = "Launch Screen";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hitalick.hitalick;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B79196192DD6D352003505CB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VAWDYZ2B9U;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bruce.Hit-A-LickTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HitALick.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HitALick";
+			};
+			name = Debug;
+		};
+		B791961A2DD6D352003505CB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VAWDYZ2B9U;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bruce.Hit-A-LickTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HitALick.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HitALick";
+			};
+			name = Release;
+		};
+		B791961C2DD6D352003505CB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VAWDYZ2B9U;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bruce.Hit-A-LickUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Hit-A-Lick";
+			};
+			name = Debug;
+		};
+		B791961D2DD6D352003505CB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = VAWDYZ2B9U;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bruce.Hit-A-LickUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Hit-A-Lick";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B79195EF2DD6D34E003505CB /* Build configuration list for PBXProject "HitALick" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B79196132DD6D352003505CB /* Debug */,
+				B79196142DD6D352003505CB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B79196152DD6D352003505CB /* Build configuration list for PBXNativeTarget "HitALick" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B79196162DD6D352003505CB /* Debug */,
+				B79196172DD6D352003505CB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B79196182DD6D352003505CB /* Build configuration list for PBXNativeTarget "HitALickTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B79196192DD6D352003505CB /* Debug */,
+				B791961A2DD6D352003505CB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B791961B2DD6D352003505CB /* Build configuration list for PBXNativeTarget "HitALickUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B791961C2DD6D352003505CB /* Debug */,
+				B791961D2DD6D352003505CB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.14.0;
+			};
+		};
+		B7BB785E2DFA073300B22C41 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B7BB78122DF3C6E600B22C41 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		B7BB78142DF3C6E600B22C41 /* FirebaseAnalyticsCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsCore;
+		};
+		B7BB78162DF3C6E600B22C41 /* FirebaseAppCheck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAppCheck;
+		};
+		B7BB78182DF3C6E600B22C41 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		B7BB781A2DF3C6E600B22C41 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		B7BB781C2DF3C6E600B22C41 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		B7BB781E2DF3C6E600B22C41 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		B7BB78202DF3C6E600B22C41 /* FirebaseInAppMessaging-Beta */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseInAppMessaging-Beta";
+		};
+		B7BB78222DF3C6E600B22C41 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		B7BB78242DF3C6E600B22C41 /* FirebasePerformance */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebasePerformance;
+		};
+		B7BB78262DF3C6E600B22C41 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB78112DF3C6E600B22C41 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
+		};
+		B7BB785F2DFA073300B22C41 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB785E2DFA073300B22C41 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		B7BB78612DFA073300B22C41 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B7BB785E2DFA073300B22C41 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = B79195EC2DD6D34E003505CB /* Project object */;
+}

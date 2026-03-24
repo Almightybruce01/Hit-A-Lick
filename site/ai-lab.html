@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Picks Lab | HitALick</title>
+  <style>
+    body { margin:0; background:#060912; color:#eaf2ff; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 22px; }
+    .brand-row { display:flex; align-items:center; gap:10px; margin-bottom: 10px; }
+    .brand-row img { width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(120,159,226,.45); object-fit: cover; }
+    .card { background: rgba(10, 16, 34, 0.84); border: 1px solid rgba(117,156,224,.35); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+    .grid { display:grid; grid-template-columns: 320px 1fr 360px; gap: 12px; }
+    .title { margin: 0 0 6px; }
+    input, select {
+      width: 100%; border: 1px solid rgba(120,159,226,.45); background:#09122a; color:#eaf2ff;
+      border-radius: 10px; padding: 10px; margin-top: 8px;
+    }
+    button {
+      border: 0; border-radius: 999px; padding: 10px 12px; cursor: pointer; font-weight: 700;
+      background: linear-gradient(135deg,#59b6ff,#8affd4); color:#041423; margin-top: 10px;
+    }
+    .btn-ghost { background: transparent; color:#eaf2ff; border: 1px solid rgba(120,159,226,.45); }
+    .status { min-height: 18px; margin-top: 8px; font-size: 13px; color:#8affd4; }
+    .pick {
+      border: 1px solid rgba(122,162,228,.35); border-radius: 10px; padding: 10px; background: rgba(7, 13, 29, .75); margin-bottom: 8px;
+    }
+    .pick h4 { margin: 0 0 6px; font-size: 14px; }
+    .meta { color:#9ab2dd; font-size: 12px; }
+    .money { color:#8affd4; font-weight: 700; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+    @media (max-width: 1080px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="brand-row">
+      <img src="/logo.png" alt="HitALick logo" />
+      <strong>HitALick</strong>
+    </div>
+    <h1 class="title">AI Picks Lab</h1>
+    <p style="margin-top:0;color:#9db4de;">Elite AI-generated picks and parlays from major-book odds snapshots. Requires active Bruce or Premium membership.</p>
+
+    <section class="grid">
+      <article class="card">
+        <h3 style="margin-top:0;">Filters</h3>
+        <select id="sport">
+          <option value="nba">NBA</option>
+          <option value="nfl">NFL</option>
+          <option value="mlb">MLB</option>
+          <option value="wnba">WNBA</option>
+        </select>
+        <input id="minConfidence" type="number" min="40" max="95" value="55" placeholder="Min confidence" />
+        <input id="maxPicks" type="number" min="3" max="20" value="8" placeholder="Max picks" />
+        <input id="books" placeholder="Preferred books: draftkings,fanduel,betmgm..." />
+        <button onclick="generateAiPicks()">Generate AI Picks</button>
+        <button class="btn-ghost" onclick="clearCart()">Clear Cart</button>
+        <div class="status" id="status"></div>
+      </article>
+
+      <article class="card">
+        <h3 style="margin-top:0;">AI Picks</h3>
+        <div id="picksList"></div>
+      </article>
+
+      <article class="card">
+        <h3 style="margin-top:0;">Bet Cart + Parlay Engine</h3>
+        <div id="cartList"></div>
+        <div class="row">
+          <input id="stake" type="number" min="1" step="0.01" placeholder="Stake ($)" value="20" />
+          <button onclick="calculateParlay()">Calculate</button>
+        </div>
+        <div class="status" id="parlayStatus"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const API = "/api";
+    let generatedPicks = [];
+    let cart = [];
+
+    function session() {
+      return {
+        uid: localStorage.getItem("hitalick_uid") || "",
+        token: localStorage.getItem("hitalick_token") || "",
+      };
+    }
+
+    function setStatus(msg, err = false) {
+      const el = document.getElementById("status");
+      el.textContent = msg;
+      el.style.color = err ? "#ff9f9f" : "#8affd4";
+    }
+
+    async function generateAiPicks() {
+      const s = session();
+      if (!s.uid || !s.token) return setStatus("Log in at /account.html first.", true);
+
+      const payload = {
+        uid: s.uid,
+        sport: document.getElementById("sport").value,
+        minConfidence: Number(document.getElementById("minConfidence").value || 55),
+        maxPicks: Number(document.getElementById("maxPicks").value || 8),
+        preferredBooks: (document.getElementById("books").value || "")
+          .split(",")
+          .map((x) => x.trim().toLowerCase())
+          .filter(Boolean),
+      };
+
+      const res = await fetch(`${API}/ai/picks`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${s.token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) return setStatus(data.error || "Failed to generate picks.", true);
+      generatedPicks = Array.isArray(data.picks) ? data.picks : [];
+      renderPicks();
+      setStatus(`Generated ${generatedPicks.length} picks.`);
+    }
+
+    function renderPicks() {
+      const list = document.getElementById("picksList");
+      if (!generatedPicks.length) {
+        list.innerHTML = '<p class="meta">No picks yet. Generate from filters.</p>';
+        return;
+      }
+      list.innerHTML = generatedPicks.map((pick, i) => `
+        <div class="pick">
+          <h4>${escapeHtml(pick.label)}</h4>
+          <div class="meta">${escapeHtml(pick.book)} • ${pick.type.toUpperCase()} • confidence ${pick.confidence}%</div>
+          <div class="money">Odds ${pick.odds > 0 ? '+' : ''}${pick.odds}</div>
+          <button onclick="addToCart(${i})">Add To Cart</button>
+        </div>
+      `).join("");
+    }
+
+    function addToCart(idx) {
+      const pick = generatedPicks[idx];
+      if (!pick) return;
+      cart.push(pick);
+      renderCart();
+    }
+
+    function renderCart() {
+      const list = document.getElementById("cartList");
+      if (!cart.length) {
+        list.innerHTML = '<p class="meta">Cart is empty.</p>';
+        return;
+      }
+      list.innerHTML = cart.map((pick, i) => `
+        <div class="pick">
+          <h4>${escapeHtml(pick.label)}</h4>
+          <div class="meta">${escapeHtml(pick.book)} • ${pick.odds > 0 ? '+' : ''}${pick.odds}</div>
+          <button class="btn-ghost" onclick="removeFromCart(${i})">Remove</button>
+        </div>
+      `).join("");
+    }
+
+    function removeFromCart(idx) {
+      cart.splice(idx, 1);
+      renderCart();
+    }
+
+    function clearCart() {
+      cart = [];
+      renderCart();
+      document.getElementById("parlayStatus").textContent = "";
+    }
+
+    async function calculateParlay() {
+      const s = session();
+      const status = document.getElementById("parlayStatus");
+      if (!s.uid || !s.token) {
+        status.textContent = "Log in first.";
+        status.style.color = "#ff9f9f";
+        return;
+      }
+      if (!cart.length) {
+        status.textContent = "Add picks to cart first.";
+        status.style.color = "#ff9f9f";
+        return;
+      }
+
+      const stake = Number(document.getElementById("stake").value || 0);
+      const res = await fetch(`${API}/ai/parlay`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${s.token}`,
+        },
+        body: JSON.stringify({
+          uid: s.uid,
+          stake,
+          picks: cart.map((c) => ({ label: c.label, odds: c.odds })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        status.textContent = data.error || "Parlay calc failed.";
+        status.style.color = "#ff9f9f";
+        return;
+      }
+      status.textContent = `Legs ${data.legCount} • Decimal ${data.parlayDecimal} • Return $${data.projectedReturn ?? "-"} • Profit $${data.projectedProfit ?? "-"}`;
+      status.style.color = "#8affd4";
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    renderPicks();
+    renderCart();
+  </script>
+</body>
+</html>

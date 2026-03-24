@@ -1,0 +1,2296 @@
+{
+  "service": {
+    "service": "hit-a-lick-api",
+    "serviceObject": {
+      "name": "hit-a-lick-api"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs18.x",
+      "region": "us-east-2",
+      "environment": {
+        "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+        "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+        "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+      },
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:*"
+              ],
+              "Resource": "*"
+            }
+          ]
+        }
+      },
+      "stage": "dev",
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "NbaLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-nba"
+            }
+          },
+          "NflLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-nfl"
+            }
+          },
+          "MlbLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-mlb"
+            }
+          },
+          "WnbaLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-wnba"
+            }
+          },
+          "LiveGameLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-liveGame"
+            }
+          },
+          "UpcomingGamesLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-upcomingGames"
+            }
+          },
+          "PlayerStatsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-playerStats"
+            }
+          },
+          "TeamStatsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-teamStats"
+            }
+          },
+          "CacheLiveGameLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-cacheLiveGame"
+            }
+          },
+          "CacheUpcomingGamesLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-cacheUpcomingGames"
+            }
+          },
+          "CacheStatsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-cacheStats"
+            }
+          },
+          "ScrapePlayersLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-scrapePlayers"
+            }
+          },
+          "ScrapeTeamsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-scrapeTeams"
+            }
+          },
+          "SetupSportsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-setupSports"
+            }
+          },
+          "CallAllLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/hit-a-lick-api-dev-callAll"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "hit-a-lick-api",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/hit-a-lick-api-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/hit-a-lick-api-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][0]"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "hit-a-lick-api",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "NbaLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/nba.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-nba",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "NbaLogGroup"
+            ]
+          },
+          "NflLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/nfl.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-nfl",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "NflLogGroup"
+            ]
+          },
+          "MlbLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/mlb.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-mlb",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "MlbLogGroup"
+            ]
+          },
+          "WnbaLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/wnba.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-wnba",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "WnbaLogGroup"
+            ]
+          },
+          "LiveGameLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/liveGame.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-liveGame",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "LiveGameLogGroup"
+            ]
+          },
+          "UpcomingGamesLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/upcomingGames.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-upcomingGames",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "UpcomingGamesLogGroup"
+            ]
+          },
+          "PlayerStatsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/playerStats.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-playerStats",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "PlayerStatsLogGroup"
+            ]
+          },
+          "TeamStatsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/teamStats.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-teamStats",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "TeamStatsLogGroup"
+            ]
+          },
+          "CacheLiveGameLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/cacheLiveGame.cacheLiveGame",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-cacheLiveGame",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "CacheLiveGameLogGroup"
+            ]
+          },
+          "CacheUpcomingGamesLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/cacheUpcomingGames.cacheUpcomingGames",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-cacheUpcomingGames",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "CacheUpcomingGamesLogGroup"
+            ]
+          },
+          "CacheStatsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/cacheStats.cacheStats",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-cacheStats",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "CacheStatsLogGroup"
+            ]
+          },
+          "ScrapePlayersLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/playerScraper.scrapePlayers",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-scrapePlayers",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ScrapePlayersLogGroup"
+            ]
+          },
+          "ScrapeTeamsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/teamScraper.scrapeTeams",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-scrapeTeams",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "ScrapeTeamsLogGroup"
+            ]
+          },
+          "SetupSportsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/sportSetup.setupSports",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-setupSports",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "SetupSportsLogGroup"
+            ]
+          },
+          "CallAllLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+                "S3Key": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z/hit-a-lick-api.zip"
+              },
+              "Handler": "sportsdataapi/callAll.handler",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "hit-a-lick-api-dev-callAll",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "FIREBASE_PROJECT_ID": "hit-a-lick-database",
+                  "FIREBASE_CLIENT_EMAIL": "firebase-adminsdk-fbsvc@hit-a-lick-database.iam.gserviceaccount.com",
+                  "FIREBASE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDWr8EHpeGGF9wK\nUe09yxtfqc4f+cLQQw0EqGTigbWv4UefQarWFA4JCXe3QkcOMWipArJQUzBzyzTc\nbkXK2pdWME7spGfedsRakV63w6c5RlccNGuj2udvU5y1TEywS3lOBVKAJ32lfhd2\nYLKY/W8+1R4A6CrGUu69yH7jyqbsad9XqE0MSpa44KuxvWdPovzRa8iwJYnq5Npn\nsnQI01qJ4drwTGtOZmPBqpgJ3CBmHJ9ouzxZ6TX4Ar1COHRjYH6kvnclryEoUk4e\nUx1lZpDjqMeUDKgM+S7TmtEzXjYhbR5J/pc/dgrf8QR2wuD8WNh7M5+bp+gByBxK\n1swy5oWlAgMBAAECggEAVz/dYKjTQ2Zt+Em8c5kYWmQNz+P2/yHI6CQxv/Y8KysQ\nqxIKhm9nFtggrbtDWmrNIKbmZguxDNZAePdd6Oe2ioIeiUD1r60v9qjOyDs9OmMy\nYtWRC2obFZzy+qF0J0+9EG7MTSX/g+L/UQ5SdyfEbtI5G+A/BhPNUBbsLtJ8zWYo\no/drq3R1sEw+zCwyPz/QoVQdsS9inNDIgaPOw0m23TBe8qV7GIzlKWmTWMLbr2oZ\n0KTzQ6XMPGswYLPm1nIOXX02Mbmmx2ednOGDAzDBiSVtxR1v4DhrMNBFwoh7sGRG\nwqzMyLiiK26SJPtqxsZHM+OybR/NWaZm8o/AfDbQbwKBgQD7t3NrPm7hnuw7wPk+\n7ll5S27SDALh4dIR149ZdVy1OFDooYeEkFJShQPVGDwdR3GYdIGPbu5EFobtdKyW\njsT/gusJXZ4NJ7xitK1SyY9yLa/J9RT62aljx+r+UPYMxy4FZHk6X/RnVCIJsFp5\nvbqngufaCVZCQ3b6uczsxCAHtwKBgQDaVv1axGnheIiW5uF6ilteUzyO8FNjnQaQ\nY4lLkzREQvzqwy4/M9b4HTMy5X5FbXTUefLn+u4a2R9NVg/be1/YFQqvItrA3IiW\nj8LeFuoIjV+jdrs6td4xz4JMORioN5eaqcUXxTNEV7iRxc08bYvHzs76AmNPGaTT\n9Ap2pIQFgwKBgCrn60mVe8sDjtrkmteqQyAUxpARMhCUsH0QFEQ4aBQPxGLS3cmv\n3Ahq2eth1SVcfzVwboEndH+wo1EoeR60uUmgZDXVelJdupPMnlqlNslMllFDcE8N\n+PykIB83Z6ln7iVHKg7UOlG+moqyP8nOmFljS+fzfXuQCmDUeOTGzXrjAoGAdWP3\n6+lWlCdeKOQRrvTckyZllOSZsSEn+lHJ65xFqb3qhb5TCyAwIE5yzJafAW0MN4Ep\nnJhJlJ3QOqBe/j6jFWaay/cNbkwkE+9PcmEXi2mXVifsGnDV+in7gEfife8Fz94f\nXdxk6AXR8m5LHoY3dUI3/itygYDkIiE/zvI9GUkCgYEAlZ4ILPqT2INL46RIOh1f\nfGfBs02qBiD1ly4bPO3eO+kyw6Hy1+9fa8nMzjnKAmRm9SCWN/uBmb9vmVx8roKj\nSrciDr4LQ7VuwSnmrxjmAFbLsZZxlH/YrWUIl5utbQEzTB6PxBqsx2g7oIRwPcqB\nt24hGjPgVD3ba4Dv8TT87L4=\n-----END PRIVATE KEY-----\n"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "CallAllLogGroup"
+            ]
+          },
+          "NbaLambdaVersionxLDLYsj2VWXG11YTn29VprhCZqVHsAjWEHmpv9mjI": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "NbaLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "NflLambdaVersionUwOXRC27HBxt6RoR2nupjBdqhYuNW7iv7BljQczdY": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "NflLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "MlbLambdaVersionWNfutk9UCv3vbNuCY287bxkuWwqLMq5TrRP5xD8kZ0": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "MlbLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "WnbaLambdaVersionp6bAyVnOLwGENsz0fp5yQr5UfFCFRTsZmfLxD0EqmCo": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "WnbaLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "LiveGameLambdaVersiony2xzcUEvTkRezj5pttAlCxrRBW6xMtv6v0n8ga23M": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "LiveGameLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "UpcomingGamesLambdaVersion9ulcFkE5fSDZpyivVEzyqr30gegifndvIanihSoHCjE": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "UpcomingGamesLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "PlayerStatsLambdaVersionhWm6puw2Dj6AZoF7xaC6Md0lsNfHSDclJgqdH1vWCv8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "PlayerStatsLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "TeamStatsLambdaVersiontfJXMxFkqDtbIaxynnusLKFYyDMesfuc8Mp3I1Igo": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "TeamStatsLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "CacheLiveGameLambdaVersion5c0NT0NAWKCeyoDGoD2I3U9LBdJTHINX4WEoR6c8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "CacheLiveGameLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "CacheUpcomingGamesLambdaVersionw3vT8Gmzpi9o2bw0db4sDunjeEJnkA44mnlRkXEls": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "CacheUpcomingGamesLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "CacheStatsLambdaVersionndX8pzuxxkqgyi8holoahz3xVdMRa6WOfzShIRWZ2ik": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "CacheStatsLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "ScrapePlayersLambdaVersionDHGE5LSuaehLXV6sIXcPwrqekHINoRsLynZNraSvs": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ScrapePlayersLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "ScrapeTeamsLambdaVersionQninmTkcPg6WQwQbBTYNgZeUfHNvb8yg5xEH6GQWVA": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "ScrapeTeamsLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "SetupSportsLambdaVersionBPUYMuzxHS6MjFeVB8RW3I34djN7ypKpnlnQjPpddfc": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "SetupSportsLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "CallAllLambdaVersiona2IWwYw1BKDCiFUJgsaxvi9fHW8TUmfmjyMsYI3tMc": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "CallAllLambdaFunction"
+              },
+              "CodeSha256": "A/UH2J0dpITpwxX0NLt9+ZcL5U8v5Hju33dQT8wLhcs="
+            }
+          },
+          "CacheLiveGameEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "rate(2 minutes)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "CacheLiveGameLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "cacheLiveGameSchedule"
+                }
+              ]
+            }
+          },
+          "CacheLiveGameLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "CacheLiveGameLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "CacheLiveGameEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "CacheUpcomingGamesEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "rate(1 hour)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "CacheUpcomingGamesLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "cacheUpcomingGamesSchedule"
+                }
+              ]
+            }
+          },
+          "CacheUpcomingGamesLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "CacheUpcomingGamesLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "CacheUpcomingGamesEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "CacheStatsEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "rate(6 hours)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "CacheStatsLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "cacheStatsSchedule"
+                }
+              ]
+            }
+          },
+          "CacheStatsLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "CacheStatsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "events.amazonaws.com",
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "CacheStatsEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
+            }
+          },
+          "HttpApi": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+              "Name": "dev-hit-a-lick-api",
+              "ProtocolType": "HTTP"
+            }
+          },
+          "HttpApiStage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "StageName": "$default",
+              "AutoDeploy": true,
+              "DefaultRouteSettings": {
+                "DetailedMetricsEnabled": false
+              }
+            }
+          },
+          "NbaLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "NbaLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationNba": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"NbaLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetNba": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /nba",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationNba"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationNba"
+          },
+          "NflLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "NflLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationNfl": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"NflLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetNfl": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /nfl",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationNfl"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationNfl"
+          },
+          "MlbLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "MlbLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationMlb": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"MlbLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetMlb": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /mlb",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationMlb"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationMlb"
+          },
+          "WnbaLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "WnbaLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationWnba": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"WnbaLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetWnba": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /wnba",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationWnba"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationWnba"
+          },
+          "LiveGameLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "LiveGameLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationLiveGame": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"LiveGameLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetLivegame": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /liveGame",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationLiveGame"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationLiveGame"
+          },
+          "UpcomingGamesLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "UpcomingGamesLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationUpcomingGames": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"UpcomingGamesLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetUpcominggames": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /upcomingGames",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationUpcomingGames"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationUpcomingGames"
+          },
+          "PlayerStatsLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "PlayerStatsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationPlayerStats": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"PlayerStatsLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetPlayerstats": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /playerStats",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationPlayerStats"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationPlayerStats"
+          },
+          "TeamStatsLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "TeamStatsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationTeamStats": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"TeamStatsLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetTeamstats": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /teamStats",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationTeamStats"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationTeamStats"
+          },
+          "ScrapePlayersLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ScrapePlayersLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationScrapePlayers": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ScrapePlayersLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetScrapeplayers": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /scrapePlayers",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationScrapePlayers"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationScrapePlayers"
+          },
+          "ScrapeTeamsLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "ScrapeTeamsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationScrapeTeams": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"ScrapeTeamsLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetScrapeteams": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /scrapeTeams",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationScrapeTeams"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationScrapeTeams"
+          },
+          "SetupSportsLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "SetupSportsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationSetupSports": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"SetupSportsLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetSetupsports": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /setupSports",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationSetupSports"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationSetupSports"
+          },
+          "CallAllLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "CallAllLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationCallAll": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"CallAllLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetCallall": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /callAll",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationCallAll"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationCallAll"
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-us-east-2-ea96dd56-ab98",
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "NbaLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "NbaLambdaVersionxLDLYsj2VWXG11YTn29VprhCZqVHsAjWEHmpv9mjI"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-NbaLambdaFunctionQualifiedArn"
+            }
+          },
+          "NflLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "NflLambdaVersionUwOXRC27HBxt6RoR2nupjBdqhYuNW7iv7BljQczdY"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-NflLambdaFunctionQualifiedArn"
+            }
+          },
+          "MlbLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "MlbLambdaVersionWNfutk9UCv3vbNuCY287bxkuWwqLMq5TrRP5xD8kZ0"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-MlbLambdaFunctionQualifiedArn"
+            }
+          },
+          "WnbaLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "WnbaLambdaVersionp6bAyVnOLwGENsz0fp5yQr5UfFCFRTsZmfLxD0EqmCo"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-WnbaLambdaFunctionQualifiedArn"
+            }
+          },
+          "LiveGameLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "LiveGameLambdaVersiony2xzcUEvTkRezj5pttAlCxrRBW6xMtv6v0n8ga23M"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-LiveGameLambdaFunctionQualifiedArn"
+            }
+          },
+          "UpcomingGamesLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "UpcomingGamesLambdaVersion9ulcFkE5fSDZpyivVEzyqr30gegifndvIanihSoHCjE"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-UpcomingGamesLambdaFunctionQualifiedArn"
+            }
+          },
+          "PlayerStatsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "PlayerStatsLambdaVersionhWm6puw2Dj6AZoF7xaC6Md0lsNfHSDclJgqdH1vWCv8"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-PlayerStatsLambdaFunctionQualifiedArn"
+            }
+          },
+          "TeamStatsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "TeamStatsLambdaVersiontfJXMxFkqDtbIaxynnusLKFYyDMesfuc8Mp3I1Igo"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-TeamStatsLambdaFunctionQualifiedArn"
+            }
+          },
+          "CacheLiveGameLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "CacheLiveGameLambdaVersion5c0NT0NAWKCeyoDGoD2I3U9LBdJTHINX4WEoR6c8"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-CacheLiveGameLambdaFunctionQualifiedArn"
+            }
+          },
+          "CacheUpcomingGamesLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "CacheUpcomingGamesLambdaVersionw3vT8Gmzpi9o2bw0db4sDunjeEJnkA44mnlRkXEls"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-CacheUpcomingGamesLambdaFunctionQualifiedArn"
+            }
+          },
+          "CacheStatsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "CacheStatsLambdaVersionndX8pzuxxkqgyi8holoahz3xVdMRa6WOfzShIRWZ2ik"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-CacheStatsLambdaFunctionQualifiedArn"
+            }
+          },
+          "ScrapePlayersLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ScrapePlayersLambdaVersionDHGE5LSuaehLXV6sIXcPwrqekHINoRsLynZNraSvs"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-ScrapePlayersLambdaFunctionQualifiedArn"
+            }
+          },
+          "ScrapeTeamsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "ScrapeTeamsLambdaVersionQninmTkcPg6WQwQbBTYNgZeUfHNvb8yg5xEH6GQWVA"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-ScrapeTeamsLambdaFunctionQualifiedArn"
+            }
+          },
+          "SetupSportsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "SetupSportsLambdaVersionBPUYMuzxHS6MjFeVB8RW3I34djN7ypKpnlnQjPpddfc"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-SetupSportsLambdaFunctionQualifiedArn"
+            }
+          },
+          "CallAllLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "CallAllLambdaVersiona2IWwYw1BKDCiFUJgsaxvi9fHW8TUmfmjyMsYI3tMc"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-CallAllLambdaFunctionQualifiedArn"
+            }
+          },
+          "HttpApiId": {
+            "Description": "Id of the HTTP API",
+            "Value": {
+              "Ref": "HttpApi"
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-HttpApiId"
+            }
+          },
+          "HttpApiUrl": {
+            "Description": "URL of the HTTP API",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  }
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-hit-a-lick-api-dev-HttpApiUrl"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "plugins": [
+      "serverless-offline"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "nba": {
+        "handler": "sportsdataapi/nba.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/nba",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/nba"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-nba",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "NbaLambdaVersionxLDLYsj2VWXG11YTn29VprhCZqVHsAjWEHmpv9mjI"
+      },
+      "nfl": {
+        "handler": "sportsdataapi/nfl.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/nfl",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/nfl"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-nfl",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "NflLambdaVersionUwOXRC27HBxt6RoR2nupjBdqhYuNW7iv7BljQczdY"
+      },
+      "mlb": {
+        "handler": "sportsdataapi/mlb.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/mlb",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/mlb"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-mlb",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "MlbLambdaVersionWNfutk9UCv3vbNuCY287bxkuWwqLMq5TrRP5xD8kZ0"
+      },
+      "wnba": {
+        "handler": "sportsdataapi/wnba.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/wnba",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/wnba"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-wnba",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "WnbaLambdaVersionp6bAyVnOLwGENsz0fp5yQr5UfFCFRTsZmfLxD0EqmCo"
+      },
+      "liveGame": {
+        "handler": "sportsdataapi/liveGame.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/liveGame",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/liveGame"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-liveGame",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "LiveGameLambdaVersiony2xzcUEvTkRezj5pttAlCxrRBW6xMtv6v0n8ga23M"
+      },
+      "upcomingGames": {
+        "handler": "sportsdataapi/upcomingGames.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/upcomingGames",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/upcomingGames"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-upcomingGames",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "UpcomingGamesLambdaVersion9ulcFkE5fSDZpyivVEzyqr30gegifndvIanihSoHCjE"
+      },
+      "playerStats": {
+        "handler": "sportsdataapi/playerStats.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/playerStats",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/playerStats"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-playerStats",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "PlayerStatsLambdaVersionhWm6puw2Dj6AZoF7xaC6Md0lsNfHSDclJgqdH1vWCv8"
+      },
+      "teamStats": {
+        "handler": "sportsdataapi/teamStats.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/teamStats",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/teamStats"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-teamStats",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "TeamStatsLambdaVersiontfJXMxFkqDtbIaxynnusLKFYyDMesfuc8Mp3I1Igo"
+      },
+      "cacheLiveGame": {
+        "handler": "sportsdataapi/cacheLiveGame.cacheLiveGame",
+        "events": [
+          {
+            "schedule": "rate(2 minutes)"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-cacheLiveGame",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "CacheLiveGameLambdaVersion5c0NT0NAWKCeyoDGoD2I3U9LBdJTHINX4WEoR6c8"
+      },
+      "cacheUpcomingGames": {
+        "handler": "sportsdataapi/cacheUpcomingGames.cacheUpcomingGames",
+        "events": [
+          {
+            "schedule": "rate(1 hour)"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-cacheUpcomingGames",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "CacheUpcomingGamesLambdaVersionw3vT8Gmzpi9o2bw0db4sDunjeEJnkA44mnlRkXEls"
+      },
+      "cacheStats": {
+        "handler": "sportsdataapi/cacheStats.cacheStats",
+        "events": [
+          {
+            "schedule": "rate(6 hours)"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-cacheStats",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "CacheStatsLambdaVersionndX8pzuxxkqgyi8holoahz3xVdMRa6WOfzShIRWZ2ik"
+      },
+      "scrapePlayers": {
+        "handler": "sportsdataapi/playerScraper.scrapePlayers",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/scrapePlayers",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/scrapePlayers"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-scrapePlayers",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "ScrapePlayersLambdaVersionDHGE5LSuaehLXV6sIXcPwrqekHINoRsLynZNraSvs"
+      },
+      "scrapeTeams": {
+        "handler": "sportsdataapi/teamScraper.scrapeTeams",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/scrapeTeams",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/scrapeTeams"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-scrapeTeams",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "ScrapeTeamsLambdaVersionQninmTkcPg6WQwQbBTYNgZeUfHNvb8yg5xEH6GQWVA"
+      },
+      "setupSports": {
+        "handler": "sportsdataapi/sportSetup.setupSports",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/setupSports",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/setupSports"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-setupSports",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "SetupSportsLambdaVersionBPUYMuzxHS6MjFeVB8RW3I34djN7ypKpnlnQjPpddfc"
+      },
+      "callAll": {
+        "handler": "sportsdataapi/callAll.handler",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/callAll",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/callAll"
+          }
+        ],
+        "name": "hit-a-lick-api-dev-callAll",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "CallAllLambdaVersiona2IWwYw1BKDCiFUJgsaxvi9fHW8TUmfmjyMsYI3tMc"
+      }
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless",
+    "initialServerlessConfig": {
+      "service": "hit-a-lick-api",
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      }
+    },
+    "appId": null,
+    "orgId": null,
+    "layers": {},
+    "artifact": "/Users/brianbruce/Desktop/Hit-A-Lick/functions/.serverless/hit-a-lick-api.zip"
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/hit-a-lick-api/dev/1762454654977-2025-11-06T18:44:14.977Z",
+    "artifact": "hit-a-lick-api.zip"
+  }
+}

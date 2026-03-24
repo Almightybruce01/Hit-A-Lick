@@ -1,0 +1,484 @@
+import express from "express";
+import admin from "firebase-admin";
+
+const router = express.Router();
+const OWNER_EMAIL = (process.env.OWNER_EMAIL || "brucebrian50@gmail.com").toLowerCase();
+
+const CURATOR_SLUGS = ["giap", "bruce", "mike", "toriano"];
+
+const CURATOR_LABELS = {
+  giap: "Giap Pick's",
+  bruce: "Bruce Pick's",
+  mike: "Mike Pick's",
+  toriano: "Toriano Pick's",
+};
+
+const ALL_CURATORS = [...CURATOR_SLUGS];
+
+function curatorEmailEnv(slug) {
+  const key = `CURATOR_${String(slug).toUpperCase()}_EMAIL`;
+  let v = String(process.env[key] || "").trim().toLowerCase();
+  if (!v && slug === "bruce") {
+    v = OWNER_EMAIL;
+  }
+  return v;
+}
+
+function normalizePoolItem(body = {}) {
+  return {
+    title: String(body.title || "").trim(),
+    league: String(body.league || "").trim(),
+    pick: String(body.pick || "").trim(),
+    notes: String(body.notes || "").trim(),
+    confidence: Math.max(0, Math.min(100, Number(body.confidence || 0))),
+    gameDate: String(body.gameDate || "").trim(),
+  };
+}
+
+function normalizeHistoryItem(body = {}) {
+  return {
+    poolItemId: String(body.poolItemId || "").trim(),
+    title: String(body.title || "").trim(),
+    league: String(body.league || "").trim(),
+    pick: String(body.pick || "").trim(),
+    result: String(body.result || "").toLowerCase(),
+    notes: String(body.notes || "").trim(),
+    gameDate: String(body.gameDate || "").trim(),
+    settledAt: String(body.settledAt || new Date().toISOString()),
+  };
+}
+
+async function requireAuthUid(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const uid = String(req.query.uid || req.body?.uid || "").trim();
+    if (!token || !uid) {
+      return res.status(401).json({ error: "Auth token and uid are required." });
+    }
+    const decoded = await admin.auth().verifyIdToken(token);
+    if (decoded.uid !== uid) {
+      return res.status(403).json({ error: "Token uid mismatch." });
+    }
+    req.viewer = { uid, email: (decoded.email || "").toLowerCase() };
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid auth token." });
+  }
+}
+
+async function requireOwner(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (!token) return res.status(401).json({ error: "Missing bearer token." });
+    const decoded = await admin.auth().verifyIdToken(token);
+    if (!decoded.email || decoded.email.toLowerCase() !== OWNER_EMAIL) {
+      return res.status(403).json({ error: "Owner access required." });
+    }
+    req.ownerEmail = decoded.email.toLowerCase();
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid auth token." });
+  }
+}
+
+function curatorSlugForEmail(email) {
+  const e = String(email || "").toLowerCase();
+  for (const slug of CURATOR_SLUGS) {
+    const expected = curatorEmailEnv(slug);
+    if (expected && expected === e) return slug;
+  }
+  return null;
+}
+
+function userCuratorAccess(entitlement = {}) {
+  if (entitlement.curatorAllAccess === true) return ALL_CURATORS;
+  const raw = entitlement.curatorIds;
+  if (Array.isArray(raw) && raw.length) {
+    return raw.map((s) => String(s).toLowerCase()).filter((s) => CURATOR_SLUGS.includes(s));
+  }
+  const tier = String(entitlement.tier || "").toLowerCase();
+  if (tier === "premium") return ALL_CURATORS;
+  if (tier === "bruce") return ["bruce"];
+  return [];
+}
+
+async function requireCuratorSubscriber(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const uid = String(req.query.uid || "").trim();
+    if (!token || !uid) {
+      return res.status(401).json({ error: "Auth token and uid are required." });
+    }
+    const decoded = await admin.auth().verifyIdToken(token);
+    if (decoded.uid !== uid) {
+      return res.status(403).json({ error: "Token uid mismatch." });
+    }
+    req.viewer = { uid, email: (decoded.email || "").toLowerCase() };
+
+    const curatorId = String(req.params.curatorId || "").toLowerCase();
+    if (!CURATOR_SLUGS.includes(curatorId)) {
+      return res.status(400).json({ error: "Unknown curator." });
+    }
+    const snap = await admin.firestore().collection("users").doc(uid).get();
+    const ent = snap.exists ? snap.data()?.entitlement || {} : {};
+    const active = ent.active === true;
+    const access = userCuratorAccess(ent);
+    const expectedCuratorEmail = curatorEmailEnv(curatorId);
+    const isSelfCurator =
+      Boolean(expectedCuratorEmail) && req.viewer.email === expectedCuratorEmail;
+    const allowed =
+      req.viewer.email === OWNER_EMAIL ||
+      isSelfCurator ||
+      (active && (access.includes(curatorId) || ent.curatorAllAccess === true));
+
+    if (!allowed) {
+      return res.status(402).json({ error: "Subscription required for this curator." });
+    }
+    req.entitlement = ent;
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid auth token." });
+  }
+}
+
+async function requireCuratorLogin(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const uid = String(req.query.uid || req.body?.uid || "").trim();
+    if (!token || !uid) {
+      return res.status(401).json({ error: "Auth token and uid are required." });
+    }
+    const decoded = await admin.auth().verifyIdToken(token);
+    if (decoded.uid !== uid) {
+      return res.status(403).json({ error: "Token uid mismatch." });
+    }
+    req.viewer = { uid, email: (decoded.email || "").toLowerCase() };
+
+    const curatorId = String(req.params.curatorId || "").toLowerCase();
+    if (!CURATOR_SLUGS.includes(curatorId)) {
+      return res.status(400).json({ error: "Unknown curator." });
+    }
+    const expected = curatorEmailEnv(curatorId);
+    const emailOk = expected && req.viewer.email === expected;
+    if (!emailOk && req.viewer.email !== OWNER_EMAIL) {
+      return res.status(403).json({ error: "Curator login required." });
+    }
+    req.curatorId = curatorId;
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid auth token." });
+  }
+}
+
+const profileRef = (id) => admin.firestore().collection("curatorProfiles").doc(id);
+const boardRef = (id) => admin.firestore().collection("curatorBoards").doc(id);
+
+async function loadPoolItemsSorted() {
+  const snap = await admin.firestore().collection("universalPickPool").limit(500).get();
+  const rows = snap.docs.map((doc) => ({ id: doc.id, ...(doc.data() || {}) }));
+  rows.sort((a, b) => {
+    const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+    const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+    return tb - ta;
+  });
+  return rows.slice(0, 400);
+}
+
+/** Public teaser + profile (no picks body). */
+router.get("/catalog", (_req, res) => {
+  return res.json({
+    curators: CURATOR_SLUGS.map((id) => ({
+      id,
+      label: CURATOR_LABELS[id] || id,
+    })),
+  });
+});
+
+router.get("/me", requireAuthUid, async (req, res) => {
+  const slug = curatorSlugForEmail(req.viewer.email);
+  const isOwner = req.viewer.email === OWNER_EMAIL;
+  return res.json({
+    curatorId: slug,
+    isOwner,
+    canEditPool: isOwner,
+  });
+});
+
+router.get("/pool/list", requireOwner, async (_req, res) => {
+  const items = await loadPoolItemsSorted();
+  return res.json({ items });
+});
+
+router.post("/pool/add", requireOwner, async (req, res) => {
+  const item = normalizePoolItem(req.body || {});
+  if (!item.title || !item.pick) {
+    return res.status(400).json({ error: "title and pick are required." });
+  }
+  const ref = admin.firestore().collection("universalPickPool").doc();
+  await ref.set({
+    ...item,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdBy: req.ownerEmail,
+  });
+  return res.json({ ok: true, id: ref.id });
+});
+
+router.delete("/pool/:itemId", requireOwner, async (req, res) => {
+  const id = String(req.params.itemId || "").trim();
+  if (!id) return res.status(400).json({ error: "Missing item id." });
+  await admin.firestore().collection("universalPickPool").doc(id).delete();
+  return res.json({ ok: true });
+});
+
+router.get("/:curatorId/pool", requireCuratorLogin, async (_req, res) => {
+  const items = await loadPoolItemsSorted();
+  return res.json({ items });
+});
+
+router.post("/:curatorId/parlays", requireCuratorLogin, async (req, res) => {
+  const curatorId = req.curatorId;
+  const body = req.body || {};
+  const title = String(body.title || "Featured parlay").slice(0, 140);
+  const legs = Array.isArray(body.legs) ? body.legs : [];
+  if (!legs.length) {
+    return res.status(400).json({ error: "legs array required (label + american odds)." });
+  }
+  const note = String(body.note || "").slice(0, 1200);
+  const doc = admin
+    .firestore()
+    .collection("curatorShowcase")
+    .doc(curatorId)
+    .collection("parlays")
+    .doc();
+  await doc.set({
+    title,
+    legs: legs.slice(0, 20).map((l) => ({
+      label: String(l.label || "").slice(0, 240),
+      odds: Number.isFinite(Number(l.odds)) ? Math.trunc(Number(l.odds)) : null,
+    })),
+    note,
+    published: body.published !== false,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdBy: req.viewer.email,
+  });
+  return res.json({ ok: true, id: doc.id });
+});
+
+router.get("/:curatorId/parlays", requireCuratorSubscriber, async (req, res) => {
+  const curatorId = String(req.params.curatorId || "").toLowerCase();
+  if (!CURATOR_SLUGS.includes(curatorId)) {
+    return res.status(400).json({ error: "Unknown curator." });
+  }
+  try {
+    const snap = await admin
+      .firestore()
+      .collection("curatorShowcase")
+      .doc(curatorId)
+      .collection("parlays")
+      .orderBy("createdAt", "desc")
+      .limit(50)
+      .get();
+    const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+    const published = items.filter((x) => x.published !== false);
+    return res.json({ curatorId, parlays: published });
+  } catch (e) {
+    const snap = await admin
+      .firestore()
+      .collection("curatorShowcase")
+      .doc(curatorId)
+      .collection("parlays")
+      .limit(50)
+      .get();
+    const items = snap.docs
+      .map((d) => ({ id: d.id, ...(d.data() || {}) }))
+      .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    const published = items.filter((x) => x.published !== false);
+    return res.json({ curatorId, parlays: published, note: "ordered in-memory (add Firestore index for createdAt)." });
+  }
+});
+
+router.get("/:curatorId/profile", async (req, res) => {
+  const curatorId = String(req.params.curatorId || "").toLowerCase();
+  if (!CURATOR_SLUGS.includes(curatorId)) {
+    return res.status(400).json({ error: "Unknown curator." });
+  }
+  const snap = await profileRef(curatorId).get();
+  const d = snap.exists ? snap.data() || {} : {};
+  return res.json({
+    id: curatorId,
+    label: CURATOR_LABELS[curatorId] || curatorId,
+    displayName: d.displayName || CURATOR_LABELS[curatorId] || curatorId,
+    photoDataUrl: d.photoDataUrl || null,
+    backgroundImageDataUrl: d.backgroundImageDataUrl || null,
+    accentHex: d.accentHex || "#ff9f0a",
+    backgroundHex: d.backgroundHex || "#0a1227",
+    wins: Number(d.wins || 0),
+    losses: Number(d.losses || 0),
+    pushes: Number(d.pushes || 0),
+    updatedAt: d.updatedAt || null,
+  });
+});
+
+router.post("/:curatorId/profile", requireCuratorLogin, async (req, res) => {
+  const curatorId = req.curatorId;
+  const body = req.body || {};
+  const photoDataUrl = String(body.photoDataUrl || "");
+  if (photoDataUrl.length > 480_000) {
+    return res.status(400).json({ error: "Photo payload too large (max ~480KB base64)." });
+  }
+  const backgroundImageDataUrl = String(body.backgroundImageDataUrl || "");
+  if (backgroundImageDataUrl.length > 900_000) {
+    return res.status(400).json({ error: "Background image too large (max ~900KB base64)." });
+  }
+  const payload = {
+    displayName: String(body.displayName || "").trim() || CURATOR_LABELS[curatorId],
+    photoDataUrl: photoDataUrl || null,
+    backgroundImageDataUrl: backgroundImageDataUrl || null,
+    accentHex: String(body.accentHex || "#ff9f0a").slice(0, 16),
+    backgroundHex: String(body.backgroundHex || "#0a1227").slice(0, 16),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedBy: req.viewer.email,
+  };
+  await profileRef(curatorId).set(payload, { merge: true });
+  return res.json({ ok: true });
+});
+
+router.patch("/:curatorId/record", requireCuratorLogin, async (req, res) => {
+  const curatorId = req.curatorId;
+  const body = req.body || {};
+  const w = Math.max(0, Math.min(5000, Number(body.winsDelta || 0)));
+  const l = Math.max(0, Math.min(5000, Number(body.lossesDelta || 0)));
+  const p = Math.max(0, Math.min(5000, Number(body.pushesDelta || 0)));
+  const ref = profileRef(curatorId);
+  await ref.set(
+    {
+      wins: admin.firestore.FieldValue.increment(w),
+      losses: admin.firestore.FieldValue.increment(l),
+      pushes: admin.firestore.FieldValue.increment(p),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+  return res.json({ ok: true });
+});
+
+router.post("/:curatorId/select", requireCuratorLogin, async (req, res) => {
+  const curatorId = req.curatorId;
+  const ids = Array.isArray(req.body?.pickIds) ? req.body.pickIds.map((x) => String(x)) : [];
+  if (!ids.length) return res.status(400).json({ error: "pickIds required." });
+
+  const db = admin.firestore();
+  const refs = ids.map((id) => db.collection("universalPickPool").doc(id));
+  const snaps = await db.getAll(...refs);
+  const upcoming = [];
+  for (const s of snaps) {
+    if (!s.exists) continue;
+    upcoming.push({ id: s.id, ...(s.data() || {}) });
+  }
+  if (!upcoming.length) return res.status(400).json({ error: "No valid pool ids." });
+
+  await boardRef(curatorId).set(
+    {
+      upcoming,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedBy: req.viewer.email,
+    },
+    { merge: true }
+  );
+  return res.json({ ok: true, count: upcoming.length });
+});
+
+router.post("/:curatorId/history/add", requireCuratorLogin, async (req, res) => {
+  const curatorId = req.curatorId;
+  const row = normalizeHistoryItem(req.body || {});
+  if (!row.title || !["win", "loss", "push"].includes(row.result)) {
+    return res.status(400).json({ error: "title and result (win|loss|push) required." });
+  }
+  const ref = admin
+    .firestore()
+    .collection("curatorHistory")
+    .doc(curatorId)
+    .collection("entries")
+    .doc();
+  await ref.set({
+    ...row,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdBy: req.viewer.email,
+  });
+  return res.json({ ok: true, id: ref.id });
+});
+
+router.get("/:curatorId/board", requireCuratorSubscriber, async (req, res) => {
+  const curatorId = String(req.params.curatorId || "").toLowerCase();
+  const [prof, brd] = await Promise.all([profileRef(curatorId).get(), boardRef(curatorId).get()]);
+  const p = prof.exists ? prof.data() || {} : {};
+  const b = brd.exists ? brd.data() || {} : {};
+  const wins = Number(p.wins || 0);
+  const losses = Number(p.losses || 0);
+  const pushes = Number(p.pushes || 0);
+  const denom = wins + losses;
+  const winPct = denom > 0 ? Number(((100 * wins) / denom).toFixed(1)) : null;
+
+  const histSnap = await admin
+    .firestore()
+    .collection("curatorHistory")
+    .doc(curatorId)
+    .collection("entries")
+    .limit(200)
+    .get();
+  const history = histSnap.docs
+    .map((d) => ({ id: d.id, ...(d.data() || {}) }))
+    .sort((a, b) => String(b.settledAt || "").localeCompare(String(a.settledAt || "")))
+    .slice(0, 120);
+
+  let parlays = [];
+  try {
+    const pSnap = await admin
+      .firestore()
+      .collection("curatorShowcase")
+      .doc(curatorId)
+      .collection("parlays")
+      .orderBy("createdAt", "desc")
+      .limit(24)
+      .get();
+    parlays = pSnap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) })).filter((x) => x.published !== false);
+  } catch {
+    const pSnap = await admin
+      .firestore()
+      .collection("curatorShowcase")
+      .doc(curatorId)
+      .collection("parlays")
+      .limit(40)
+      .get();
+    parlays = pSnap.docs
+      .map((d) => ({ id: d.id, ...(d.data() || {}) }))
+      .filter((x) => x.published !== false)
+      .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+      .slice(0, 24);
+  }
+
+  return res.json({
+    curatorId,
+    label: CURATOR_LABELS[curatorId] || curatorId,
+    profile: {
+      displayName: p.displayName || CURATOR_LABELS[curatorId],
+      photoDataUrl: p.photoDataUrl || null,
+      backgroundImageDataUrl: p.backgroundImageDataUrl || null,
+      accentHex: p.accentHex || "#ff9f0a",
+      backgroundHex: p.backgroundHex || "#0a1227",
+      wins,
+      losses,
+      pushes,
+      winPct,
+    },
+    upcoming: Array.isArray(b.upcoming) ? b.upcoming : [],
+    parlays,
+    history,
+  });
+});
+
+export { router, userCuratorAccess, CURATOR_SLUGS, ALL_CURATORS };
