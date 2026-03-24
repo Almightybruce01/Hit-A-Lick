@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hit-A-Lick — Staff access, logins &amp; steps (print / PDF)</title>
+  <style>
+    :root { --ink: #111; --muted: #444; --line: #ccc; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+      line-height: 1.45;
+      font-size: 11pt;
+    }
+    h1 { font-size: 1.35rem; margin: 0 0 6px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    .tag { color: var(--muted); font-size: 0.9rem; margin-bottom: 22px; font-family: -apple-system, sans-serif; }
+    h2 { font-size: 1.05rem; margin: 22px 0 10px; border-bottom: 1px solid var(--line); padding-bottom: 4px; font-family: -apple-system, sans-serif; }
+    h3 { font-size: 0.95rem; margin: 16px 0 8px; font-family: -apple-system, sans-serif; }
+    p, li { margin: 0 0 8px; }
+    ul, ol { padding-left: 1.25rem; margin: 0 0 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 10px 0 16px; font-family: -apple-system, sans-serif; }
+    th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+    th { background: #f4f4f4; font-weight: 600; }
+    code, .mono { font-family: ui-monospace, Menlo, monospace; font-size: 0.92em; background: #f0f0f0; padding: 1px 5px; border-radius: 3px; }
+    a { color: #0645ad; word-break: break-all; }
+    .box {
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      margin: 12px 0;
+      background: #fafafa;
+      font-size: 10pt;
+    }
+    .footer { margin-top: 28px; font-size: 9pt; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+    @media print {
+      body { padding: 12px 16px; max-width: none; }
+      a { color: #000; text-decoration: underline; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Hit-A-Lick — Access guide</h1>
+  <p class="tag">Staff logins, URLs, and step-by-step flows. To save as PDF: open this page in a browser → Print → Save as PDF.</p>
+
+  <p class="no-print" style="font-family:-apple-system,sans-serif;font-size:10pt;">
+    Live copy of this file:<br />
+    <a href="https://almightybruce01.github.io/Hit-A-Lick/staff-access-print.html">https://almightybruce01.github.io/Hit-A-Lick/staff-access-print.html</a>
+  </p>
+
+  <h2>Logins (passwords live in Firebase only)</h2>
+  <p>Create or edit users in <strong>Firebase Console → Authentication</strong>. Use any strong password; examples below are starting points—change after first sign-in if you want.</p>
+  <table>
+    <thead>
+      <tr><th>Role</th><th>Email</th><th>Example password</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Bruce (owner / main admin)</td>
+        <td class="mono">brucebrian50@gmail.com</td>
+        <td class="mono">HitALick!Bruce2026</td>
+      </tr>
+      <tr>
+        <td>Giap (co-curator)</td>
+        <td class="mono">giap.social1@gmail.com</td>
+        <td class="mono">HitALick!Giap2026</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="box">
+    <strong>Backend secrets (production):</strong> set <code>OWNER_EMAIL</code> and <code>CURATOR_GIAP_EMAIL</code> (exactly <code>giap.social1@gmail.com</code>), then run <code>firebase deploy --only functions:api</code>.
+  </div>
+
+  <h2>URLs to bookmark</h2>
+  <table>
+    <thead><tr><th>What</th><th>URL</th></tr></thead>
+    <tbody>
+      <tr><td>Ops desk (PIN, curator pool, props 3-day)</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html">https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html</a></td></tr>
+      <tr><td>Web hub</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/app-access.html">https://almightybruce01.github.io/Hit-A-Lick/app-access.html</a></td></tr>
+      <tr><td>Picks &amp; staff summary page</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/curators-picks.html">https://almightybruce01.github.io/Hit-A-Lick/curators-picks.html</a></td></tr>
+      <tr><td>This printable guide</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/staff-access-print.html">https://almightybruce01.github.io/Hit-A-Lick/staff-access-print.html</a></td></tr>
+      <tr><td>Elite web desk (props UI)</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/app.html">https://almightybruce01.github.io/Hit-A-Lick/app.html</a></td></tr>
+      <tr><td>Pricing</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/pricing.html">https://almightybruce01.github.io/Hit-A-Lick/pricing.html</a></td></tr>
+      <tr><td>GitHub repo</td><td><a href="https://github.com/Almightybruce01/Hit-A-Lick">https://github.com/Almightybruce01/Hit-A-Lick</a></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Ops desk — Bruce (or anyone with PIN)</h2>
+  <ol>
+    <li>Open the ops URL above (or Desktop file <code>Hit-A-Lick-Ops-Desk.webloc</code> after running <code>bash scripts/install-live-dashboard-desktop.sh</code> in the repo — file sits on Desktop root, not in a folder).</li>
+    <li>Enter PIN: default <strong>5505</strong> unless <code>OPS_DASHBOARD_PIN</code> was changed on the server.</li>
+    <li>If the page is hosted on <code>github.io</code>, paste your <strong>API base URL</strong> (Cloud Run or Firebase API origin, no trailing slash).</li>
+    <li>Tab <strong>Curator pool</strong> → <strong>Load pool</strong> → check rows → choose lane <strong>Bruce Pick's</strong> or <strong>Giap Pick's</strong> → <strong>Save to board</strong>.</li>
+    <li>Optional: tab <strong>Props (3 days)</strong> → pick sport → <strong>Load props</strong> to verify slate and AI confidence.</li>
+    <li>Optional: tab <strong>Dashboard AI</strong> for step-by-step help on the desk.</li>
+  </ol>
+
+  <h2>iOS app — Bruce</h2>
+  <ol>
+    <li>Sign in with <code>brucebrian50@gmail.com</code> (Firebase).</li>
+    <li>Bottom tab <strong>Picks</strong> — switch <strong>Bruce Pick's</strong> / <strong>Giap Pick's</strong> to view boards.</li>
+    <li><strong>Home → Open Props</strong> — ~3-day window; AI confidence on cards; odds on legs.</li>
+    <li><strong>Account → Curator Studio</strong> — open <strong>Bruce</strong> or <strong>Giap</strong> lane to publish from the universal pool.</li>
+  </ol>
+
+  <h2>iOS app — Giap</h2>
+  <ol>
+    <li>Sign in with <code>giap.social1@gmail.com</code>.</li>
+    <li>Tab <strong>Picks</strong> — can view <strong>both</strong> Bruce and Giap boards (staff entitlement).</li>
+    <li><strong>Account → Curator Studio</strong> — edit <strong>Giap</strong> lane only (publish Giap’s picks from the pool).</li>
+    <li>If Bruce shares the ops <strong>PIN</strong>, Giap may also use the web <strong>Curator pool</strong> tab (optional).</li>
+  </ol>
+
+  <h2>Subscribers (paying fans)</h2>
+  <ol>
+    <li>Subscribe via Stripe (in-app / pricing flow).</li>
+    <li>Bottom tab <strong>Picks</strong> shows the Bruce / Giap boards you published.</li>
+  </ol>
+
+  <h2>One-time dev checklist (before picks show)</h2>
+  <ol>
+    <li>Firebase Auth: both emails exist with passwords set.</li>
+    <li>Universal pool has rows (owner: <code>POST /api/curators/pool/add</code> with Bruce Bearer token, or internal tools).</li>
+    <li>Stripe price IDs configured for curator passes if you sell access.</li>
+    <li>Deploy API: <code>firebase deploy --only functions:api</code> after secret changes.</li>
+  </ol>
+
+  <div class="footer">
+    Hit-A-Lick is an informational analytics product. It does not accept or place wagers. Passwords in this document are examples—set real values in Firebase and rotate as needed.
+  </div>
+</body>
+</html>
