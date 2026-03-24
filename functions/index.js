@@ -147,7 +147,7 @@ async function sendOpsDashboard(_req, res) {
       opsHeartbeat,
       aiOpsInsights: {
         path: "/api/ops/insights",
-        auth: "X-Ops-Pin (OPS_DASHBOARD_PIN, default 5505) or Authorization: Bearer <owner Firebase ID token>",
+        auth: "X-Ops-Pin (OPS_DASHBOARD_PIN, default 2012) or Authorization: Bearer <owner Firebase ID token>",
         description: "Rule-based diagnostics + optional OpenAI narrative (OPENAI_API_KEY).",
       },
       dashboardGuide: {
@@ -164,11 +164,11 @@ async function sendOpsDashboard(_req, res) {
   }
 }
 function opsDashboardPinExpected() {
-  return String(process.env.OPS_DASHBOARD_PIN || "5505").trim();
+  return String(process.env.OPS_DASHBOARD_PIN || "2012").trim();
 }
 
 /**
- * Ops JSON routes: Firebase owner Bearer **or** `X-Ops-Pin` matching `OPS_DASHBOARD_PIN` (default 5505).
+ * Ops JSON routes: Firebase owner Bearer **or** `X-Ops-Pin` matching `OPS_DASHBOARD_PIN` (default 2012).
  * Set `OPS_DASHBOARD_PIN` in Firebase secrets for production; public static dashboard never embeds the PIN.
  */
 async function requireOwnerOrOpsPin(req, res, next) {

@@ -3,7 +3,7 @@
 set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TARGET="$REPO_ROOT/site/ops-dashboard.html"
-LINK="$HOME/Desktop/HitALick-OpsControl-PublicDashboard-PIN5505.html"
+LINK="$HOME/Desktop/HitALick-OpsControl-PublicDashboard-PIN2012.html"
 README="$HOME/Desktop/HitALick-OpsControl-Desktop-README.txt"
 
 ln -sf "$TARGET" "$LINK"
@@ -12,7 +12,7 @@ HitALick Ops Control — Desktop pointer
 =====================================
 
 Shortcut file (open in browser):
-  HitALick-OpsControl-PublicDashboard-PIN5505.html
+  HitALick-OpsControl-PublicDashboard-PIN2012.html
 
 Points to:
   $TARGET
@@ -28,7 +28,7 @@ Safari bookmark file (online only, on Desktop — no subfolder):
 GitHub repo:
   https://github.com/Almightybruce01/Hit-A-Lick
 
-PIN: 5505 (or OPS_DASHBOARD_PIN in production)
+PIN: 2012 (or OPS_DASHBOARD_PIN in production)
 
 Recreate this link after moving the repo:
   bash $REPO_ROOT/scripts/link-ops-dashboard-desktop.sh

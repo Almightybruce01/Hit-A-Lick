@@ -22,11 +22,11 @@ Canonical file in the project:
 
 On your Mac Desktop there is a **symlink** you can double-click:
 
-**`HitALick-OpsControl-PublicDashboard-PIN5505.html`**
+**`HitALick-OpsControl-PublicDashboard-PIN2012.html`**
 
 Full path:
 
-`/Users/brianbruce/Desktop/HitALick-OpsControl-PublicDashboard-PIN5505.html`
+`/Users/brianbruce/Desktop/HitALick-OpsControl-PublicDashboard-PIN2012.html`
 
 It points at `Hit-A-Lick/site/ops-dashboard.html`. If you move the repo, recreate the link:
 
@@ -50,11 +50,11 @@ After `firebase deploy --only hosting`, your site serves:
 
 Bookmark **`/ops`** on your phone/desktop — that is the “saved dashboard” link that talks to **`/api/**`** on the same host.
 
-## PIN (5505)
+## PIN (2012)
 
 The API accepts:
 
-- Header **`X-Ops-Pin: 5505`** (default; override with Firebase secret **`OPS_DASHBOARD_PIN`**),
+- Header **`X-Ops-Pin: 2012`** (default; override with Firebase secret **`OPS_DASHBOARD_PIN`**),
 
 **or**
 

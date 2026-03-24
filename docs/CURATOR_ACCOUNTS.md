@@ -30,7 +30,7 @@
 ### Bruce (main admin) — web ops desk
 
 1. Open the live desk: [ops-dashboard.html](https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html) or double-click **`Hit-A-Lick-Ops-Desk.webloc`** on your Desktop (run `bash scripts/install-live-dashboard-desktop.sh` once — file sits **directly on Desktop**, not inside a folder).  
-2. Enter **PIN** (default **5505** unless `OPS_DASHBOARD_PIN` changed).  
+2. Enter **PIN** (default **2012** unless `OPS_DASHBOARD_PIN` changed).  
 3. Paste **API base URL** if you are on `github.io` (your Cloud Run or Firebase API origin, no trailing slash).  
 4. Tab **Curator pool** → **Load pool** → check the rows → choose lane **Bruce Pick's** or **Giap Pick's** → **Save to board**.  
 5. Optional: tab **Dashboard AI** — ask “how do I publish Bruce picks?” for numbered steps anytime.

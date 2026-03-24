@@ -6,7 +6,7 @@ import admin from "firebase-admin";
 
 /** Injected into OpenAI so answers reference real tabs and flows. Keep in sync with site/ops-dashboard.html. */
 export const OPS_DASHBOARD_FEATURE_CATALOG = `
-Hit-A-Lick Ops Desk (browser): unlock with X-Ops-Pin (server: OPS_DASHBOARD_PIN, default 5505). On GitHub Pages you MUST paste API base URL (Cloud Run or Firebase Hosting origin) before unlock.
+Hit-A-Lick Ops Desk (browser): unlock with X-Ops-Pin (server: OPS_DASHBOARD_PIN, default 2012). On GitHub Pages you MUST paste API base URL (Cloud Run or Firebase Hosting origin) before unlock.
 
 Tabs after unlock:
 1) Environment — GET /api/ops/dashboard: env flags, marketsBySport per nba/nfl/mlb/wnba, raw ops JSON. Use to confirm Odds API key presence, bookmakers, prop market tier.
