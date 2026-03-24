@@ -179,17 +179,13 @@ export async function buildOpsInsightsPayload() {
   const stripeCuratorPrices = {
     STRIPE_PRICE_CURATOR_GIAP: process.env.STRIPE_PRICE_CURATOR_GIAP,
     STRIPE_PRICE_CURATOR_BRUCE: process.env.STRIPE_PRICE_CURATOR_BRUCE,
-    STRIPE_PRICE_CURATOR_MIKE: process.env.STRIPE_PRICE_CURATOR_MIKE,
-    STRIPE_PRICE_CURATOR_TORIANO: process.env.STRIPE_PRICE_CURATOR_TORIANO,
     STRIPE_PRICE_ALL_CURATORS: process.env.STRIPE_PRICE_ALL_CURATORS,
   };
 
   const ownerEmail = (process.env.OWNER_EMAIL || "").toLowerCase();
   const curatorEmails = {
-    giap: String(process.env.CURATOR_GIAP_EMAIL || "").toLowerCase(),
     bruce: String(process.env.CURATOR_BRUCE_EMAIL || "").toLowerCase() || ownerEmail,
-    mike: String(process.env.CURATOR_MIKE_EMAIL || "").toLowerCase(),
-    toriano: String(process.env.CURATOR_TORIANO_EMAIL || "").toLowerCase(),
+    giap: String(process.env.CURATOR_GIAP_EMAIL || "").toLowerCase(),
   };
 
   const ctx = {

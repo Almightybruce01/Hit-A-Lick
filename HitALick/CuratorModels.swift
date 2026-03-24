@@ -85,6 +85,8 @@ struct BillingEntitlementPayload: Decodable {
     let tier: String?
     let curatorAllAccess: Bool?
     let curatorIds: [String]?
+    let staffRole: String?
+    let aiUnlimited: Bool?
 }
 
 struct BillingEntitlementResponse: Decodable {
@@ -95,7 +97,9 @@ struct CuratorMeResponse: Decodable {
     let curatorId: String?
     let curatorDisplayName: String?
     let isOwner: Bool?
+    let isCoCurator: Bool?
     let canEditPool: Bool?
+    let canSelectUniversalPool: Bool?
 }
 
 extension CuratorBoardAPIResponse {
@@ -154,7 +158,7 @@ extension CuratorBoardAPIResponse {
 
     static func previewAll() -> [String: CuratorBoardAPIResponse] {
         var out: [String: CuratorBoardAPIResponse] = [:]
-        for s in ["giap", "bruce", "mike", "toriano"] {
+        for s in ["bruce", "giap"] {
             out[s] = preview(slug: s)
         }
         return out
@@ -164,8 +168,6 @@ extension CuratorBoardAPIResponse {
         switch slug {
         case "giap": return "Giap Pick's"
         case "bruce": return "Bruce Pick's"
-        case "mike": return "Mike Pick's"
-        case "toriano": return "Toriano Pick's"
         default: return slug
         }
     }

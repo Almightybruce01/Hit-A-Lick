@@ -3,31 +3,49 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>App Access | HitALick</title>
+  <title>HitALick — App & web</title>
   <style>
-    body { margin: 0; background: #060912; color: #eaf0ff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    main { max-width: 760px; margin: 0 auto; padding: 24px; }
-    .brand-row { display:flex; align-items:center; gap:10px; margin-bottom: 8px; }
-    .brand-row img { width: 40px; height: 40px; border-radius: 8px; border: 1px solid #35548a; object-fit: cover; }
-    .panel { background: #0f1526; border: 1px solid #273a61; border-radius: 14px; padding: 16px; }
-    li { margin-bottom: 10px; color: #c7d6f2; }
+    :root { --bg:#060912; --panel:#0f1526; --border:#273a61; --ink:#eaf0ff; --muted:#9cb2de; --accent:#ff9f0a; --mint:#2ee6c6; }
+    body { margin:0; background: radial-gradient(1200px 800px at 20% -10%, rgba(46,230,198,0.12), transparent), var(--bg); color:var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; min-height:100vh; }
+    main { max-width: 720px; margin: 0 auto; padding: 28px 20px 48px; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 22px; line-height: 1.5; }
+    .grid { display: grid; gap: 14px; }
+    a.card { display: block; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; transition: border-color .15s, transform .15s; }
+    a.card:hover { border-color: rgba(46,230,198,0.45); transform: translateY(-1px); }
+    a.card strong { color: var(--mint); font-size: 0.75rem; letter-spacing: .06em; text-transform: uppercase; }
+    a.card h2 { margin: 6px 0 8px; font-size: 1.1rem; color: #fff; }
+    a.card p { margin: 0; font-size: 0.88rem; color: var(--muted); line-height: 1.45; }
+    footer { margin-top: 28px; font-size: 0.78rem; color: var(--muted); }
   </style>
 </head>
 <body>
   <main>
-    <div class="brand-row">
-      <img src="/logo.png" alt="HitALick logo" />
-      <strong>HitALick</strong>
+    <h1>HitALick</h1>
+    <p class="sub">Same product as the iOS app: Bruce Pick’s &amp; Giap Pick’s boards, AI Lab, and props. No extra login here — open the app with your Firebase account, or use the ops desk below if you’re Bruce (PIN).</p>
+    <div class="grid">
+      <a class="card" href="https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html">
+        <strong>Ops</strong>
+        <h2>Live ops desk</h2>
+        <p>Environment, Stripe prices, universal pick pool → Bruce/Giap boards. PIN required (default 5505). Set API base to your Cloud Run URL on first unlock.</p>
+      </a>
+      <a class="card" href="https://almightybruce01.github.io/Hit-A-Lick/pricing.html">
+        <strong>Subscribe</strong>
+        <h2>Pricing / passes</h2>
+        <p>Curator passes and bundles — links out to checkout where configured.</p>
+      </a>
+      <a class="card" href="https://github.com/Almightybruce01/Hit-A-Lick">
+        <strong>Source</strong>
+        <h2>GitHub repo</h2>
+        <p>Same folder as your Desktop <code>Hit-A-Lick</code> project — <code>site/</code> is this site.</p>
+      </a>
+      <a class="card" href="/index.html">
+        <strong>Marketing</strong>
+        <h2>Full marketing home</h2>
+        <p>Long-form landing; use the cards above for day-to-day ops and access.</p>
+      </a>
     </div>
-    <h1>iOS Companion Access</h1>
-    <div class="panel">
-      <ol>
-        <li>Create your subscription on <strong>hitalick.org</strong>.</li>
-        <li>Open HitALick on iOS and log in with the same account.</li>
-        <li>The app calls entitlement APIs and unlocks Bruce Picks automatically.</li>
-      </ol>
-      <p>HitALick iOS is an informational analytics viewer. It does not process purchases, betting transactions, or simulated betting.</p>
-    </div>
+    <footer>HitALick is an informational analytics product. It does not accept or place wagers.</footer>
   </main>
 </body>
 </html>

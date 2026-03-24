@@ -235,7 +235,7 @@ struct AccountView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundColor(.orange.opacity(0.95))
                     VStack(alignment: .leading, spacing: 8) {
-                        ForEach(["giap", "bruce", "mike", "toriano"], id: \.self) { slug in
+                        ForEach(["bruce", "giap"], id: \.self) { slug in
                             NavigationLink {
                                 CuratorStudioView(curatorSlug: slug)
                             } label: {
@@ -283,8 +283,6 @@ struct AccountView: View {
         switch slug.lowercased() {
         case "giap": return "Giap Pick's"
         case "bruce": return "Bruce Pick's"
-        case "mike": return "Mike Pick's"
-        case "toriano": return "Toriano Pick's"
         default: return slug.uppercased()
         }
     }

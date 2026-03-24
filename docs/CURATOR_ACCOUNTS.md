@@ -1,84 +1,57 @@
-# Four curator logins (Bruce, Giap, Mike, Toriano)
+# Bruce + Giap curator logins (two lanes only)
 
-Each lane is a **real Firebase Authentication user**. That person signs into the **HitALick iOS app** with **email + password**. The API maps **email → lane** using Firebase Functions secrets (`CURATOR_*_EMAIL`). **Fans** only see that lane’s board in **Premium** after **Stripe** says they subscribed (Firestore `entitlement`).
+**Bruce** (`brucebrian50@gmail.com`) is **main admin**: Firebase `OWNER_EMAIL`, universal pick pool, ops desk PIN, all curator studios, full entitlements in-app when signed in.
 
-| Lane (Premium tab) | Firebase **display name** (recommended) | Secret (must match Auth email exactly) | What they do in the app |
-|--------------------|----------------------------------------|------------------------------------------|-------------------------|
-| **Giap Pick’s** | `Giap Pick's` | `CURATOR_GIAP_EMAIL` | **Account → Curator Studio** — profile photo, background, hex theme, featured parlays; pool picks are assigned by owner workflow. |
-| **Bruce Pick’s** | `Bruce Pick's` | `CURATOR_BRUCE_EMAIL` *(optional)* | Same. If **unset**, Bruce lane uses **`OWNER_EMAIL`** (one login for site owner + Bruce lane). |
-| **Mike Pick’s** | `Mike Pick's` | `CURATOR_MIKE_EMAIL` | Same. |
-| **Toriano Pick’s** | `Toriano Pick's` | `CURATOR_TORIANO_EMAIL` | Same. |
+**Giap** (`giap.social1@gmail.com`) is **co-curator**: only the **Giap** lane in Curator Studio and API; gets **complimentary** Premium-tier + **unlimited AI** when that exact email signs in (see `mergeStaffEntitlement` in `functions/billing.js` and AI gate in `functions/ai.js`). Fans still **pay Stripe** to view Giap’s board unless they’re staff.
 
-**Site owner** (`OWNER_EMAIL`, usually your main Gmail) still sees **all four** Curator Studio links in Account and can edit the universal pool in ops tools.
+| Lane | Firebase display name (recommended) | Secret |
+|------|----------------------------------------|--------|
+| Bruce Pick’s | `Bruce Pick's` | `OWNER_EMAIL` (and optional `CURATOR_BRUCE_EMAIL` if Bruce lane ≠ owner) |
+| Giap Pick’s | `Giap Pick's` | `CURATOR_GIAP_EMAIL` |
 
-## Passwords
+## Passwords (set in Firebase — not in git)
 
-Passwords **never** go in git. Set them in Firebase Console when you create each user, or use the script below with a local JSON file.
+Use strong passwords when you create users. Example pattern you can set in **Firebase Console → Authentication** (change after first login):
 
-## Easiest: one inbox, four logins (Gmail plus-addressing)
+- **Bruce:** `HitALick!Bruce2026`
+- **Giap:** `HitALick!Giap2026`
 
-If you use Gmail, you can use **four different Firebase emails** that all deliver to one mailbox:
+## Create users
 
-- `yourname+giap@gmail.com` → Giap lane  
-- `yourname+bruce@gmail.com` → Bruce lane (or skip and use your owner email for Bruce)  
-- `yourname+mike@gmail.com` → Mike lane  
-- `yourname+toriano@gmail.com` → Toriano lane  
+1. Firebase Console → Authentication → Add user for each email above.  
+2. Or: `cp scripts/curator-accounts.example.json scripts/curator-accounts.json`, set passwords, add service account → `node scripts/create-curator-firebase-users.cjs` (see script header).
 
-Create each as a **separate** user in Firebase Auth. Set Functions secrets to those **exact** strings.
-
-## Step A — Create the four Auth users
-
-**Option 1 — Firebase Console (simple)**  
-Authentication → Add user → for each row in the table: email, password, display name as above.
-
-**Option 2 — Script (batch)**  
-
-1. `cp scripts/curator-accounts.example.json scripts/curator-accounts.json`  
-2. Edit **real** emails, **strong** passwords, display names.  
-3. Download a **service account** JSON (Project settings → Service accounts). Save as `scripts/serviceAccount.json` (**gitignored**) or set `GOOGLE_APPLICATION_CREDENTIALS`.  
-4. From repo root: `cd functions && npm ci && cd .. && node scripts/create-curator-firebase-users.cjs`
-
-## Step B — Functions secrets (production)
-
-Values must equal the Auth emails **character-for-character** (lowercase).
+## Functions secrets (production)
 
 ```bash
+firebase functions:secrets:set OWNER_EMAIL   # optional if already in config
 firebase functions:secrets:set CURATOR_GIAP_EMAIL
-firebase functions:secrets:set CURATOR_MIKE_EMAIL
-firebase functions:secrets:set CURATOR_TORIANO_EMAIL
-# Optional — only if Bruce is not the same as OWNER_EMAIL:
-firebase functions:secrets:set CURATOR_BRUCE_EMAIL
-```
-
-Local emulator: `functions/.env` — see `functions/.env.example`.
-
-Then:
-
-```bash
 firebase deploy --only functions:api
 ```
 
-## Step C — Stripe (subscribers only)
+`CURATOR_GIAP_EMAIL` must be exactly `giap.social1@gmail.com` (lowercase).
 
-Each curator sell flow uses a **price** id. Set secrets (names in `functions/billing.js`):
+## Where picks are chosen
 
-`STRIPE_PRICE_CURATOR_GIAP`, `STRIPE_PRICE_CURATOR_BRUCE`, `STRIPE_PRICE_CURATOR_MIKE`, `STRIPE_PRICE_CURATOR_TORIANO`, `STRIPE_PRICE_ALL_CURATORS`.
+- **Bruce (main):** **Ops desk** (`site/ops-dashboard.html` live on GitHub Pages) → tab **Curator pool**: load universal pool, check rows, choose **Bruce** or **Giap**, **Save to board** (calls `POST /api/ops/curator-board/select` with PIN). Also **iOS → Account → Curator Studio** per lane.  
+- **Giap:** **iOS Curator Studio** for **Giap** only, and `POST /api/curators/giap/select` with pool IDs (same as app flow). Giap does **not** get ops pool tab unless you sign in as Bruce on the desk.
 
-Check: `GET https://<api>/api/billing/pricing-status`
+Pool rows are still created with **owner** tools (`POST /api/curators/pool/add` with owner Bearer).
 
-Checkout metadata uses tiers like `curator_giap` so a Giap sub **does not** unlock Mike.
+## Stripe
 
-## Step D — App behavior (subscription + customization)
+Tiers: `curator_giap`, `curator_bruce`, `all_curators` (both lanes). Mike/Toriano removed from codebase.
 
-- **Curators:** After login, **Account** loads `GET /api/curators/me`. If you’re mapped to a lane, **Curator Studio** opens **your** lane (profile, background, parlays). Owner sees **all four** studios.  
-- **Fans:** **Premium** tab loads boards from `GET /api/curators/:slug/board` only if `entitlement` includes that slug (or all-access / premium tier). Otherwise preview / paywall behavior.
+## Repo / desktop / live ops link
 
-## GitHub + your Hit-A-Lick folder
+- Project: `~/Desktop/Hit-A-Lick`  
+- GitHub: `https://github.com/Almightybruce01/Hit-A-Lick`  
+- Live ops: `https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html`  
+- Desktop shortcut (run once): `bash scripts/install-live-dashboard-desktop.sh` → **`HitALick-Live-Ops-Dashboard.webloc`** on your Desktop.
 
-- **Local folder:** `Desktop/Hit-A-Lick` (same files as Git).  
-- **Repo:** [github.com/Almightybruce01/Hit-A-Lick](https://github.com/Almightybruce01/Hit-A-Lick)  
-- **Ops dashboard (GitHub Pages only for this project):**  
-  - [almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html](https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html)  
-  - [almightybruce01.github.io/Hit-A-Lick/ops/](https://almightybruce01.github.io/Hit-A-Lick/ops/)  
+## AI Lab
 
-Bookmark **`github.io`** links above. This repo does **not** configure any non-GitHub domain for Pages.
+- **5 free** AI pick/copilot requests per calendar month for normal logged-in users (see `functions/ai.js`).  
+- **Unlimited** for Bruce, Giap (staff emails), or anyone with an active paid curator/premium entitlement.  
+- Interactions logged to Firestore `aiInteractionLog` for future training.  
+- Full historical modeling (every player split, injury graphs, etc.) is staged behind the same logging + `dataRetention` schedules — extend as you add collectors.

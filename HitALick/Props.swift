@@ -8,9 +8,18 @@ private enum PropBoardTabs: String, CaseIterable, Hashable {
     case tracked = "Tracked"
 }
 
+/// Hide pregame props once the event has started; keep second-half tagged props until ~halftime window.
 private func propIsStale(_ prop: Prop) -> Bool {
     guard let start = prop.eventStartDate else { return false }
-    return Date() > start.addingTimeInterval(5 * 3600)
+    let now = Date()
+    let tags = (prop.tags ?? []).map { $0.lowercased() }
+    let secondHalfish = tags.contains { t in
+        t.contains("2h") || t.contains("2nd") || t.contains("second_half") || t.contains("halftime") || t.contains("h2")
+    }
+    if secondHalfish {
+        return now > start.addingTimeInterval(2.25 * 3600)
+    }
+    return now > start.addingTimeInterval(90)
 }
 
 private extension Array where Element == Prop {

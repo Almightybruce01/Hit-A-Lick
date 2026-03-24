@@ -1,6 +1,7 @@
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import admin from "firebase-admin";
 
+/** Keeps roughly the current + prior season per sport; prunes older Firestore docs. Extend collectors for richer AI training data. */
 const SPORTS = ["nba", "nfl", "mlb", "wnba"];
 
 function seasonKeyForSport(now, sport) {

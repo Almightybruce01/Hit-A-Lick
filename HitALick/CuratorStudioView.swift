@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 import FirebaseAuth
 
-// MARK: - Elite Curator Studio (owner-only lane: Giap / Bruce / Mike / Toriano)
+// MARK: - Elite Curator Studio (Bruce + Giap lanes; Bruce/owner can open both)
 // Upload profile + background from device, publish featured parlays to subscriber boards.
 
 struct CuratorStudioView: View {
@@ -66,8 +66,6 @@ struct CuratorStudioView: View {
         switch curatorSlug.lowercased() {
         case "giap": return "Giap Pick's"
         case "bruce": return "Bruce Pick's"
-        case "mike": return "Mike Pick's"
-        case "toriano": return "Toriano Pick's"
         default: return curatorSlug.uppercased()
         }
     }

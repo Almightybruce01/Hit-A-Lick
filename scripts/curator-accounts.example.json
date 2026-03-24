@@ -1,26 +1,14 @@
 [
   {
-    "slug": "giap",
-    "email": "yourname+giap@gmail.com",
-    "password": "CHANGE_ME_STRONG_PASSWORD",
-    "displayName": "Giap Pick's"
-  },
-  {
     "slug": "bruce",
-    "email": "yourname+bruce@gmail.com",
+    "email": "brucebrian50@gmail.com",
     "password": "CHANGE_ME_STRONG_PASSWORD",
     "displayName": "Bruce Pick's"
   },
   {
-    "slug": "mike",
-    "email": "yourname+mike@gmail.com",
+    "slug": "giap",
+    "email": "giap.social1@gmail.com",
     "password": "CHANGE_ME_STRONG_PASSWORD",
-    "displayName": "Mike Pick's"
-  },
-  {
-    "slug": "toriano",
-    "email": "yourname+toriano@gmail.com",
-    "password": "CHANGE_ME_STRONG_PASSWORD",
-    "displayName": "Toriano Pick's"
+    "displayName": "Giap Pick's"
   }
 ]

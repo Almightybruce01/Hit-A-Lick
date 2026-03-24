@@ -202,6 +202,27 @@ async function sendOpsInsights(_req, res) {
 app.get("/ops/insights", requireOwnerOrOpsPin, sendOpsInsights);
 app.get("/api/ops/insights", requireOwnerOrOpsPin, sendOpsInsights);
 
+app.get("/api/ops/universal-pool", requireOwnerOrOpsPin, async (req, res) => {
+  try {
+    const items = await curators.loadUniversalPickPoolForOps();
+    res.json({ items });
+  } catch (e) {
+    res.status(500).json({ error: e.message || "pool load failed" });
+  }
+});
+
+app.post("/api/ops/curator-board/select", requireOwnerOrOpsPin, async (req, res) => {
+  try {
+    const curatorId = req.body?.curatorId;
+    const pickIds = req.body?.pickIds;
+    const by = req.opsOwnerAuth ? "owner-bearer" : "ops-pin";
+    const count = await curators.applyCuratorBoardSelectionForOps(curatorId, pickIds, by);
+    res.json({ ok: true, count });
+  } catch (e) {
+    res.status(400).json({ error: e.message || "board select failed" });
+  }
+});
+
 function wrapLambdaHandler(lambdaModule) {
   return async (req, res) => {
     try {

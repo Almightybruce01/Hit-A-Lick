@@ -2,13 +2,13 @@ import express from "express";
 import admin from "firebase-admin";
 
 const router = express.Router();
-const OWNER_EMAIL = "brucebrian50@gmail.com";
 
-const TIER_RANK = {
-  core: 1,
-  bruce: 2,
-  premium: 3,
-};
+const OWNER_EMAIL = (process.env.OWNER_EMAIL || "brucebrian50@gmail.com").toLowerCase();
+const GIAP_EMAIL = String(process.env.CURATOR_GIAP_EMAIL || "giap.social1@gmail.com")
+  .trim()
+  .toLowerCase();
+
+const FREE_AI_REQUESTS_MONTHLY = 5;
 
 function americanToDecimal(americanOdds) {
   const n = Number(americanOdds);
@@ -24,51 +24,125 @@ function impliedProbabilityFromAmerican(americanOdds) {
   return Math.abs(n) / (Math.abs(n) + 100);
 }
 
-function hasAiEntitlement(entitlement = {}) {
+function subscriptionGrantsUnlimitedAi(entitlement = {}) {
   if (entitlement.active !== true) return false;
   const tier = String(entitlement.tier || "core").toLowerCase();
-  if (tier === "premium") return true;
-  if (entitlement.curatorAllAccess === true) return true;
+  if (tier === "premium" || entitlement.curatorAllAccess === true) return true;
+  if (tier === "bruce" || tier.startsWith("curator_")) return true;
   const ids = Array.isArray(entitlement.curatorIds) ? entitlement.curatorIds : [];
-  if (ids.length > 0) return true;
-  const rank = TIER_RANK[tier] || 0;
-  return rank >= TIER_RANK.bruce;
+  return ids.length > 0;
 }
 
-async function requireBruceOrPremium(req, res, next) {
+async function verifyUidToken(req) {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+  const uid = String(req.body?.uid || req.query?.uid || "").trim();
+  if (!token || !uid) {
+    return { error: 401, message: "Auth token and uid are required." };
+  }
+  const decoded = await admin.auth().verifyIdToken(token);
+  if (decoded.uid !== uid) {
+    return { error: 403, message: "Token uid mismatch." };
+  }
+  return { uid, email: (decoded.email || "").toLowerCase() };
+}
+
+async function readAiQuotaState(uid) {
+  const monthKey = new Date().toISOString().slice(0, 7);
+  const ref = admin.firestore().collection("users").doc(uid).collection("privateStats").doc("aiMonthly");
+  const snap = await ref.get();
+  const d = snap.exists ? snap.data() || {} : {};
+  const used = d.monthKey === monthKey ? Number(d.used || 0) : 0;
+  const purchased = d.monthKey === monthKey ? Number(d.purchasedCredits || 0) : 0;
+  return { monthKey, used, purchased, limit: FREE_AI_REQUESTS_MONTHLY + purchased, ref };
+}
+
+/**
+ * @returns {"unlimited"|"subscription"|"metered"|"deny"}
+ */
+async function classifyAiAccess(uid, email) {
+  if (email === OWNER_EMAIL || (GIAP_EMAIL && email === GIAP_EMAIL)) return "unlimited";
+
+  const userSnap = await admin.firestore().collection("users").doc(uid).get();
+  const entitlement = userSnap.exists ? userSnap.data()?.entitlement || {} : {};
+  if (subscriptionGrantsUnlimitedAi(entitlement)) return "subscription";
+
+  const { used, limit } = await readAiQuotaState(uid);
+  if (used >= limit) return "deny";
+  return "metered";
+}
+
+async function incrementMeteredAiQuota(uid) {
+  const monthKey = new Date().toISOString().slice(0, 7);
+  const ref = admin.firestore().collection("users").doc(uid).collection("privateStats").doc("aiMonthly");
+  await admin.firestore().runTransaction(async (t) => {
+    const snap = await t.get(ref);
+    const d = snap.exists ? snap.data() || {} : {};
+    const used = d.monthKey === monthKey ? Number(d.used || 0) : 0;
+    const purchased = d.monthKey === monthKey ? Number(d.purchasedCredits || 0) : 0;
+    const cap = FREE_AI_REQUESTS_MONTHLY + purchased;
+    if (used >= cap) {
+      const err = new Error("QUOTA_EXCEEDED");
+      err.code = "QUOTA_EXCEEDED";
+      throw err;
+    }
+    t.set(
+      ref,
+      {
+        monthKey,
+        used: used + 1,
+        purchasedCredits: purchased,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  });
+}
+
+router.get("/quota", async (req, res) => {
   try {
-    const authHeader = req.headers.authorization || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-    const uid = String(req.body?.uid || req.query?.uid || "").trim();
+    const v = await verifyUidToken(req);
+    if (v.error) return res.status(v.error).json({ error: v.message });
+    const { uid, email } = v;
 
-    if (!token || !uid) {
-      return res.status(401).json({ error: "Auth token and uid are required." });
-    }
-
-    const decoded = await admin.auth().verifyIdToken(token);
-    if (decoded.uid !== uid) {
-      return res.status(403).json({ error: "Token uid mismatch." });
-    }
-
-    if ((decoded.email || "").toLowerCase() === OWNER_EMAIL) {
-      req.viewer = { uid, email: decoded.email, tier: "premium", active: true, owner: true };
-      return next();
+    if (email === OWNER_EMAIL || (GIAP_EMAIL && email === GIAP_EMAIL)) {
+      return res.json({
+        unlimited: true,
+        freeMonthly: FREE_AI_REQUESTS_MONTHLY,
+        staff: email === OWNER_EMAIL ? "owner" : "giap",
+      });
     }
 
     const userSnap = await admin.firestore().collection("users").doc(uid).get();
     const entitlement = userSnap.exists ? userSnap.data()?.entitlement || {} : {};
-
-    if (!hasAiEntitlement(entitlement)) {
-      return res.status(403).json({
-        error: "Active curator pass or Bruce/Premium membership required.",
-      });
+    if (subscriptionGrantsUnlimitedAi(entitlement)) {
+      return res.json({ unlimited: true, freeMonthly: FREE_AI_REQUESTS_MONTHLY });
     }
 
-    const tier = String(entitlement.tier || "core").toLowerCase();
-    req.viewer = { uid, email: decoded.email || "", tier, active: true, owner: false };
-    return next();
-  } catch (error) {
-    return res.status(401).json({ error: "Invalid auth token." });
+    const { monthKey, used, limit } = await readAiQuotaState(uid);
+    return res.json({
+      unlimited: false,
+      monthKey,
+      used,
+      limit,
+      remaining: Math.max(0, limit - used),
+      freeMonthly: FREE_AI_REQUESTS_MONTHLY,
+    });
+  } catch (e) {
+    res.status(401).json({ error: e.message || "Invalid auth token." });
+  }
+});
+
+async function logAiInteraction(uid, kind, payload) {
+  try {
+    await admin.firestore().collection("aiInteractionLog").add({
+      uid,
+      kind,
+      ...payload,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch {
+    /* non-fatal */
   }
 }
 
@@ -129,8 +203,25 @@ function buildCandidatesFromProp(prop, allowedBooks) {
   return candidates;
 }
 
-router.post("/picks", requireBruceOrPremium, async (req, res) => {
+router.post("/picks", async (req, res) => {
   try {
+    const v = await verifyUidToken(req);
+    if (v.error) return res.status(v.error).json({ error: v.message });
+    const { uid, email } = v;
+
+    const access = await classifyAiAccess(uid, email);
+    if (access === "deny") {
+      const { monthKey, used, limit } = await readAiQuotaState(uid);
+      return res.status(402).json({
+        error: "Monthly AI request limit reached.",
+        freeMonthly: FREE_AI_REQUESTS_MONTHLY,
+        used,
+        limit,
+        monthKey,
+        hint: "Subscribe for unlimited AI picks, or buy credit packs when available in billing.",
+      });
+    }
+
     const sport = String(req.body?.sport || "nba").toLowerCase();
     const minConfidence = Math.max(0, Math.min(100, Number(req.body?.minConfidence || 55)));
     const maxPicks = Math.max(1, Math.min(20, Number(req.body?.maxPicks || 8)));
@@ -195,10 +286,47 @@ router.post("/picks", requireBruceOrPremium, async (req, res) => {
 
     const withSport = withPayout.map((p) => ({ ...p, sport }));
 
+    if (access === "metered") {
+      try {
+        await incrementMeteredAiQuota(uid);
+      } catch (e) {
+        if (e.code === "QUOTA_EXCEEDED" || e.message === "QUOTA_EXCEEDED") {
+          const st = await readAiQuotaState(uid);
+          return res.status(402).json({
+            error: "Monthly AI request limit reached.",
+            freeMonthly: FREE_AI_REQUESTS_MONTHLY,
+            used: st.used,
+            limit: st.limit,
+            monthKey: st.monthKey,
+          });
+        }
+        throw e;
+      }
+    }
+
+    const afterMetered = access === "metered" ? await readAiQuotaState(uid) : null;
+
+    await logAiInteraction(uid, "picks", {
+      sport,
+      minConfidence,
+      maxPicks,
+      pickCount: withSport.length,
+      hadPreviewOnly: Boolean(withSport.every((x) => x.preview)),
+    });
+
     return res.json({
       sport,
       minConfidence,
       picks: withSport,
+      aiQuota:
+        access === "unlimited" || access === "subscription"
+          ? { unlimited: true }
+          : {
+              unlimited: false,
+              monthKey: afterMetered?.monthKey,
+              used: afterMetered?.used,
+              limit: afterMetered?.limit,
+            },
       note: "AI board generated from odds snapshots and confidence ranking model.",
     });
   } catch (error) {
@@ -206,8 +334,24 @@ router.post("/picks", requireBruceOrPremium, async (req, res) => {
   }
 });
 
-router.post("/copilot", requireBruceOrPremium, async (req, res) => {
+router.post("/copilot", async (req, res) => {
   try {
+    const v = await verifyUidToken(req);
+    if (v.error) return res.status(v.error).json({ error: v.message });
+    const { uid, email } = v;
+
+    const access = await classifyAiAccess(uid, email);
+    if (access === "deny") {
+      const { monthKey, used, limit } = await readAiQuotaState(uid);
+      return res.status(402).json({
+        error: "Monthly AI request limit reached.",
+        freeMonthly: FREE_AI_REQUESTS_MONTHLY,
+        used,
+        limit,
+        monthKey,
+      });
+    }
+
     const msg = String(req.body?.message || "").slice(0, 2000);
     const sport = String(req.body?.sport || "nba").toLowerCase();
     let minConfidence = 58;
@@ -217,6 +361,27 @@ router.post("/copilot", requireBruceOrPremium, async (req, res) => {
     if (m.includes("safe") || m.includes("conservative") || m.includes("bank")) minConfidence = 68;
     if (m.includes("few") || m.includes("one") || m.includes("two leg")) maxPicks = 3;
     if (m.includes("deep") || m.includes("full slate") || m.includes("lotto")) maxPicks = 14;
+
+    if (access === "metered") {
+      try {
+        await incrementMeteredAiQuota(uid);
+      } catch (e) {
+        if (e.code === "QUOTA_EXCEEDED" || e.message === "QUOTA_EXCEEDED") {
+          const st = await readAiQuotaState(uid);
+          return res.status(402).json({
+            error: "Monthly AI request limit reached.",
+            freeMonthly: FREE_AI_REQUESTS_MONTHLY,
+            used: st.used,
+            limit: st.limit,
+            monthKey: st.monthKey,
+          });
+        }
+        throw e;
+      }
+    }
+    const afterMetered = access === "metered" ? await readAiQuotaState(uid) : null;
+
+    await logAiInteraction(uid, "copilot", { sport, messageLen: msg.length });
 
     return res.json({
       sport,
@@ -228,14 +393,26 @@ router.post("/copilot", requireBruceOrPremium, async (req, res) => {
       ],
       disclaimer:
         "Educational analytics only — not betting advice. Hit-A-Lick does not accept or place wagers.",
+      aiQuota:
+        access === "unlimited" || access === "subscription"
+          ? { unlimited: true }
+          : {
+              unlimited: false,
+              monthKey: afterMetered?.monthKey,
+              used: afterMetered?.used,
+              limit: afterMetered?.limit,
+            },
     });
   } catch (error) {
     return res.status(500).json({ error: error.message || "Copilot failed." });
   }
 });
 
-router.post("/parlay", requireBruceOrPremium, async (req, res) => {
+router.post("/parlay", async (req, res) => {
   try {
+    const v = await verifyUidToken(req);
+    if (v.error) return res.status(v.error).json({ error: v.message });
+
     const picks = Array.isArray(req.body?.picks) ? req.body.picks : [];
     const stake = Math.max(0, Number(req.body?.stake || 0));
     if (!picks.length) return res.status(400).json({ error: "Provide picks array." });

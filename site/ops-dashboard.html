@@ -160,6 +160,7 @@
       <button type="button" class="tab active" data-tab="desk">Environment</button>
       <button type="button" class="tab" data-tab="insights">AI insights</button>
       <button type="button" class="tab" data-tab="pricing">Stripe prices</button>
+      <button type="button" class="tab" data-tab="curator">Curator pool</button>
       <button type="button" class="tab" data-tab="help">How to use</button>
     </div>
 
@@ -199,6 +200,23 @@
       <div class="panel full">
         <h2>Stripe price IDs (masked)</h2>
         <pre id="pricing"></pre>
+      </div>
+    </div>
+
+    <div id="pane-curator" class="grid hidden">
+      <div class="panel full">
+        <h2>Universal pool → Bruce / Giap boards</h2>
+        <p class="sub">Load rows from Firestore, select checkboxes, choose lane, save. Subscribers see boards in the iOS <strong>Premium</strong> tab.</p>
+        <label for="curatorLane" style="font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase">Lane</label>
+        <select id="curatorLane" style="display:block;margin:8px 0 12px;padding:10px 12px;border-radius:10px;width:100%;max-width:320px;background:rgba(0,0,0,0.35);color:#fff;border:1px solid var(--border)">
+          <option value="bruce">Bruce Pick's</option>
+          <option value="giap">Giap Pick's</option>
+        </select>
+        <div class="row" style="margin-bottom:12px">
+          <button type="button" class="secondary" id="btnLoadPool">Load pool</button>
+          <button type="button" id="btnSaveBoard">Save to board</button>
+        </div>
+        <div id="poolList" style="max-height:440px;overflow:auto;font-size:0.82rem;line-height:1.35;border:1px solid var(--border);border-radius:12px;padding:12px;background:rgba(0,0,0,0.2)"></div>
       </div>
     </div>
 
@@ -306,37 +324,87 @@
   }
 
   var helpBody = [
-    "LOCAL FILE ON YOUR DESKTOP / REPO",
-    "  site/ops-dashboard.html",
+    "CURATORS: Bruce + Giap only (Mike/Toriano removed).",
+    "  Bruce = main admin (OWNER_EMAIL). Giap = co-curator (CURATOR_GIAP_EMAIL).",
+    "  docs/CURATOR_ACCOUNTS.md",
     "",
-    "DEPLOYED (bookmark this)",
-    "  https://<project>.web.app/ops",
+    "PICKS: Tab «Curator pool» OR iOS Account → Curator Studio.",
     "",
-    "PIN",
-    "  Stored in localStorage after unlock. Server validates X-Ops-Pin (default 5505).",
-    "  Change with: firebase functions:secrets:set OPS_DASHBOARD_PIN",
+    "LIVE OPS URL (GitHub Pages)",
+    "  https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html",
     "",
-    "GITHUB",
-    "  Push this repo to GitHub. For GitHub Pages, set API base URL at unlock to your Cloud Run URL.",
+    "PIN: localStorage. Server: OPS_DASHBOARD_PIN (default 5505).",
+    "API base: paste Cloud Run origin at unlock (GitHub Pages needs this).",
     "",
-    "CURATOR USERS (Giap, Bruce, Mike, Toriano)",
-    "  Create users in Firebase Console; set CURATOR_*_EMAIL secrets.",
-    "  See scripts/setup-curators-auth.md",
-    "",
-    "CURSOR WORKFLOW",
-    "  1) Edit site/ops-dashboard.html or functions/",
-    "  2) firebase deploy --only hosting,functions:api",
+    "DEPLOY",
+    "  firebase deploy --only hosting,functions:api",
     "",
   ].join("\n");
 
   document.getElementById("helpText").textContent = helpBody;
+
+  var poolItems = [];
+
+  async function loadCuratorPool() {
+    setStatus("Loading universal pool…", "");
+    try {
+      var res = await apiFetch("/api/ops/universal-pool");
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      poolItems = data.items || [];
+      var el = document.getElementById("poolList");
+      el.innerHTML = "";
+      poolItems.slice(0, 250).forEach(function (row) {
+        var id = row.id || "";
+        var title = row.title || row.pick || id;
+        var line = document.createElement("label");
+        line.style.cssText = "display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;cursor:pointer";
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.value = id;
+        line.appendChild(cb);
+        var sp = document.createElement("span");
+        sp.textContent = title + " • " + (row.league || "") + " — " + (row.pick || "");
+        sp.style.color = "rgba(255,255,255,0.88)";
+        line.appendChild(sp);
+        el.appendChild(line);
+      });
+      setStatus("Pool loaded: " + poolItems.length + " rows", "ok");
+    } catch (e) {
+      setStatus("Pool failed: " + e.message, "err");
+    }
+  }
+
+  async function saveCuratorBoard() {
+    var lane = document.getElementById("curatorLane").value;
+    var boxes = document.querySelectorAll("#poolList input[type=checkbox]:checked");
+    var pickIds = [];
+    boxes.forEach(function (b) { pickIds.push(b.value); });
+    if (!pickIds.length) {
+      alert("Select at least one pool row.");
+      return;
+    }
+    setStatus("Saving board…", "");
+    try {
+      var res = await apiFetch("/api/ops/curator-board/select", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ curatorId: lane, pickIds: pickIds }),
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      setStatus("Saved " + (data.count || 0) + " pick(s) to " + lane, "ok");
+    } catch (e) {
+      setStatus("Save failed: " + e.message, "err");
+    }
+  }
 
   function activateTab(name) {
     var tabs = document.querySelectorAll(".tab");
     tabs.forEach(function (t) {
       t.classList.toggle("active", t.getAttribute("data-tab") === name);
     });
-    ["desk", "insights", "pricing", "help"].forEach(function (id) {
+    ["desk", "insights", "pricing", "curator", "help"].forEach(function (id) {
       document.getElementById("pane-" + id).classList.toggle("hidden", id !== name);
     });
     if (name === "desk") loadDesk();
@@ -384,6 +452,13 @@
   document.getElementById("btnRefresh").addEventListener("click", function () {
     var active = document.querySelector(".tab.active");
     if (active) activateTab(active.getAttribute("data-tab"));
+  });
+
+  document.getElementById("btnLoadPool").addEventListener("click", function () {
+    loadCuratorPool();
+  });
+  document.getElementById("btnSaveBoard").addEventListener("click", function () {
+    saveCuratorBoard();
   });
 
   (function init() {

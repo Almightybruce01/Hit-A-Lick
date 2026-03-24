@@ -51,11 +51,11 @@ struct ElitePreset: Decodable, Identifiable {
     let market: String?
 }
 
-private let curatorSlugs = ["giap", "bruce", "mike", "toriano"]
+private let curatorSlugs = ["bruce", "giap"]
 
 struct Premium: View {
     @AppStorage("hitalick_tier") private var tierRaw: String = UserTier.core.rawValue
-    @State private var curatorTab = "giap"
+    @State private var curatorTab = "bruce"
     @State private var boards: [String: CuratorBoardAPIResponse] = [:]
     @State private var entitlement: BillingEntitlementPayload?
     @State private var loadError: String?
@@ -135,7 +135,7 @@ struct Premium: View {
                             Text("Membership")
                                 .font(.headline)
                                 .foregroundColor(.white)
-                            Text("Giap, Bruce, Mike, and Toriano each maintain a board from the universal pool. Past results only show picks that were officially logged.")
+                            Text("Bruce Pick’s and Giap Pick’s each publish a board from the universal pool. Past results only show picks that were officially logged.")
                                 .font(.caption)
                                 .foregroundColor(.white.opacity(0.82))
                             HStack(spacing: 8) {
@@ -295,8 +295,6 @@ struct Premium: View {
         switch slug {
         case "giap": return "Giap Pick's"
         case "bruce": return "Bruce Pick's"
-        case "mike": return "Mike Pick's"
-        case "toriano": return "Toriano Pick's"
         default: return slug.uppercased()
         }
     }

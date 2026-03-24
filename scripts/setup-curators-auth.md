@@ -46,7 +46,7 @@ firebase functions:secrets:set STRIPE_PRICE_ALL_CURATORS
 
 `GET https://<your-api-host>/api/billing/pricing-status`
 
-Checkout body field `tier` must be one of: `curator_giap`, `curator_bruce`, `curator_mike`, `curator_toriano`, `all_curators` (see `curatorMetaForTier` in `billing.js`).
+Checkout body field `tier` must be one of: `curator_giap`, `curator_bruce`, `all_curators` (see `curatorMetaForTier` in `billing.js`).
 
 ## 4) Deploy
 

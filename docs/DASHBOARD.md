@@ -94,6 +94,6 @@ All ops JSON routes require **`X-Ops-Pin`** or owner Bearer token.
 
 **GitHub Pages** is on **`github.io`** — API calls are **cross-origin** to your Cloud Run / Firebase API. In the dashboard, set **API base URL** (top of page) to your production API origin, e.g. `https://api-xxxxx-uc.a.run.app` **without** trailing slash. The page sends **`X-Ops-Pin`** on every request.
 
-## Curator owners (Mike, Giap, Bruce, Toriano)
+## Curators (Bruce + Giap only)
 
-Firebase **does not** auto-create users from this repo. See **`docs/CURATOR_ACCOUNTS.md`** (four logins, secrets, Stripe, app). Stripe/env checklist: **`scripts/setup-curators-auth.md`**.
+See **`docs/CURATOR_ACCOUNTS.md`** (logins, ops pool tab, Stripe). Env checklist: **`scripts/setup-curators-auth.md`**.

@@ -61,7 +61,7 @@ struct HomeScreen: View {
                 TabView(selection: $selectedTab) {
                     AILab()
                         .tag(0)
-                        .tabItem { Label("AI", systemImage: "sparkles") }
+                        .tabItem { Label("AI Lab", systemImage: "sparkles") }
 
                     Games()
                         .tag(1)

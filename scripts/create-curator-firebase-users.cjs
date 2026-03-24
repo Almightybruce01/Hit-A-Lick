@@ -65,7 +65,7 @@ function main() {
   }
   initAdmin();
 
-  const allowed = new Set(["giap", "bruce", "mike", "toriano"]);
+  const allowed = new Set(["bruce", "giap"]);
 
   (async () => {
     for (const row of rows) {

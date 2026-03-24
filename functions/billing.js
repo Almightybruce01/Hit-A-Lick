@@ -31,8 +31,6 @@ const PRICE_IDS = {
   ),
   curator_giap: firstPriceId(process.env.STRIPE_PRICE_CURATOR_GIAP, process.env.STRIPE_PRICE_GIAP),
   curator_bruce: firstPriceId(process.env.STRIPE_PRICE_CURATOR_BRUCE, process.env.STRIPE_PRICE_BRUCE_CURATOR),
-  curator_mike: firstPriceId(process.env.STRIPE_PRICE_CURATOR_MIKE, process.env.STRIPE_PRICE_MIKE),
-  curator_toriano: firstPriceId(process.env.STRIPE_PRICE_CURATOR_TORIANO, process.env.STRIPE_PRICE_TORIANO),
   all_curators: firstPriceId(process.env.STRIPE_PRICE_ALL_CURATORS, process.env.STRIPE_PRICE_CURATORS_ALL),
 };
 
@@ -49,7 +47,7 @@ function requireField(value, field) {
   }
 }
 
-const ALL_CURATOR_IDS = ["giap", "bruce", "mike", "toriano"];
+const ALL_CURATOR_IDS = ["bruce", "giap"];
 
 async function syncStripeSubscriptionDoc(uid, subscription) {
   const db = admin.firestore();
@@ -280,6 +278,37 @@ router.post("/customer-portal", async (req, res) => {
   }
 });
 
+function mergeStaffEntitlement(base, email) {
+  const e = String(email || "").toLowerCase();
+  const owner = (process.env.OWNER_EMAIL || "brucebrian50@gmail.com").toLowerCase();
+  const giap = String(process.env.CURATOR_GIAP_EMAIL || "giap.social1@gmail.com").trim().toLowerCase();
+  const ent = base && typeof base === "object" ? { ...base } : {};
+
+  if (e === owner) {
+    return {
+      ...ent,
+      active: true,
+      tier: "premium",
+      curatorAllAccess: true,
+      curatorIds: ALL_CURATOR_IDS,
+      staffRole: "owner",
+      aiUnlimited: true,
+    };
+  }
+  if (giap && e === giap) {
+    return {
+      ...ent,
+      active: true,
+      tier: "curator_giap",
+      curatorIds: ["giap"],
+      curatorAllAccess: false,
+      staffRole: "giap",
+      aiUnlimited: true,
+    };
+  }
+  return ent;
+}
+
 router.get("/entitlements/:uid", async (req, res) => {
   try {
     const uid = req.params.uid;
@@ -287,7 +316,22 @@ router.get("/entitlements/:uid", async (req, res) => {
 
     const doc = await admin.firestore().collection("users").doc(uid).get();
     const data = doc.exists ? doc.data() : {};
-    return res.json({ entitlement: data.entitlement || null });
+    let entitlement = data.entitlement || null;
+
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (token) {
+      try {
+        const decoded = await admin.auth().verifyIdToken(token);
+        if (decoded.uid === uid) {
+          entitlement = mergeStaffEntitlement(entitlement, decoded.email);
+        }
+      } catch {
+        /* ignore — return stored entitlement only */
+      }
+    }
+
+    return res.json({ entitlement });
   } catch (error) {
     return res.status(500).json({ error: error.message || "Entitlement lookup failed" });
   }
@@ -303,16 +347,7 @@ function maskPriceId(id) {
 /** Which Stripe price IDs resolve (masked). No secrets. */
 router.get("/pricing-status", async (_req, res) => {
   try {
-    const keys = [
-      "core",
-      "bruce",
-      "premium",
-      "curator_giap",
-      "curator_bruce",
-      "curator_mike",
-      "curator_toriano",
-      "all_curators",
-    ];
+    const keys = ["core", "bruce", "premium", "curator_giap", "curator_bruce", "all_curators"];
     const prices = {};
     for (const k of keys) {
       const raw = PRICE_IDS[k];

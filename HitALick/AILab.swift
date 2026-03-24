@@ -22,6 +22,16 @@ struct AIParlayResponse: Decodable {
     let projectedProfit: Double?
 }
 
+struct AIQuotaResponse: Decodable {
+    let unlimited: Bool?
+    let used: Int?
+    let limit: Int?
+    let remaining: Int?
+    let monthKey: String?
+    let staff: String?
+    let freeMonthly: Int?
+}
+
 struct AICopilotResponse: Decodable {
     let sport: String?
     let suggestedFilters: CopilotFilters?
@@ -49,6 +59,7 @@ struct AILab: View {
     @State private var copilotMessage = ""
     @State private var copilotReply: AICopilotResponse?
     @State private var isCopilotLoading = false
+    @State private var quotaText = ""
     @AppStorage("hitalick_ai_cart_touch") private var cartLastTouchEpoch: Double = 0
 
     private let sports = ["nba", "nfl", "mlb", "wnba"]
@@ -66,6 +77,11 @@ struct AILab: View {
                             Text("AI Picks Engine")
                                 .font(.title3.bold())
                                 .foregroundColor(.white)
+                            if !quotaText.isEmpty {
+                                Text(quotaText)
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundColor(.cyan.opacity(0.95))
+                            }
                             Text("Generate ranked picks from your filters and build a parlay instantly.")
                                 .font(.subheadline)
                                 .foregroundColor(.white.opacity(0.82))
@@ -285,11 +301,12 @@ struct AILab: View {
                         .filter { !$0.isEmpty }
                 ]
 
-                let data = try await post(path: "/ai/picks", token: token, payload: payload)
+                let data = try await post(path: "/api/ai/picks", token: token, payload: payload)
                 let decoded = try JSONDecoder().decode(AIPicksResponse.self, from: data)
                 picks = decoded.picks
                 pruneStaleCartIfNeeded()
                 statusText = "Generated \(picks.count) AI picks."
+                await refreshAiQuota()
                 isError = false
                 isGenerating = false
             } catch {
@@ -323,7 +340,7 @@ struct AILab: View {
                     "stake": parsedStake,
                     "picks": cart.map { ["label": $0.label, "odds": $0.odds] }
                 ]
-                let data = try await post(path: "/ai/parlay", token: token, payload: payload)
+                let data = try await post(path: "/api/ai/parlay", token: token, payload: payload)
                 let result = try JSONDecoder().decode(AIParlayResponse.self, from: data)
                 let ret = result.projectedReturn.map { String(format: "%.2f", $0) } ?? "-"
                 let profit = result.projectedProfit.map { String(format: "%.2f", $0) } ?? "-"
@@ -357,14 +374,51 @@ struct AILab: View {
                     "sport": sport,
                     "message": copilotMessage,
                 ]
-                let data = try await post(path: "/ai/copilot", token: token, payload: payload)
+                let data = try await post(path: "/api/ai/copilot", token: token, payload: payload)
                 copilotReply = try JSONDecoder().decode(AICopilotResponse.self, from: data)
                 isCopilotLoading = false
+                await refreshAiQuota()
             } catch {
                 statusText = "Copilot failed: \(error.localizedDescription)"
                 isError = true
                 isCopilotLoading = false
             }
+        }
+    }
+
+    @MainActor
+    private func refreshAiQuota() async {
+        guard let user = Auth.auth().currentUser else {
+            quotaText = ""
+            return
+        }
+        do {
+            let token = try await user.getIDToken()
+            var req = URLRequest(url: URL(string: "\(baseURL)/api/ai/quota?uid=\(user.uid)")!)
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            let (data, response) = try await URLSession.shared.data(for: req)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                quotaText = ""
+                return
+            }
+            let q = try JSONDecoder().decode(AIQuotaResponse.self, from: data)
+            if q.unlimited == true {
+                if q.staff == "owner" {
+                    quotaText = "AI: unlimited (owner)"
+                } else if q.staff == "giap" {
+                    quotaText = "AI: unlimited (Giap staff)"
+                } else {
+                    quotaText = "AI: unlimited with your membership"
+                }
+            } else if let lim = q.limit {
+                let used = q.used ?? 0
+                let rem = q.remaining ?? max(0, lim - used)
+                quotaText = "AI this month: \(used)/\(lim) used (\(rem) left)"
+            } else {
+                quotaText = ""
+            }
+        } catch {
+            quotaText = ""
         }
     }
 

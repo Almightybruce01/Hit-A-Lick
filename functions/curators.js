@@ -4,13 +4,11 @@ import admin from "firebase-admin";
 const router = express.Router();
 const OWNER_EMAIL = (process.env.OWNER_EMAIL || "brucebrian50@gmail.com").toLowerCase();
 
-const CURATOR_SLUGS = ["giap", "bruce", "mike", "toriano"];
+const CURATOR_SLUGS = ["bruce", "giap"];
 
 const CURATOR_LABELS = {
-  giap: "Giap Pick's",
   bruce: "Bruce Pick's",
-  mike: "Mike Pick's",
-  toriano: "Toriano Pick's",
+  giap: "Giap Pick's",
 };
 
 const ALL_CURATORS = [...CURATOR_SLUGS];
@@ -205,11 +203,16 @@ router.get("/catalog", (_req, res) => {
 router.get("/me", requireAuthUid, async (req, res) => {
   const slug = curatorSlugForEmail(req.viewer.email);
   const isOwner = req.viewer.email === OWNER_EMAIL;
+  const giapEmail = String(process.env.CURATOR_GIAP_EMAIL || "").trim().toLowerCase();
+  const isGiap = Boolean(giapEmail && req.viewer.email === giapEmail);
+
   return res.json({
     curatorId: slug,
     curatorDisplayName: slug ? CURATOR_LABELS[slug] || slug : null,
     isOwner,
+    isCoCurator: isGiap,
     canEditPool: isOwner,
+    canSelectUniversalPool: isOwner,
   });
 });
 
@@ -486,4 +489,46 @@ router.get("/:curatorId/board", requireCuratorSubscriber, async (req, res) => {
   });
 });
 
-export { router, userCuratorAccess, CURATOR_SLUGS, ALL_CURATORS };
+/** Ops desk (owner PIN or owner Bearer): load universal pool for pick assignment UI. */
+async function loadUniversalPickPoolForOps() {
+  return loadPoolItemsSorted();
+}
+
+/** Ops desk: write upcoming board for Bruce or Giap from pool document ids. */
+async function applyCuratorBoardSelectionForOps(curatorId, pickIds, updatedByLabel) {
+  const id = String(curatorId || "").toLowerCase();
+  if (!CURATOR_SLUGS.includes(id)) {
+    throw new Error("Unknown curator (use bruce or giap).");
+  }
+  const ids = Array.isArray(pickIds) ? pickIds.map((x) => String(x)) : [];
+  if (!ids.length) throw new Error("pickIds required.");
+
+  const db = admin.firestore();
+  const refs = ids.map((poolId) => db.collection("universalPickPool").doc(poolId));
+  const snaps = await db.getAll(...refs);
+  const upcoming = [];
+  for (const s of snaps) {
+    if (!s.exists) continue;
+    upcoming.push({ id: s.id, ...(s.data() || {}) });
+  }
+  if (!upcoming.length) throw new Error("No valid pool ids.");
+
+  await boardRef(id).set(
+    {
+      upcoming,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedBy: String(updatedByLabel || "ops-dashboard"),
+    },
+    { merge: true }
+  );
+  return upcoming.length;
+}
+
+export {
+  router,
+  userCuratorAccess,
+  CURATOR_SLUGS,
+  ALL_CURATORS,
+  loadUniversalPickPoolForOps,
+  applyCuratorBoardSelectionForOps,
+};
