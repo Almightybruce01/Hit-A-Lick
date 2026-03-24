@@ -1,7 +1,29 @@
 /**
  * Owner dashboard: rule-based ops diagnostics + optional OpenAI narrative (OPENAI_API_KEY).
+ * Dashboard AI guide: POST /api/ops/dashboard-guide (same PIN / owner auth).
  */
 import admin from "firebase-admin";
+
+/** Injected into OpenAI so answers reference real tabs and flows. Keep in sync with site/ops-dashboard.html. */
+export const OPS_DASHBOARD_FEATURE_CATALOG = `
+Hit-A-Lick Ops Desk (browser): unlock with X-Ops-Pin (server: OPS_DASHBOARD_PIN, default 5505). On GitHub Pages you MUST paste API base URL (Cloud Run or Firebase Hosting origin) before unlock.
+
+Tabs after unlock:
+1) Environment — GET /api/ops/dashboard: env flags, marketsBySport per nba/nfl/mlb/wnba, raw ops JSON. Use to confirm Odds API key presence, bookmakers, prop market tier.
+2) AI insights — GET /api/ops/insights: rule-based suggestions (quota, Stripe prices missing, curator emails), optional OpenAI paragraph if OPENAI_API_KEY set.
+3) Stripe prices — GET /api/billing/pricing-status: which Stripe price env vars are set (masked).
+4) Curator pool — GET /api/ops/universal-pool lists Firestore universal pool rows. User checks rows, picks lane "bruce" or "giap", Save calls POST /api/ops/curator-board/select with { curatorId, pickIds }. Those picks appear on subscriber-facing curator boards (iOS Premium tab). Only Bruce (owner) or anyone with valid ops PIN can use this tab; Giap normally uses iOS Curator Studio for his lane only.
+5) All features — static list in UI (same as this catalog).
+6) Dashboard AI — this assistant; POST /api/ops/dashboard-guide with { message }.
+
+iOS app: Premium tab shows paid curator boards. Account → Curator Studio: owner Bruce can push/select for lanes; Giap only manages Giap lane. Universal pool rows are created with owner-authenticated API (e.g. POST /api/curators/pool/add with Bearer).
+
+Accounts: OWNER / main admin email brucebrian50@gmail.com. Co-curator giap.social1@gmail.com (CURATOR_GIAP_EMAIL). Two lanes only: bruce, giap.
+
+AI Lab (separate from ops): in-app tab; quota for normal users; unlimited for staff/subscribers per billing rules — not configured on this ops page.
+
+When user asks "how do I publish picks": give numbered steps — add to pool (owner tools), then either Ops Curator pool tab (load, select, lane, save) OR iOS Curator Studio. Clarify Bruce vs Giap permissions.
+`.trim();
 
 function utcMonthKey(date = new Date()) {
   const y = date.getUTCFullYear();
@@ -232,4 +254,94 @@ export async function buildOpsInsightsPayload() {
     },
     aiNarrative,
   };
+}
+
+function staticDashboardGuideFallback(userMessage) {
+  const q = String(userMessage || "").toLowerCase();
+  const lines = [
+    "OpenAI is not configured on the server (set OPENAI_API_KEY). Here is a static guide:",
+    "",
+    "1) Unlock: enter your ops PIN and API base (required on github.io).",
+    "2) Curator pool: Load pool → check picks → choose lane Bruce or Giap → Save to board.",
+    "3) Bruce: full ops + iOS Curator Studio for both lanes. Giap: iOS Curator Studio for Giap lane only (or ops pool if you share PIN).",
+    "4) See tab «All features» for the full list.",
+    "",
+    "Docs: docs/CURATOR_ACCOUNTS.md — logins brucebrian50@gmail.com / giap.social1@gmail.com (passwords in Firebase only).",
+  ];
+  if (q.includes("giap")) {
+    lines.push("", "Giap: sign into the iOS app with giap.social1@gmail.com → Account → Curator Studio → Giap lane → select from pool / save.");
+  }
+  if (q.includes("bruce") || q.includes("owner") || q.includes("admin")) {
+    lines.push("", "Bruce: sign in with brucebrian50@gmail.com → use Ops Desk Curator pool OR Curator Studio for Bruce/Giap lanes.");
+  }
+  return lines.join("\n");
+}
+
+/**
+ * Ops-only assistant: step-by-step help for the Hit-A-Lick ops dashboard and curator flows.
+ */
+export async function answerOpsDashboardGuide(userMessage) {
+  const msg = String(userMessage || "").trim();
+  if (!msg) {
+    return { ok: false, error: "message required", reply: null, source: "none" };
+  }
+  const key = String(process.env.OPENAI_API_KEY || "").trim();
+  if (!key) {
+    return {
+      ok: true,
+      reply: staticDashboardGuideFallback(msg),
+      source: "static",
+      generatedAt: new Date().toISOString(),
+    };
+  }
+  try {
+    const system = [
+      "You are the Hit-A-Lick Ops Desk assistant. Answer ONLY about: this ops dashboard, curator pool/board publishing, Stripe price checks on the desk, environment/insights tabs, iOS Curator Studio vs web ops, Bruce vs Giap roles, PIN/API base unlock.",
+      "Always respond with clear numbered steps when explaining a workflow. Be exact: tab names, button labels (Load pool, Save to board), API paths if relevant.",
+      "Do not invent features that are not in the catalog. If unsure, say what you know from the catalog and suggest checking docs/CURATOR_ACCOUNTS.md.",
+      "\n--- Feature catalog ---\n",
+      OPS_DASHBOARD_FEATURE_CATALOG,
+    ].join("");
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_OPS_MODEL || "gpt-4o-mini",
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: msg },
+        ],
+        max_tokens: 900,
+        temperature: 0.25,
+      }),
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      return {
+        ok: false,
+        error: j?.error?.message || String(r.status),
+        reply: staticDashboardGuideFallback(msg),
+        source: "static_fallback",
+        generatedAt: new Date().toISOString(),
+      };
+    }
+    const reply = j?.choices?.[0]?.message?.content?.trim() || null;
+    return {
+      ok: true,
+      reply: reply || staticDashboardGuideFallback(msg),
+      source: "openai",
+      generatedAt: new Date().toISOString(),
+    };
+  } catch (e) {
+    return {
+      ok: true,
+      reply: staticDashboardGuideFallback(msg),
+      source: "static_error",
+      error: e.message || String(e),
+      generatedAt: new Date().toISOString(),
+    };
+  }
 }

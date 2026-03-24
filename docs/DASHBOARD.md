@@ -38,6 +38,8 @@ Companion note file (same folder):
 
 **`HitALick-OpsControl-Desktop-README.txt`**
 
+**Live online bookmark (Desktop root, not in a folder):** run `bash scripts/install-live-dashboard-desktop.sh` → **`Hit-A-Lick-Ops-Desk.webloc`** opens GitHub Pages ops desk in the browser.
+
 Open the dashboard **in the browser** — for full API use, deploy with Firebase Hosting or GitHub Pages so API calls work (CORS / same-origin).
 
 ## Deployed URL (Firebase — recommended for API same-origin)
@@ -88,6 +90,9 @@ git pull
 |--------|--------|------|
 | Ops JSON | GET | `/api/ops/dashboard` |
 | AI / rule insights | GET | `/api/ops/insights` |
+| **Dashboard AI** (step-by-step help) | POST | `/api/ops/dashboard-guide` body `{ "message": "…" }` |
+| Universal pick pool | GET | `/api/ops/universal-pool` |
+| Save picks to Bruce/Giap board | POST | `/api/ops/curator-board/select` |
 | Stripe price IDs configured | GET | `/api/billing/pricing-status` (unauthenticated summary) |
 
 All ops JSON routes require **`X-Ops-Pin`** or owner Bearer token.

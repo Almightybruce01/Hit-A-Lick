@@ -21,8 +21,8 @@ Live (GitHub Pages — same files as repo folder site/):
   https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html
   https://almightybruce01.github.io/Hit-A-Lick/ops/
 
-Safari bookmark file (online only, on Desktop):
-  HitALick-Live-Ops-Dashboard.webloc
+Safari bookmark file (online only, on Desktop — no subfolder):
+  Hit-A-Lick-Ops-Desk.webloc
   Create/update: bash scripts/install-live-dashboard-desktop.sh
 
 GitHub repo:

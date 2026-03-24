@@ -1,5 +1,42 @@
 # Bruce + Giap curator logins (two lanes only)
 
+## Exact steps to get picks live (subscribers see them)
+
+### One-time setup (Bruce or dev)
+
+1. **Firebase Authentication** — Create users:
+   - `brucebrian50@gmail.com` (owner)
+   - `giap.social1@gmail.com` (co-curator)  
+   Set passwords in Firebase (examples below).  
+2. **Functions secrets** — `OWNER_EMAIL`, `CURATOR_GIAP_EMAIL=giap.social1@gmail.com`, deploy `functions:api`.  
+3. **Universal pool** — Picks must exist in the pool before boards show them. Add rows with **owner** tools (`POST /api/curators/pool/add` with Bruce’s Firebase **Bearer** token, or your internal scripts).  
+4. **Stripe** — Prices for `curator_giap`, `curator_bruce`, `all_curators` so fans can subscribe.
+
+### Bruce (main admin) — web ops desk
+
+1. Open the live desk: [ops-dashboard.html](https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html) or double-click **`Hit-A-Lick-Ops-Desk.webloc`** on your Desktop (run `bash scripts/install-live-dashboard-desktop.sh` once — file sits **directly on Desktop**, not inside a folder).  
+2. Enter **PIN** (default **5505** unless `OPS_DASHBOARD_PIN` changed).  
+3. Paste **API base URL** if you are on `github.io` (your Cloud Run or Firebase API origin, no trailing slash).  
+4. Tab **Curator pool** → **Load pool** → check the rows → choose lane **Bruce Pick's** or **Giap Pick's** → **Save to board**.  
+5. Optional: tab **Dashboard AI** — ask “how do I publish Bruce picks?” for numbered steps anytime.
+
+### Bruce — iOS app
+
+1. Sign in with **`brucebrian50@gmail.com`**.  
+2. **Account → Curator Studio** — select **Bruce** or **Giap** lane and push picks from the pool (same data model as the web desk).
+
+### Giap (co-curator)
+
+1. Sign in with **`giap.social1@gmail.com`**.  
+2. **Account → Curator Studio** — **Giap** lane only: choose picks from the universal pool and save.  
+3. Giap does **not** have owner ops API access; if Bruce shares the **ops PIN**, Giap could use the web **Curator pool** the same way (optional).
+
+### Subscribers (not admins)
+
+- Pay via Stripe in the app → **Premium** tab shows **Bruce** / **Giap** boards you published.
+
+---
+
 **Bruce** (`brucebrian50@gmail.com`) is **main admin**: Firebase `OWNER_EMAIL`, universal pick pool, ops desk PIN, all curator studios, full entitlements in-app when signed in.
 
 **Giap** (`giap.social1@gmail.com`) is **co-curator**: only the **Giap** lane in Curator Studio and API; gets **complimentary** Premium-tier + **unlimited AI** when that exact email signs in (see `mergeStaffEntitlement` in `functions/billing.js` and AI gate in `functions/ai.js`). Fans still **pay Stripe** to view Giap’s board unless they’re staff.
@@ -47,7 +84,7 @@ Tiers: `curator_giap`, `curator_bruce`, `all_curators` (both lanes). Mike/Torian
 - Project: `~/Desktop/Hit-A-Lick`  
 - GitHub: `https://github.com/Almightybruce01/Hit-A-Lick`  
 - Live ops: `https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html`  
-- Desktop shortcut (run once): `bash scripts/install-live-dashboard-desktop.sh` → **`HitALick-Live-Ops-Dashboard.webloc`** on your Desktop.
+- Desktop shortcut (run once): `bash scripts/install-live-dashboard-desktop.sh` → **`Hit-A-Lick-Ops-Desk.webloc`** on your **Desktop root** (not inside a folder). Removes legacy `HitALick-Live-Ops-Dashboard.webloc` if present.
 
 ## AI Lab
 

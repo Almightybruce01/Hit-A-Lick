@@ -111,6 +111,30 @@
     .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     a.link { color: var(--accent); text-decoration: none; font-weight: 700; font-size: 0.85rem; }
     a.link:hover { text-decoration: underline; }
+    .feat-section { margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+    .feat-section:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+    .feat-section h3 { margin: 0 0 10px; font-size: 1rem; color: #fff; letter-spacing: -0.02em; }
+    .feat-section ul, .feat-section ol { margin: 0; padding-left: 1.15rem; color: rgba(255,255,255,0.78); font-size: 0.86rem; line-height: 1.55; }
+    .feat-section li { margin-bottom: 6px; }
+    .callout {
+      margin-top: 14px; padding: 12px 14px; border-radius: 12px;
+      background: rgba(46,230,198,0.08); border: 1px solid rgba(46,230,198,0.28);
+      font-size: 0.84rem; line-height: 1.5; color: rgba(255,255,255,0.88);
+    }
+    textarea.guide-input {
+      width: 100%; min-height: 120px; max-width: 720px;
+      padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.4); color: #fff; font-size: 0.9rem;
+      font-family: inherit; resize: vertical;
+    }
+    .guide-reply {
+      margin-top: 14px; padding: 14px 16px; border-radius: 12px;
+      background: rgba(0,0,0,0.35); border: 1px solid var(--border);
+      white-space: pre-wrap; word-break: break-word;
+      font-size: 0.86rem; line-height: 1.55; color: rgba(255,255,255,0.9);
+      max-height: 480px; overflow: auto;
+    }
+    .guide-meta { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -137,9 +161,8 @@
         <button type="button" id="unlockBtn">Unlock</button>
       </div>
       <ul class="hint">
-        <li>Repo path on disk: <code>site/ops-dashboard.html</code></li>
-        <li>Docs: <code>docs/DASHBOARD.md</code></li>
-        <li>After Cursor edits: deploy hosting + functions</li>
+        <li>Desktop shortcut (no folder): run <code>bash scripts/install-live-dashboard-desktop.sh</code> → <code>Hit-A-Lick-Ops-Desk.webloc</code> on Desktop</li>
+        <li>Repo: <code>site/ops-dashboard.html</code> · docs: <code>docs/DASHBOARD.md</code>, <code>docs/CURATOR_ACCOUNTS.md</code></li>
       </ul>
     </div>
   </div>
@@ -158,10 +181,12 @@
 
     <div class="tabs" id="tabs">
       <button type="button" class="tab active" data-tab="desk">Environment</button>
+      <button type="button" class="tab" data-tab="features">All features</button>
+      <button type="button" class="tab" data-tab="guide">Dashboard AI</button>
       <button type="button" class="tab" data-tab="insights">AI insights</button>
       <button type="button" class="tab" data-tab="pricing">Stripe prices</button>
       <button type="button" class="tab" data-tab="curator">Curator pool</button>
-      <button type="button" class="tab" data-tab="help">How to use</button>
+      <button type="button" class="tab" data-tab="help">Deploy / checklist</button>
     </div>
 
     <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -200,6 +225,105 @@
       <div class="panel full">
         <h2>Stripe price IDs (masked)</h2>
         <pre id="pricing"></pre>
+      </div>
+    </div>
+
+    <div id="pane-features" class="grid hidden">
+      <div class="panel full">
+        <h2>Every ops desk feature</h2>
+        <p class="sub">Use <strong>Dashboard AI</strong> for step-by-step help. Below is the full map of what this page and the app can do.</p>
+
+        <div class="feat-section">
+          <h3>Lock screen (before unlock)</h3>
+          <ul>
+            <li><strong>PIN</strong> — sent as <code>X-Ops-Pin</code>; server default <strong>5505</strong> unless you set <code>OPS_DASHBOARD_PIN</code>.</li>
+            <li><strong>API base URL</strong> — required on GitHub Pages: paste your API origin (e.g. Cloud Run <code>https://…run.app</code> or Firebase Hosting with <code>/api</code> rewrite). Same-origin hosting can leave it empty.</li>
+          </ul>
+        </div>
+
+        <div class="feat-section">
+          <h3>Environment</h3>
+          <ul>
+            <li>Loads <code>GET /api/ops/dashboard</code>: Odds API presence, prop market tier, markets by sport (NBA / NFL / MLB / WNBA), raw JSON, ops heartbeat notes.</li>
+            <li>Use to verify configuration after deploy or secret changes.</li>
+          </ul>
+        </div>
+
+        <div class="feat-section">
+          <h3>All features (this tab)</h3>
+          <ul>
+            <li>Reference list of tabs and backend routes; share with staff.</li>
+          </ul>
+        </div>
+
+        <div class="feat-section">
+          <h3>Dashboard AI</h3>
+          <ul>
+            <li><code>POST /api/ops/dashboard-guide</code> with your question; answers with <strong>numbered steps</strong> for this desk and curator workflows.</li>
+            <li>With <code>OPENAI_API_KEY</code> on the server: full AI. Without it: static fallback tips (still useful).</li>
+          </ul>
+        </div>
+
+        <div class="feat-section">
+          <h3>AI insights (infrastructure)</h3>
+          <ul>
+            <li><code>GET /api/ops/insights</code> — rule-based diagnostics (Odds API quota, Stripe price env vars, curator emails, etc.).</li>
+            <li>Optional OpenAI paragraph summarizing risks (same key as Dashboard AI).</li>
+          </ul>
+        </div>
+
+        <div class="feat-section">
+          <h3>Stripe prices</h3>
+          <ul>
+            <li><code>GET /api/billing/pricing-status</code> — which Stripe price IDs are configured (masked). No PIN required for this call on some hosts; desk still useful to view alongside ops.</li>
+          </ul>
+        </div>
+
+        <div class="feat-section">
+          <h3>Curator pool → subscriber boards</h3>
+          <ul>
+            <li><strong>Load pool</strong> — <code>GET /api/ops/universal-pool</code> (Firestore universal pool).</li>
+            <li>Check rows, choose lane <strong>Bruce Pick's</strong> or <strong>Giap Pick's</strong>, <strong>Save to board</strong> — <code>POST /api/ops/curator-board/select</code>.</li>
+            <li>Paid subscribers see these boards in the iOS app <strong>Premium</strong> tab.</li>
+            <li>Pool rows are created with <strong>owner</strong> tools (API / scripts), not by subscribers.</li>
+          </ul>
+        </div>
+
+        <div class="feat-section">
+          <h3>iOS app (not on this page)</h3>
+          <ul>
+            <li><strong>Premium</strong> — subscribe / view Bruce &amp; Giap boards.</li>
+            <li><strong>Account → Curator Studio</strong> — Bruce (owner) can manage lanes; Giap only the Giap lane.</li>
+            <li><strong>AI Lab</strong> — separate from this ops desk; pick/copilot quota for users; unlimited for staff / eligible subs (see app + <code>functions/ai.js</code>).</li>
+            <li><strong>Props &amp; slates</strong> — live odds/props; props hide after game start (second-half markets need backend tags).</li>
+          </ul>
+        </div>
+
+        <div class="feat-section">
+          <h3>Deploy / checklist tab</h3>
+          <ul>
+            <li>Short deploy reminders; full curator steps in <code>docs/CURATOR_ACCOUNTS.md</code>.</li>
+          </ul>
+        </div>
+
+        <div class="callout">
+          <strong>Bruce</strong> — <code>brucebrian50@gmail.com</code> (main admin, owner). <strong>Giap</strong> — <code>giap.social1@gmail.com</code> (co-curator). Passwords live only in <strong>Firebase Authentication</strong> (e.g. <code>HitALick!Bruce2026</code> / <code>HitALick!Giap2026</code> — change anytime).
+        </div>
+      </div>
+    </div>
+
+    <div id="pane-guide" class="grid hidden">
+      <div class="panel full">
+        <h2>Dashboard AI — walkthrough</h2>
+        <p class="sub">Describe what you want to do or what failed (e.g. “how do I put Giap’s picks live?”). You get exact steps for <strong>this</strong> dashboard and curator flows. Uses the server OpenAI key when configured.</p>
+        <label for="guideInput" style="margin-top:10px">Your question</label>
+        <textarea id="guideInput" class="guide-input" placeholder="Example: I unlocked the desk but Curator pool is empty — what should I check?"></textarea>
+        <div class="row" style="margin-top:12px">
+          <button type="button" id="btnAskGuide">Get steps</button>
+          <button type="button" class="secondary" id="btnClearGuide">Clear</button>
+        </div>
+        <div id="guideReply" class="guide-reply" style="display:none"></div>
+        <p id="guideMeta" class="guide-meta"></p>
       </div>
     </div>
 
@@ -324,17 +448,17 @@
   }
 
   var helpBody = [
-    "CURATORS: Bruce + Giap only (Mike/Toriano removed).",
-    "  Bruce = main admin (OWNER_EMAIL). Giap = co-curator (CURATOR_GIAP_EMAIL).",
-    "  docs/CURATOR_ACCOUNTS.md",
+    "DESKTOP: one shortcut on Desktop root (no folder):",
+    "  bash scripts/install-live-dashboard-desktop.sh",
+    "  → ~/Desktop/Hit-A-Lick-Ops-Desk.webloc",
     "",
-    "PICKS: Tab «Curator pool» OR iOS Account → Curator Studio.",
-    "",
-    "LIVE OPS URL (GitHub Pages)",
+    "LIVE URL",
     "  https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html",
     "",
-    "PIN: localStorage. Server: OPS_DASHBOARD_PIN (default 5505).",
-    "API base: paste Cloud Run origin at unlock (GitHub Pages needs this).",
+    "DASHBOARD AI: tab «Dashboard AI» or POST /api/ops/dashboard-guide",
+    "  Set OPENAI_API_KEY on functions for full answers; else static fallback.",
+    "",
+    "CURATORS: Bruce + Giap — docs/CURATOR_ACCOUNTS.md (exact upload steps + logins).",
     "",
     "DEPLOY",
     "  firebase deploy --only hosting,functions:api",
@@ -404,12 +528,41 @@
     tabs.forEach(function (t) {
       t.classList.toggle("active", t.getAttribute("data-tab") === name);
     });
-    ["desk", "insights", "pricing", "curator", "help"].forEach(function (id) {
+    ["desk", "features", "guide", "insights", "pricing", "curator", "help"].forEach(function (id) {
       document.getElementById("pane-" + id).classList.toggle("hidden", id !== name);
     });
     if (name === "desk") loadDesk();
     if (name === "insights") loadInsights();
     if (name === "pricing") loadPricing();
+  }
+
+  async function askDashboardGuide() {
+    var text = (document.getElementById("guideInput").value || "").trim();
+    var outEl = document.getElementById("guideReply");
+    var metaEl = document.getElementById("guideMeta");
+    if (!text) {
+      alert("Type a question first.");
+      return;
+    }
+    metaEl.textContent = "";
+    outEl.style.display = "block";
+    outEl.textContent = "Thinking…";
+    setStatus("Asking Dashboard AI…", "");
+    try {
+      var res = await apiFetch("/api/ops/dashboard-guide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      outEl.textContent = data.reply || "(no reply)";
+      metaEl.textContent = "Source: " + (data.source || "?") + (data.generatedAt ? " · " + data.generatedAt : "") + (data.warning ? " · " + data.warning : "");
+      setStatus("Dashboard AI OK", "ok");
+    } catch (e) {
+      outEl.textContent = "Error: " + e.message;
+      setStatus("Dashboard AI failed: " + e.message, "err");
+    }
   }
 
   document.getElementById("tabs").addEventListener("click", function (e) {
@@ -459,6 +612,16 @@
   });
   document.getElementById("btnSaveBoard").addEventListener("click", function () {
     saveCuratorBoard();
+  });
+
+  document.getElementById("btnAskGuide").addEventListener("click", function () {
+    askDashboardGuide();
+  });
+  document.getElementById("btnClearGuide").addEventListener("click", function () {
+    document.getElementById("guideInput").value = "";
+    document.getElementById("guideReply").textContent = "";
+    document.getElementById("guideReply").style.display = "none";
+    document.getElementById("guideMeta").textContent = "";
   });
 
   (function init() {

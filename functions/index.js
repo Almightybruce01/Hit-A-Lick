@@ -30,7 +30,7 @@ import * as playerScraperMod from "./sportsdataapi/playerScraper.js";
 import * as sportSetupMod from "./sportsdataapi/sportSetup.js";
 import * as eliteScheduler from "./eliteScheduler.js";
 import * as dataRetention from "./dataRetention.js";
-import { buildOpsInsightsPayload } from "./opsInsights.js";
+import { buildOpsInsightsPayload, answerOpsDashboardGuide } from "./opsInsights.js";
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -150,6 +150,14 @@ async function sendOpsDashboard(_req, res) {
         auth: "X-Ops-Pin (OPS_DASHBOARD_PIN, default 5505) or Authorization: Bearer <owner Firebase ID token>",
         description: "Rule-based diagnostics + optional OpenAI narrative (OPENAI_API_KEY).",
       },
+      dashboardGuide: {
+        path: "/api/ops/dashboard-guide",
+        method: "POST",
+        body: { message: "string — what you want to do or what broke" },
+        auth: "same as other ops routes",
+        description:
+          "Step-by-step help for this dashboard and curator flows; uses OPENAI_API_KEY when set, else static fallback.",
+      },
     });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message || "ops dashboard failed" });
@@ -220,6 +228,25 @@ app.post("/api/ops/curator-board/select", requireOwnerOrOpsPin, async (req, res)
     res.json({ ok: true, count });
   } catch (e) {
     res.status(400).json({ error: e.message || "board select failed" });
+  }
+});
+
+app.post("/api/ops/dashboard-guide", requireOwnerOrOpsPin, async (req, res) => {
+  try {
+    const message = req.body?.message ?? req.body?.q ?? req.body?.question;
+    const out = await answerOpsDashboardGuide(message);
+    if (!out.ok && out.error && !out.reply) {
+      return res.status(400).json({ ok: false, error: out.error });
+    }
+    res.status(200).json({
+      ok: true,
+      reply: out.reply,
+      source: out.source,
+      generatedAt: out.generatedAt,
+      ...(out.error ? { warning: out.error } : {}),
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message || "dashboard guide failed" });
   }
 });
 
