@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#050814" />
   <meta name="description" content="Hit-A-Lick ops desk — PIN + API base. Deploy with Firebase Hosting or GitHub Pages." />
+  <meta name="robots" content="noindex, nofollow" />
   <title>Hit-A-Lick · Ops Desk</title>
   <style>
     :root {
@@ -151,7 +152,7 @@
         <a class="link" href="https://almightybruce01.github.io/Hit-A-Lick/ops/" target="_blank" rel="noopener">…/ops/</a><br />
         <span style="color:#ffb47a">Hit-A-Lick only: URL must start with <code>almightybruce01.github.io/Hit-A-Lick/</code>. If you see another app name, you opened the wrong bookmark. Source: <code>Hit-A-Lick/site/</code>.</span>
       </p>
-      <p class="sub">Enter your 4-digit PIN. It is checked on the server (<code>X-Ops-Pin</code>). Default server PIN is <strong>2012</strong> unless you set <code>OPS_DASHBOARD_PIN</code>.</p>
+      <p class="sub">Enter your PIN. It is checked on the server (<code>X-Ops-Pin</code>). Default is <strong>2012</strong> unless <code>OPS_DASHBOARD_PIN</code> is set. Too many wrong guesses temporarily blocks your network (brute-force protection).</p>
       <label for="pinInput">PIN</label>
       <input id="pinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="one-time-code" placeholder="••••" />
       <label for="apiBaseLock" style="margin-top:14px">API base URL</label>
@@ -653,14 +654,19 @@
       var test = await apiFetch("/api/ops/dashboard");
       if (!test.ok) {
         var err = await test.json().catch(function () { return {}; });
-        throw new Error(err.error || test.statusText);
+        var msg = err.error || test.statusText;
+        if (test.status === 429) {
+          var ra = test.headers.get("Retry-After");
+          msg = (msg || "Too many failed attempts.") + (ra ? " Wait " + ra + " seconds, then try again." : " Wait several minutes, then try again.");
+        }
+        throw new Error(msg);
       }
       sessionStorage.setItem(SESSION_OK, "1");
       showApp();
       activateTab("desk");
     } catch (e) {
       setPin("");
-      alert("PIN rejected or API unreachable: " + e.message);
+      alert("PIN rejected, rate limited, or API unreachable: " + e.message);
     }
   });
 

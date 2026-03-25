@@ -95,7 +95,7 @@ git pull
 | Save picks to Bruce/Giap board | POST | `/api/ops/curator-board/select` |
 | Stripe price IDs configured | GET | `/api/billing/pricing-status` (unauthenticated summary) |
 
-All ops JSON routes require **`X-Ops-Pin`** or owner Bearer token.
+All ops JSON routes require **`X-Ops-Pin`** or owner Bearer token. Wrong PINs and bad auth attempts are **rate-limited per IP** in Firestore (`_opsAuthRate`) after repeated failures (default **12** failures per **15 minutes**); successful unlock clears the counter for that IP.
 
 **GitHub Pages** is on **`github.io`** — API calls are **cross-origin** to your Cloud Run / Firebase API. In the dashboard, set **API base URL** (top of page) to your production API origin, e.g. `https://api-xxxxx-uc.a.run.app` **without** trailing slash. The page sends **`X-Ops-Pin`** on every request.
 

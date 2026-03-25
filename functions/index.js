@@ -31,6 +31,13 @@ import * as sportSetupMod from "./sportsdataapi/sportSetup.js";
 import * as eliteScheduler from "./eliteScheduler.js";
 import * as dataRetention from "./dataRetention.js";
 import { buildOpsInsightsPayload, answerOpsDashboardGuide } from "./opsInsights.js";
+import {
+  assertOpsAuthNotRateLimited,
+  recordOpsAuthFailure,
+  clearOpsAuthFailures,
+  getOpsClientIp,
+  opsPinConstantTimeEqual,
+} from "./opsRateLimit.js";
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -172,26 +179,51 @@ function opsDashboardPinExpected() {
  * Set `OPS_DASHBOARD_PIN` in Firebase secrets for production; public static dashboard never embeds the PIN.
  */
 async function requireOwnerOrOpsPin(req, res, next) {
+  let ip;
+  try {
+    await assertOpsAuthNotRateLimited(req);
+    ip = getOpsClientIp(req);
+  } catch (e) {
+    if (e.statusCode === 429) {
+      res.set("Retry-After", String(e.retryAfterSec || 60));
+      return res.status(429).json({ error: e.message || "Too many attempts", code: "OPS_RATE_LIMIT" });
+    }
+    throw e;
+  }
+
   const pinHeader = String(req.headers["x-ops-pin"] || req.headers["X-Ops-Pin"] || "").trim();
-  if (pinHeader && pinHeader === opsDashboardPinExpected()) {
+  const expectedPin = opsDashboardPinExpected();
+
+  if (pinHeader && opsPinConstantTimeEqual(pinHeader, expectedPin)) {
     req.opsPinAuth = true;
+    await clearOpsAuthFailures(ip);
     return next();
   }
+
+  if (pinHeader) {
+    await recordOpsAuthFailure(ip);
+    return res.status(401).json({ error: "Invalid ops PIN.", code: "OPS_PIN_REJECTED" });
+  }
+
   try {
     const authHeader = req.headers.authorization || "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
     if (!token) {
-      return res.status(401).json({ error: "Use X-Ops-Pin header or owner Bearer token." });
+      await recordOpsAuthFailure(ip);
+      return res.status(401).json({ error: "Use X-Ops-Pin header or owner Bearer token.", code: "OPS_AUTH_REQUIRED" });
     }
     const decoded = await admin.auth().verifyIdToken(token);
     const owner = (process.env.OWNER_EMAIL || "brucebrian50@gmail.com").toLowerCase();
     if ((decoded.email || "").toLowerCase() !== owner) {
-      return res.status(403).json({ error: "Owner access only." });
+      await recordOpsAuthFailure(ip);
+      return res.status(403).json({ error: "Owner access only.", code: "OPS_OWNER_ONLY" });
     }
     req.opsOwnerAuth = true;
+    await clearOpsAuthFailures(ip);
     return next();
   } catch (error) {
-    return res.status(401).json({ error: "Invalid auth token." });
+    await recordOpsAuthFailure(ip);
+    return res.status(401).json({ error: "Invalid auth token.", code: "OPS_TOKEN_INVALID" });
   }
 }
 
