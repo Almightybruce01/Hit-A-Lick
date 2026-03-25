@@ -4,6 +4,8 @@ import Foundation
 struct CuratorBoardAPIResponse: Decodable {
     let curatorId: String
     let label: String
+    /// ISO8601 when picks were last posted to this board (server).
+    let lastPickPostAt: String?
     let profile: CuratorBoardProfile
     let upcoming: [CuratorPickRow]
     let parlays: [CuratorParlayRow]?
@@ -115,6 +117,7 @@ extension CuratorBoardAPIResponse {
         CuratorBoardAPIResponse(
             curatorId: slug,
             label: labelForSlug(slug),
+            lastPickPostAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-3600)),
             profile: CuratorBoardProfile(
                 displayName: labelForSlug(slug),
                 photoDataUrl: nil,
@@ -185,6 +188,7 @@ extension CuratorBoardAPIResponse {
     init(
         curatorId: String,
         label: String,
+        lastPickPostAt: String? = nil,
         profile: CuratorBoardProfile,
         upcoming: [CuratorPickRow],
         history: [CuratorHistoryRow],
@@ -192,6 +196,7 @@ extension CuratorBoardAPIResponse {
     ) {
         self.curatorId = curatorId
         self.label = label
+        self.lastPickPostAt = lastPickPostAt
         self.profile = profile
         self.upcoming = upcoming
         self.history = history

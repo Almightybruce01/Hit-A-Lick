@@ -101,7 +101,7 @@
       <br /><code>…/picks-hub.html</code>
 
       <strong>B) Ops desk (real “dashboard”)</strong>
-      Where you <strong>select</strong> rows from the universal pool and <strong>Save to board</strong> for Giap or Bruce. Needs PIN <strong>2012</strong> + API base on phone/browser.
+      Where you <strong>select</strong> rows from the universal pool and <strong>Save to board</strong> for Giap or Bruce. Needs your <strong>private ops PIN</strong> (from Bruce / server <code>OPS_DASHBOARD_PIN</code>). On GitHub Pages the desk uses the production API automatically when API base is left empty.
       <br /><code>…/ops-dashboard.html</code>
 
       <strong>C) iOS Hit-A-Lick app (phone)</strong>
@@ -112,7 +112,7 @@
     </div>
 
     <div class="pin-banner">
-      Ops desk PIN (both Bruce and Giap type this): <code>2012</code>
+      Ops desk PIN is <strong>private</strong> — ask Bruce or check your server secret <code>OPS_DASHBOARD_PIN</code>. Do not post it in GitHub issues or public chat.
     </div>
 
     <div class="grid cols-2">
@@ -120,7 +120,7 @@
         <h2>Bruce Pick's lane</h2>
         <ol>
           <li>Open the <strong>ops desk</strong> (button below).</li>
-          <li>Type PIN <strong>2012</strong>. Paste <strong>API base</strong> if the page asks (GitHub Pages): e.g. <code>https://api-lifnvql5aa-uc.a.run.app</code> — no trailing slash.</li>
+          <li>Type your <strong>private ops PIN</strong>. Leave <strong>API base</strong> empty on GitHub Pages (production API is automatic), or paste a staging URL if Bruce gave you one — no trailing slash.</li>
           <li>Tab <strong>Curator pool</strong> → <strong>Load pool</strong>.</li>
           <li>Check the rows you want on <strong>Bruce</strong>'s board.</li>
           <li>Lane dropdown: <strong>Bruce Pick's</strong> → <strong>Save to board</strong>.</li>
@@ -130,8 +130,8 @@
       <div class="card giap">
         <h2>Giap Pick's lane</h2>
         <ol>
-          <li>Same ops desk and same PIN: <strong>2012</strong>.</li>
-          <li>Same API base URL if prompted.</li>
+          <li>Same ops desk and same private PIN as Bruce (one shared ops PIN for the desk).</li>
+          <li>Same API rules: empty API base on <code>github.io</code> = production.</li>
           <li>Tab <strong>Curator pool</strong> → <strong>Load pool</strong>.</li>
           <li>Check the rows for <strong>Giap</strong>.</li>
           <li>Lane dropdown: <strong>Giap Pick's</strong> → <strong>Save to board</strong>.</li>
@@ -141,7 +141,7 @@
     </div>
 
     <div class="warn">
-      <strong>Before picks show in the pool:</strong> rows must exist in Firestore <code>universalPickPool</code> (Bruce adds them via owner tools / API). If Giap sees a wrong app name or error, confirm the URL starts with <code>almightybruce01.github.io/Hit-A-Lick/</code> — not another project. If unlock fails, click <strong>Lock / change PIN</strong> on the desk and enter <strong>2012</strong> again; set API base every time on a new device.
+      <strong>Before picks show in the pool:</strong> rows must exist in Firestore <code>universalPickPool</code> (Bruce adds them via owner tools / API). You can also append legs from the desk tab <strong>Props (3 days)</strong> (live API props). If Giap sees a wrong app name or error, confirm the URL starts with <code>almightybruce01.github.io/Hit-A-Lick/</code> — not another project. If unlock fails, use <strong>Lock / change PIN</strong> and try again after a cooldown (rate limit).
     </div>
 
     <p class="foot">Hit-A-Lick is informational analytics only. No wagers.</p>

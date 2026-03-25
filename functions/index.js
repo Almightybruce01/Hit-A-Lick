@@ -154,7 +154,7 @@ async function sendOpsDashboard(_req, res) {
       opsHeartbeat,
       aiOpsInsights: {
         path: "/api/ops/insights",
-        auth: "X-Ops-Pin (OPS_DASHBOARD_PIN, default 2012) or Authorization: Bearer <owner Firebase ID token>",
+        auth: "X-Ops-Pin (secret OPS_DASHBOARD_PIN — set in production; never in client HTML) or Authorization: Bearer <owner Firebase ID token>",
         description: "Rule-based diagnostics + optional OpenAI narrative (OPENAI_API_KEY).",
       },
       dashboardGuide: {
@@ -175,8 +175,8 @@ function opsDashboardPinExpected() {
 }
 
 /**
- * Ops JSON routes: Firebase owner Bearer **or** `X-Ops-Pin` matching `OPS_DASHBOARD_PIN` (default 2012).
- * Set `OPS_DASHBOARD_PIN` in Firebase secrets for production; public static dashboard never embeds the PIN.
+ * Ops JSON routes: Firebase owner Bearer **or** `X-Ops-Pin` matching `OPS_DASHBOARD_PIN`.
+ * Set a strong `OPS_DASHBOARD_PIN` in Firebase/Google secrets for production; do not ship the live PIN in static HTML or public docs.
  */
 async function requireOwnerOrOpsPin(req, res, next) {
   let ip;
@@ -260,6 +260,19 @@ app.post("/api/ops/curator-board/select", requireOwnerOrOpsPin, async (req, res)
     res.json({ ok: true, count });
   } catch (e) {
     res.status(400).json({ error: e.message || "board select failed" });
+  }
+});
+
+/** Append pick rows built from live props (same data as app /api/props). Ops PIN or owner Bearer. */
+app.post("/api/ops/board/append-legs", requireOwnerOrOpsPin, async (req, res) => {
+  try {
+    const curatorId = req.body?.curatorId;
+    const rows = req.body?.rows;
+    const by = req.opsOwnerAuth ? "owner-bearer" : "ops-pin";
+    const out = await curators.appendCuratorBoardLegsForOps(curatorId, rows, by);
+    res.json({ ok: true, added: out.added, total: out.total });
+  } catch (e) {
+    res.status(400).json({ error: e.message || "append legs failed" });
   }
 });
 

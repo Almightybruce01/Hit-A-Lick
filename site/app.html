@@ -1773,6 +1773,7 @@
       deskLegSort: "confidence",
       deskLegQuery: "",
       hlFiltersRemember: false,
+      curatorWebPoolItems: [],
     };
     const SPORTSBOOK_META = {
       fanduel: { symbol: "FD", label: "FanDuel" },
@@ -4699,6 +4700,7 @@
             <button class="btn" onclick="setActiveTab('home')">Open Home</button>
           </div>
         </article>
+        ${curatorStudioWebCardHtml(s)}
         <article class="card section-tone-pro">
           <h3>Reliability + Data Sources</h3>
           <div class="kpi">Reliability Score: <strong>${reliability}%</strong></div>
@@ -5110,6 +5112,115 @@
       grid.innerHTML = picksHtml + cartHtml;
     }
 
+    const CURATOR_OWNER_EMAIL = "brucebrian50@gmail.com";
+    const CURATOR_GIAP_EMAIL = "giap.social1@gmail.com";
+
+    function curatorWebAccountRole(email) {
+      const e = String(email || "").toLowerCase().trim();
+      if (e === CURATOR_OWNER_EMAIL) return "bruce";
+      if (e === CURATOR_GIAP_EMAIL) return "giap";
+      return null;
+    }
+
+    function curatorStudioWebCardHtml(session) {
+      const role = curatorWebAccountRole(session.email);
+      if (!session.token || !session.uid || !role) return "";
+      const laneOpts =
+        role === "bruce"
+          ? "<option value=\"bruce\">Bruce Pick's</option><option value=\"giap\">Giap Pick's</option>"
+          : "<option value=\"giap\">Giap Pick's</option>";
+      return `
+        <article class="card section-tone-social" id="curatorWebStudioCard">
+          <h3>Curator Studio (web)</h3>
+          <p class="muted">Same publish path as iOS <strong>Account → Curator Studio</strong>: Firebase session, universal pool, save to lane. No ops PIN.</p>
+          <div class="kpi">Lane <select id="curatorWebLaneSel" style="max-width:240px;padding:6px 10px;border-radius:8px;background:rgba(6,11,24,0.9);color:#eaf0ff;border:1px solid rgba(123,160,229,0.35)">${laneOpts}</select></div>
+          <div class="action-strip" style="margin-top:10px">
+            <button type="button" class="btn" onclick="curatorWebLoadPool()">Load universal pool</button>
+            <button type="button" class="btn btn-primary" onclick="curatorWebSaveBoard()">Save to board</button>
+          </div>
+          <div id="curatorWebPoolList" class="mini-value" style="margin-top:12px;max-height:300px;overflow:auto;border:1px solid rgba(123,160,229,0.2);border-radius:10px;padding:10px;"></div>
+          <div id="curatorWebStudioStatus" class="kpi" style="margin-top:8px;color:#9cb2de;"></div>
+        </article>`;
+    }
+
+    async function curatorWebLoadPool() {
+      const s = getSession();
+      const st = document.getElementById("curatorWebStudioStatus");
+      const listEl = document.getElementById("curatorWebPoolList");
+      const laneSel = document.getElementById("curatorWebLaneSel");
+      if (!s.token || !s.uid || !laneSel) return;
+      const lane = laneSel.value;
+      if (st) st.textContent = "Loading pool…";
+      try {
+        const data = await fetchJson(`/api/curators/${lane}/pool?uid=${encodeURIComponent(s.uid)}`, {
+          headers: { Authorization: `Bearer ${s.token}` },
+        });
+        state.curatorWebPoolItems = Array.isArray(data.items) ? data.items : [];
+        if (listEl) {
+          listEl.innerHTML =
+            state.curatorWebPoolItems
+              .slice(0, 250)
+              .map((row) => {
+                const id = escapeHtml(String(row.id || ""));
+                const t = escapeHtml(String(row.title || row.pick || row.id || ""));
+                const lg = escapeHtml(String(row.league || ""));
+                const pk = escapeHtml(String(row.pick || ""));
+                return `<label style="display:flex;gap:8px;margin-bottom:6px;cursor:pointer;align-items:flex-start"><input type="checkbox" class="curator-web-pool-cb" value="${id}" /><span class="mini-value">${t} — ${lg} — ${pk}</span></label>`;
+              })
+              .join("") || '<div class="mini-value">Pool is empty. Owner adds rows via API / tools.</div>';
+        }
+        if (st) st.textContent = "Loaded " + state.curatorWebPoolItems.length + " row(s). Check boxes, then Save to board.";
+      } catch (e) {
+        state.curatorWebPoolItems = [];
+        if (listEl) listEl.innerHTML = "";
+        if (st) st.textContent = "Error: " + (e.message || String(e));
+      }
+    }
+
+    async function curatorWebSaveBoard() {
+      const s = getSession();
+      const st = document.getElementById("curatorWebStudioStatus");
+      const laneSel = document.getElementById("curatorWebLaneSel");
+      if (!s.token || !s.uid || !laneSel) return;
+      const lane = laneSel.value;
+      const pickIds = Array.from(document.querySelectorAll(".curator-web-pool-cb:checked"))
+        .map((cb) => cb.value)
+        .filter(Boolean);
+      if (!pickIds.length) {
+        if (st) st.textContent = "Select at least one pool row.";
+        return;
+      }
+      if (st) st.textContent = "Saving…";
+      try {
+        await fetchJson(`/api/curators/${lane}/select`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${s.token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ uid: s.uid, pickIds }),
+        });
+        if (st) st.textContent = "Saved " + pickIds.length + " pick(s) to " + lane + ". Subscribers see them in Picks.";
+      } catch (e) {
+        if (st) st.textContent = "Save failed: " + (e.message || String(e));
+      }
+    }
+
+    async function fetchCuratorBoardLastPost(uid, token, slug) {
+      try {
+        const data = await fetchJson(`/api/curators/${slug}/board?uid=${encodeURIComponent(uid)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        return data.lastPickPostAt || null;
+      } catch {
+        return null;
+      }
+    }
+
+    function formatCuratorBoardFreshness(label, iso) {
+      if (!iso) return "";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return `${label} board: updated (time unavailable)`;
+      return `${label} board — latest picks posted ${d.toLocaleString()}`;
+    }
+
     async function loadPremium() {
       const s = getSession();
       const grid = document.getElementById("premiumGrid");
@@ -5145,8 +5256,20 @@
         const headers = { Authorization: `Bearer ${s.token}` };
         const bruce = await fetchJson(`/api/picks/bruce?uid=${encodeURIComponent(s.uid)}`, { headers });
         const premium = await fetchJson(`/api/picks/premium?uid=${encodeURIComponent(s.uid)}`, { headers });
+        const bruceAt = await fetchCuratorBoardLastPost(s.uid, s.token, "bruce");
+        const giapAt = await fetchCuratorBoardLastPost(s.uid, s.token, "giap");
+        const freshBits = [formatCuratorBoardFreshness("Bruce", bruceAt), formatCuratorBoardFreshness("Giap", giapAt)].filter(
+          Boolean,
+        );
+        const freshHtml = freshBits.length
+          ? `<div class="muted" style="margin-bottom:12px;font-size:12px;line-height:1.55;border:1px solid rgba(123,160,229,0.25);border-radius:10px;padding:10px 12px;background:rgba(19,31,58,0.35)">${freshBits
+              .map((x) => escapeHtml(x))
+              .join(" · ")}</div>`
+          : "";
         const sections = [{ title: "Bruce Picks", feed: bruce }, { title: "Bruce Premium Picks", feed: premium }];
-        grid.innerHTML = sections.map((section) => `
+        grid.innerHTML =
+          freshHtml +
+          sections.map((section) => `
           <article class="card">
             <h3>${escapeHtml(section.title)}</h3>
             <div class="kpi"><strong>${escapeHtml(section.feed.headline || "Daily Board")}</strong></div>
@@ -5329,6 +5452,8 @@
     window.addStudioPickFromLegKey = addStudioPickFromLegKey;
     window.refreshAll = refreshAll;
     window.generateAIPicks = generateAIPicks;
+    window.curatorWebLoadPool = curatorWebLoadPool;
+    window.curatorWebSaveBoard = curatorWebSaveBoard;
 
     tabs.forEach((btn) => {
       btn.addEventListener("click", () => {

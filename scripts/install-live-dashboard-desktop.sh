@@ -19,8 +19,13 @@ PLIST
 
 echo "OK: wrote ${OUT} (on Desktop root, not in a folder)"
 echo "    opens → ${URL}"
-# Remove legacy name if present so you only have one obvious shortcut
-LEGACY="${HOME}/Desktop/HitALick-Live-Ops-Dashboard.webloc"
-if [[ -f "$LEGACY" && "$LEGACY" != "$OUT" ]]; then
-  rm -f "$LEGACY" && echo "    removed old: HitALick-Live-Ops-Dashboard.webloc"
-fi
+# Remove legacy shortcuts (old names / local PIN-titled symlink target)
+for LEGACY in \
+  "${HOME}/Desktop/HitALick-Live-Ops-Dashboard.webloc" \
+  "${HOME}/Desktop/HitALick-OpsControl-PublicDashboard-PIN2012.html" \
+  "${HOME}/Desktop/HitALick-OpsControl-Desktop-README.txt"
+do
+  if [[ -e "$LEGACY" ]]; then
+    rm -f "$LEGACY" && echo "    removed old: $(basename "$LEGACY")"
+  fi
+done

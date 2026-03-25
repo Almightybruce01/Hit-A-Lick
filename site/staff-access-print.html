@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
   <title>Hit-A-Lick — Staff access, logins &amp; steps (print / PDF)</title>
   <style>
     :root { --ink: #111; --muted: #444; --line: #ccc; }
@@ -35,6 +36,18 @@
       font-size: 10pt;
     }
     .footer { margin-top: 28px; font-size: 9pt; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+    pre.pdf-copy {
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 9pt;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #f6f6f6;
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin: 14px 0;
+    }
     @media print {
       body { padding: 12px 16px; max-width: none; }
       a { color: #000; text-decoration: underline; }
@@ -46,7 +59,7 @@
 
   <h1>Hit-A-Lick — Access guide</h1>
   <p class="tag">Staff logins, URLs, and step-by-step flows. To save as PDF: open this page in a browser → Print → Save as PDF.</p>
-  <p class="box" style="font-family:-apple-system,sans-serif;"><strong>Ops desk PIN (type in the unlock field):</strong> 2012</p>
+  <p class="box" style="font-family:-apple-system,sans-serif;"><strong>Ops desk PIN:</strong> private — request from Bruce or read server secret <code>OPS_DASHBOARD_PIN</code> in Firebase/Google Cloud (never paste into GitHub or public chat).</p>
 
   <p class="no-print" style="font-family:-apple-system,sans-serif;font-size:10pt;">
     Live copy of this file:<br />
@@ -54,21 +67,19 @@
   </p>
 
   <h2>Logins (passwords live in Firebase only)</h2>
-  <p>Create or edit users in <strong>Firebase Console → Authentication</strong>. Use any strong password; examples below are starting points—change after first sign-in if you want.</p>
+  <p>Create or edit users in <strong>Firebase Console → Authentication</strong>. Use strong unique passwords; rotate if someone leaves the team. Do not store real passwords in the GitHub copy of this file.</p>
   <table>
     <thead>
-      <tr><th>Role</th><th>Email</th><th>Example password</th></tr>
+      <tr><th>Role</th><th>Email</th></tr>
     </thead>
     <tbody>
       <tr>
         <td>Bruce (owner / main admin)</td>
         <td class="mono">brucebrian50@gmail.com</td>
-        <td class="mono">HitALick!Bruce2026</td>
       </tr>
       <tr>
         <td>Giap (co-curator)</td>
         <td class="mono">giap.social1@gmail.com</td>
-        <td class="mono">HitALick!Giap2026</td>
       </tr>
     </tbody>
   </table>
@@ -84,21 +95,29 @@
       <tr><td>Web hub</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/app-access.html">https://almightybruce01.github.io/Hit-A-Lick/app-access.html</a></td></tr>
       <tr><td>Picks &amp; staff summary page</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/curators-picks.html">https://almightybruce01.github.io/Hit-A-Lick/curators-picks.html</a></td></tr>
       <tr><td>This printable guide</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/staff-access-print.html">https://almightybruce01.github.io/Hit-A-Lick/staff-access-print.html</a></td></tr>
-      <tr><td>Elite web desk (props UI)</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/app.html">https://almightybruce01.github.io/Hit-A-Lick/app.html</a></td></tr>
+      <tr><td>Elite web desk (props + post picks as Bruce/Giap)</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/app.html">https://almightybruce01.github.io/Hit-A-Lick/app.html</a> → Account → Curator Studio (web)</td></tr>
       <tr><td>Pricing</td><td><a href="https://almightybruce01.github.io/Hit-A-Lick/pricing.html">https://almightybruce01.github.io/Hit-A-Lick/pricing.html</a></td></tr>
       <tr><td>GitHub repo</td><td><a href="https://github.com/Almightybruce01/Hit-A-Lick">https://github.com/Almightybruce01/Hit-A-Lick</a></td></tr>
     </tbody>
   </table>
 
-  <h2>Ops desk — Bruce (or anyone with PIN)</h2>
-  <p><strong>Type this in the PIN field on the unlock screen:</strong> <span class="mono" style="font-size:1.1em;font-weight:700">2012</span> — unless your server secret <code>OPS_DASHBOARD_PIN</code> was set to something else.</p>
+  <h2>Ops desk — Bruce (or anyone with the private PIN)</h2>
+  <p>Unlock with the <strong>private ops PIN</strong> (same value as Cloud Function env <code>OPS_DASHBOARD_PIN</code> if set).</p>
   <ol>
-    <li>Open the ops URL above (or Desktop file <code>Hit-A-Lick-Ops-Desk.webloc</code> after running <code>bash scripts/install-live-dashboard-desktop.sh</code> in the repo — file sits on Desktop root, not in a folder).</li>
-    <li>When the page asks for a PIN, type: <strong>2012</strong></li>
-    <li>If the page is hosted on <code>github.io</code>, paste your <strong>API base URL</strong> (Cloud Run or Firebase API origin, no trailing slash).</li>
-    <li>Tab <strong>Curator pool</strong> → <strong>Load pool</strong> → check rows → choose lane <strong>Bruce Pick's</strong> or <strong>Giap Pick's</strong> → <strong>Save to board</strong>.</li>
-    <li>Optional: tab <strong>Props (3 days)</strong> → pick sport → <strong>Load props</strong> to verify slate and AI confidence.</li>
+    <li>Open the ops URL above, or double-click Desktop <code>Hit-A-Lick-Ops-Desk.webloc</code> (create with <code>bash scripts/install-live-dashboard-desktop.sh</code> or <code>bash scripts/link-ops-dashboard-desktop.sh</code> — file on Desktop root only).</li>
+    <li>Enter the private PIN. On <code>github.io</code>, leave <strong>API base</strong> empty to use production Cloud Run automatically; override only for staging.</li>
+    <li>Tab <strong>Curator pool</strong> → <strong>Load pool</strong> → check rows → lane <strong>Bruce Pick's</strong> or <strong>Giap Pick's</strong> → <strong>Save to board</strong> (replaces upcoming list from pool selection).</li>
+    <li>Or tab <strong>Props (3 days)</strong> → sport → <strong>Load props</strong> → check legs → <strong>Append selected to board</strong> (adds deduped rows; same hide-after-tipoff rules as the iOS props board).</li>
     <li>Optional: tab <strong>Dashboard AI</strong> for step-by-step help on the desk.</li>
+  </ol>
+
+  <h2>Web — Bruce or Giap (post picks, same API as iOS Curator Studio)</h2>
+  <ol>
+    <li>Open <a href="https://almightybruce01.github.io/Hit-A-Lick/app.html">https://almightybruce01.github.io/Hit-A-Lick/app.html</a></li>
+    <li>Go to <strong>Account</strong> (bottom tab) → log in on <code>account.html</code> if needed with your Firebase email + password.</li>
+    <li>On Account, find <strong>Curator Studio (web)</strong> (only appears for <code>brucebrian50@gmail.com</code> or <code>giap.social1@gmail.com</code>).</li>
+    <li>Choose <strong>Lane</strong> (Bruce can pick Bruce or Giap; Giap sees Giap only).</li>
+    <li><strong>Load universal pool</strong> → check rows → <strong>Save to board</strong>. Subscribers see updates in the app <strong>Picks</strong> tab.</li>
   </ol>
 
   <h2>iOS app — Bruce</h2>
@@ -106,7 +125,7 @@
     <li>Sign in with <code>brucebrian50@gmail.com</code> (Firebase).</li>
     <li>Bottom tab <strong>Picks</strong> — switch <strong>Bruce Pick's</strong> / <strong>Giap Pick's</strong> to view boards.</li>
     <li><strong>Home → Open Props</strong> — ~3-day window; AI confidence on cards; odds on legs.</li>
-    <li><strong>Account → Curator Studio</strong> — open <strong>Bruce</strong> or <strong>Giap</strong> lane to publish from the universal pool.</li>
+    <li><strong>Account → Curator Studio</strong> — open <strong>Bruce</strong> or <strong>Giap</strong> lane to publish from the universal pool (same as web Curator Studio).</li>
   </ol>
 
   <h2>iOS app — Giap</h2>
@@ -128,11 +147,73 @@
     <li>Firebase Auth: both emails exist with passwords set.</li>
     <li>Universal pool has rows (owner: <code>POST /api/curators/pool/add</code> with Bruce Bearer token, or internal tools).</li>
     <li>Stripe price IDs configured for curator passes if you sell access.</li>
-    <li>Deploy API: <code>firebase deploy --only functions:api</code> after secret changes.</li>
+    <li>Deploy API + hosting: <code>firebase deploy --only functions:api,hosting</code> after secret changes (hosting adds strict headers on ops desk).</li>
   </ol>
 
+  <h2>Copy-paste for PDF / Notes (no secrets here)</h2>
+  <pre class="pdf-copy">=== HIT-A-LICK — END-TO-END URLS + LOGIN + POST PICKS (save as PDF from this page) ===
+
+PRINT THIS PAGE AS PDF
+  Browser menu → Print → Save as PDF
+
+--- ACCOUNTS (passwords exist ONLY in Firebase Console → Authentication) ---
+  Bruce (owner):     brucebrian50@gmail.com
+  Giap (co-curator): giap.social1@gmail.com
+  Ops desk PIN:      server secret OPS_DASHBOARD_PIN (Firebase/Google Cloud) — private, never in GitHub
+
+--- SITE A — Staff link hub (cards to everything) ---
+  https://almightybruce01.github.io/Hit-A-Lick/app-access.html
+
+--- SITE B — Post-picks explainer (Bruce / Giap lanes) ---
+  https://almightybruce01.github.io/Hit-A-Lick/picks-hub.html
+
+--- SITE C — OPS DASHBOARD (PIN + full desk: pool, props, Stripe env, AI help) ---
+  GitHub Pages: https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html
+  Short path:   https://almightybruce01.github.io/Hit-A-Lick/ops/
+  Firebase:     https://&lt;your-project&gt;.web.app/ops  (same HTML; stricter HTTP headers after deploy)
+  Desktop Mac:  double-click Hit-A-Lick-Ops-Desk.webloc
+                create: cd ~/Desktop/Hit-A-Lick &amp;&amp; bash scripts/link-ops-dashboard-desktop.sh
+  Unlock:       enter private PIN | leave API base empty on github.io = production API automatic
+  Post (pool):  tab Curator pool → Load pool → check rows → Lane (Bruce or Giap) → Save to board
+  Post (props): tab Props (3 days) → sport → Load props → check legs → Append selected to board
+
+--- SITE D — Elite web app (props, premium, Account = Firebase login) ---
+  App shell:  https://almightybruce01.github.io/Hit-A-Lick/app.html
+  Login page: https://almightybruce01.github.io/Hit-A-Lick/account.html
+  Post picks (web Curator Studio — Firebase Bearer, NO ops PIN):
+    1) account.html → sign in as Bruce or Giap
+    2) app.html → bottom tab Account
+    3) Curator Studio (web) → Lane → Load universal pool → check rows → Save to board
+  Bruce: lane dropdown = Bruce Pick's or Giap Pick's
+  Giap:  lane = Giap Pick's only
+
+--- SITE E — Marketing / pricing (fans; not for posting picks) ---
+  Home:    https://almightybruce01.github.io/Hit-A-Lick/index.html
+  Pricing: https://almightybruce01.github.io/Hit-A-Lick/pricing.html
+
+--- iOS APP ---
+  Install Hit-A-Lick from your build / TestFlight / App Store as you ship it.
+  Login: same Firebase emails as above (passwords in Firebase only).
+  View boards: tab Picks → Bruce Pick's / Giap Pick's
+  Post picks: Account → Curator Studio → choose lane → select from universal pool → save
+  Props: Home / Props flow — ~3-day slate (same API family as desk Props tab)
+
+--- SUBSCRIBERS (fans, not staff) ---
+  Pay via Stripe (in-app or site pricing). Tab Picks shows published Bruce/Giap boards.
+
+--- DEPLOY (you run from repo on a machine with Firebase CLI logged in) ---
+  cd ~/Desktop/Hit-A-Lick
+  git add -A &amp;&amp; git commit -m "Deploy Hit-A-Lick hosting + API" &amp;&amp; git push origin main
+  firebase deploy --only hosting,functions:api
+  (Set OPS_DASHBOARD_PIN via Firebase/Google secrets before relying on production ops auth.)
+
+--- REPO ---
+  https://github.com/Almightybruce01/Hit-A-Lick
+
+=== END ===</pre>
+
   <div class="footer">
-    Hit-A-Lick is an informational analytics product. It does not accept or place wagers. Passwords in this document are examples—set real values in Firebase and rotate as needed.
+    Hit-A-Lick is an informational analytics product. It does not accept or place wagers. Keep the ops PIN and Firebase passwords off public GitHub; share only through private channels.
   </div>
 </body>
 </html>

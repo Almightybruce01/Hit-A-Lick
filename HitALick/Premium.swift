@@ -95,6 +95,22 @@ struct Premium: View {
         return hasAccess(tier: userTier, feature: .premiumBoards)
     }
 
+    /// User-facing line for when this curator last published picks (server `lastPickPostAt`).
+    private func formatLastPickPosted(iso: String?) -> String? {
+        guard let iso, !iso.isEmpty else { return nil }
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        var d = f.date(from: iso)
+        if d == nil {
+            f.formatOptions = [.withInternetDateTime]
+            d = f.date(from: iso)
+        }
+        guard let date = d else { return "Latest picks posted: \(iso)" }
+        let rel = RelativeDateTimeFormatter()
+        rel.unitsStyle = .abbreviated
+        return "Latest picks posted \(rel.localizedString(for: date, relativeTo: Date()))"
+    }
+
     var body: some View {
         ZStack {
             curatorBackground
@@ -344,6 +360,12 @@ struct Premium: View {
                 Text("Record W\(b.profile.wins ?? 0)-L\(b.profile.losses ?? 0)-P\(b.profile.pushes ?? 0)")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.75))
+
+                if let posted = formatLastPickPosted(iso: b.lastPickPostAt) {
+                    Text(posted)
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.cyan.opacity(0.92))
+                }
 
                 if let parlays = b.parlays, !parlays.isEmpty {
                     Text("Featured parlays")

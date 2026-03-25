@@ -18,29 +18,17 @@ Canonical file in the project:
 
 **`site/ops-dashboard.html`**
 
-### Desktop shortcut (unique name)
+### Desktop shortcut (canonical — live HTTPS only)
 
-On your Mac Desktop there is a **symlink** you can double-click:
+Do **not** rely on a local `file://` symlink to `site/ops-dashboard.html` (API + security headers expect HTTPS).
 
-**`HitALick-OpsControl-PublicDashboard-PIN2012.html`**
+On your Mac **Desktop** (root, not inside a folder):
 
-Full path:
+1. **`bash scripts/install-live-dashboard-desktop.sh`** → **`Hit-A-Lick-Ops-Desk.webloc`** opens **`https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html`**.
 
-`/Users/brianbruce/Desktop/HitALick-OpsControl-PublicDashboard-PIN2012.html`
+2. **`bash scripts/link-ops-dashboard-desktop.sh`** → same webloc + **`Hit-A-Lick-Ops-Desk-README.txt`**, and removes legacy Desktop files **`HitALick-OpsControl-PublicDashboard-PIN2012.html`** / old README if present.
 
-It points at `Hit-A-Lick/site/ops-dashboard.html`. If you move the repo, recreate the link:
-
-```bash
-bash /Users/brianbruce/Desktop/Hit-A-Lick/scripts/link-ops-dashboard-desktop.sh
-```
-
-Companion note file (same folder):
-
-**`HitALick-OpsControl-Desktop-README.txt`**
-
-**Live online bookmark (Desktop root, not in a folder):** run `bash scripts/install-live-dashboard-desktop.sh` → **`Hit-A-Lick-Ops-Desk.webloc`** opens GitHub Pages ops desk in the browser.
-
-Open the dashboard **in the browser** — for full API use, deploy with Firebase Hosting or GitHub Pages so API calls work (CORS / same-origin).
+Double-click the **`.webloc`** to open the live desk in the browser.
 
 ## Deployed URL (Firebase — recommended for API same-origin)
 
@@ -50,11 +38,13 @@ After `firebase deploy --only hosting`, your site serves:
 
 Bookmark **`/ops`** on your phone/desktop — that is the “saved dashboard” link that talks to **`/api/**`** on the same host.
 
-## PIN (2012)
+**Firebase Hosting hardening** (see `firebase.json`): `ops-dashboard.html` and **`/ops`** get `Cache-Control: no-store`, `X-Frame-Options: DENY`, `X-Robots-Tag: noindex, nofollow, noarchive`, and a strict **`Content-Security-Policy`** (tight `connect-src https:`). GitHub Pages cannot set those HTTP headers; the desk HTML includes a matching **`<meta http-equiv="Content-Security-Policy">`** for parity.
+
+## PIN (`OPS_DASHBOARD_PIN`)
 
 The API accepts:
 
-- Header **`X-Ops-Pin: 2012`** (default; override with Firebase secret **`OPS_DASHBOARD_PIN`**),
+- Header **`X-Ops-Pin: <secret>`** (set with Firebase / Cloud Functions secret **`OPS_DASHBOARD_PIN`**; do not commit the live value),
 
 **or**
 
@@ -93,11 +83,12 @@ git pull
 | **Dashboard AI** (step-by-step help) | POST | `/api/ops/dashboard-guide` body `{ "message": "…" }` |
 | Universal pick pool | GET | `/api/ops/universal-pool` |
 | Save picks to Bruce/Giap board | POST | `/api/ops/curator-board/select` |
+| Append deduped rows from live props | POST | `/api/ops/board/append-legs` body `{ "curatorId": "bruce"|"giap", "rows": [...] }` |
 | Stripe price IDs configured | GET | `/api/billing/pricing-status` (unauthenticated summary) |
 
 All ops JSON routes require **`X-Ops-Pin`** or owner Bearer token. Wrong PINs and bad auth attempts are **rate-limited per IP** in Firestore (`_opsAuthRate`) after repeated failures (default **12** failures per **15 minutes**); successful unlock clears the counter for that IP.
 
-**GitHub Pages** is on **`github.io`** — API calls are **cross-origin** to your Cloud Run / Firebase API. In the dashboard, set **API base URL** (top of page) to your production API origin, e.g. `https://api-xxxxx-uc.a.run.app` **without** trailing slash. The page sends **`X-Ops-Pin`** on every request.
+**GitHub Pages** (`github.io`): the desk uses **production Cloud Run** when **API base** is left empty (same origin as `https://api-lifnvql5aa-uc.a.run.app` in code). Override **API base** only for staging. The page sends **`X-Ops-Pin`** on every request.
 
 ## Curators (Bruce + Giap only)
 

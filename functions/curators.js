@@ -395,6 +395,7 @@ router.post("/:curatorId/select", requireCuratorLogin, async (req, res) => {
     {
       upcoming,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastPickPostAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedBy: req.viewer.email,
     },
     { merge: true }
@@ -474,6 +475,7 @@ router.get("/:curatorId/board", requireCuratorSubscriber, async (req, res) => {
   return res.json({
     curatorId,
     label: CURATOR_LABELS[curatorId] || curatorId,
+    lastPickPostAt: tsIso(b.lastPickPostAt) || tsIso(b.updatedAt),
     profile: {
       displayName: p.displayName || CURATOR_LABELS[curatorId],
       photoDataUrl: p.photoDataUrl || null,
@@ -519,11 +521,80 @@ async function applyCuratorBoardSelectionForOps(curatorId, pickIds, updatedByLab
     {
       upcoming,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastPickPostAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedBy: String(updatedByLabel || "ops-dashboard"),
     },
     { merge: true }
   );
   return upcoming.length;
+}
+
+function tsIso(v) {
+  if (v == null) return null;
+  if (typeof v === "string" && v.trim()) return v.trim();
+  try {
+    if (typeof v.toDate === "function") return v.toDate().toISOString();
+  } catch (_) {}
+  return null;
+}
+
+/**
+ * Append normalized pick rows built from live props (ops PIN / owner). Dedupes by sourceKey.
+ */
+async function appendCuratorBoardLegsForOps(curatorId, rawRows, updatedByLabel) {
+  const id = String(curatorId || "").toLowerCase();
+  if (!CURATOR_SLUGS.includes(id)) {
+    throw new Error("Unknown curator (use bruce or giap).");
+  }
+  const rows = Array.isArray(rawRows) ? rawRows : [];
+  if (!rows.length) throw new Error("rows required.");
+
+  const db = admin.firestore();
+  const bref = boardRef(id);
+  const snap = await bref.get();
+  const prev = snap.exists ? snap.data() || {} : {};
+  let upcoming = Array.isArray(prev.upcoming) ? [...prev.upcoming] : [];
+  const seen = new Set(
+    upcoming.map((r) => String(r.sourceKey || "").trim()).filter(Boolean)
+  );
+
+  let added = 0;
+  for (const r of rows.slice(0, 48)) {
+    const title = String(r.title || "").trim().slice(0, 220);
+    const pick = String(r.pick || "").trim().slice(0, 500);
+    if (!title || !pick) continue;
+    const sourceKey = String(r.sourceKey || "").trim().slice(0, 280) || `${title}|${pick}`.slice(0, 280);
+    if (seen.has(sourceKey)) continue;
+    seen.add(sourceKey);
+    upcoming.push({
+      id: `prop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      title,
+      league: String(r.league || "").trim().slice(0, 32),
+      pick,
+      notes: String(r.notes || "").trim().slice(0, 1000),
+      confidence: Math.max(0, Math.min(100, Number(r.confidence ?? 60))),
+      gameDate: String(r.gameDate || "").trim().slice(0, 80),
+      sourceKey,
+      postedFrom: "ops-props",
+    });
+    added += 1;
+  }
+
+  if (!added) {
+    throw new Error("No new rows to add (empty or all duplicates).");
+  }
+
+  upcoming = upcoming.slice(-100);
+  await bref.set(
+    {
+      upcoming,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastPickPostAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedBy: String(updatedByLabel || "ops-dashboard"),
+    },
+    { merge: true }
+  );
+  return { added, total: upcoming.length };
 }
 
 export {
@@ -533,4 +604,5 @@ export {
   ALL_CURATORS,
   loadUniversalPickPoolForOps,
   applyCuratorBoardSelectionForOps,
+  appendCuratorBoardLegsForOps,
 };

@@ -22,7 +22,7 @@
 1. **Firebase Authentication** — Create users:
    - `brucebrian50@gmail.com` (owner)
    - `giap.social1@gmail.com` (co-curator)  
-   Set passwords in Firebase (examples below).  
+   Set strong passwords in Firebase (do not commit real passwords to git).  
 2. **Functions secrets** — `OWNER_EMAIL`, `CURATOR_GIAP_EMAIL=giap.social1@gmail.com`, deploy `functions:api`.  
 3. **Universal pool** — Picks must exist in the pool before boards show them. Add rows with **owner** tools (`POST /api/curators/pool/add` with Bruce’s Firebase **Bearer** token, or your internal scripts).  
 4. **Stripe** — Prices for `curator_giap`, `curator_bruce`, `all_curators` so fans can subscribe.
@@ -30,9 +30,9 @@
 ### Bruce (main admin) — web ops desk
 
 1. Open the live desk: [ops-dashboard.html](https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html) or double-click **`Hit-A-Lick-Ops-Desk.webloc`** on your Desktop (run `bash scripts/install-live-dashboard-desktop.sh` once — file sits **directly on Desktop**, not inside a folder).  
-2. Enter **PIN** (default **2012** unless `OPS_DASHBOARD_PIN` changed).  
-3. Paste **API base URL** if you are on `github.io` (your Cloud Run or Firebase API origin, no trailing slash).  
-4. Tab **Curator pool** → **Load pool** → check the rows → choose lane **Bruce Pick's** or **Giap Pick's** → **Save to board**.  
+2. Enter the **private ops PIN** (value of `OPS_DASHBOARD_PIN` on the server — share only in private channels).  
+3. On **`github.io`**, leave **API base** empty to use production Cloud Run automatically; paste a URL only for staging or custom hosting (no trailing slash).  
+4. Tab **Curator pool** → **Load pool** → check rows → lane **Bruce Pick's** or **Giap Pick's** → **Save to board** — *or* tab **Props (3 days)** → load props → check legs → **Append selected to board**.  
 5. Optional: tab **Dashboard AI** — ask “how do I publish Bruce picks?” for numbered steps anytime.
 
 ### Bruce — iOS app
@@ -40,11 +40,18 @@
 1. Sign in with **`brucebrian50@gmail.com`**.  
 2. **Account → Curator Studio** — select **Bruce** or **Giap** lane and push picks from the pool (same data model as the web desk).
 
+### Bruce or Giap — web (same publish API as iOS Curator Studio)
+
+1. Open **`app.html`** on GitHub Pages: [app.html](https://almightybruce01.github.io/Hit-A-Lick/app.html).  
+2. Bottom tab **Account** — sign in via **account.html** if needed (Firebase email/password).  
+3. **Curator Studio (web)** — choose lane → **Load universal pool** → check rows → **Save to board**. Uses Bearer auth (no ops PIN).
+
 ### Giap (co-curator)
 
 1. Sign in with **`giap.social1@gmail.com`**.  
 2. **Account → Curator Studio** — **Giap** lane only: choose picks from the universal pool and save.  
-3. Giap does **not** have owner ops API access; if Bruce shares the **ops PIN**, Giap could use the web **Curator pool** the same way (optional).
+3. Same on **web**: **`app.html` → Account → Curator Studio (web)** — Giap lane only, Firebase login.  
+4. Giap does **not** have owner ops API access; if Bruce shares the **ops PIN**, Giap may use the ops desk **Curator pool** tab (optional).
 
 ### Subscribers (not admins)
 
@@ -63,10 +70,7 @@
 
 ## Passwords (set in Firebase — not in git)
 
-Use strong passwords when you create users. Example pattern you can set in **Firebase Console → Authentication** (change after first login):
-
-- **Bruce:** `HitALick!Bruce2026`
-- **Giap:** `HitALick!Giap2026`
+Use strong unique passwords when you create users in **Firebase Console → Authentication**. Reset via Firebase if someone forgets; do not paste live passwords into GitHub.
 
 ## Create users
 

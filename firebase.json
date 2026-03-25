@@ -36,6 +36,30 @@
         "headers": [
           { "key": "Cache-Control", "value": "public, max-age=120" }
         ]
+      },
+      {
+        "source": "ops-dashboard.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, private" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src https: data:; font-src data:; connect-src https:; upgrade-insecure-requests"
+          }
+        ]
+      },
+      {
+        "source": "/ops",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, private" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src https: data:; font-src data:; connect-src https:; upgrade-insecure-requests"
+          }
+        ]
       }
     ],
     "rewrites": [

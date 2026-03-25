@@ -6,15 +6,16 @@ import admin from "firebase-admin";
 
 /** Injected into OpenAI so answers reference real tabs and flows. Keep in sync with site/ops-dashboard.html. */
 export const OPS_DASHBOARD_FEATURE_CATALOG = `
-Hit-A-Lick Ops Desk (browser): unlock with X-Ops-Pin (server: OPS_DASHBOARD_PIN, default 2012). On GitHub Pages you MUST paste API base URL (Cloud Run or Firebase Hosting origin) before unlock.
+Hit-A-Lick Ops Desk (browser): unlock with X-Ops-Pin matching server secret OPS_DASHBOARD_PIN (never commit the PIN). On github.io, API base can be left empty — the desk uses production Cloud Run automatically; override only for staging.
 
 Tabs after unlock:
 1) Environment — GET /api/ops/dashboard: env flags, marketsBySport per nba/nfl/mlb/wnba, raw ops JSON. Use to confirm Odds API key presence, bookmakers, prop market tier.
 2) AI insights — GET /api/ops/insights: rule-based suggestions (quota, Stripe prices missing, curator emails), optional OpenAI paragraph if OPENAI_API_KEY set.
 3) Stripe prices — GET /api/billing/pricing-status: which Stripe price env vars are set (masked).
 4) Curator pool — GET /api/ops/universal-pool lists Firestore universal pool rows. User checks rows, picks lane "bruce" or "giap", Save calls POST /api/ops/curator-board/select with { curatorId, pickIds }. Those picks appear on subscriber-facing curator boards (iOS bottom tab "Picks"). Only Bruce (owner) or anyone with valid ops PIN can use this tab; Giap normally uses iOS Curator Studio for his lane only.
-5) All features — static list in UI (same as this catalog).
-6) Dashboard AI — this assistant; POST /api/ops/dashboard-guide with { message }.
+5) Props (3 days) — GET /api/props with windowDays=3; same slate as iOS. Check legs and POST /api/ops/board/append-legs to append deduped rows to a lane (does not clear the whole board).
+6) All features — static list in UI (same as this catalog).
+7) Dashboard AI — this assistant; POST /api/ops/dashboard-guide with { message }.
 
 iOS app: "Picks" tab shows paid curator boards. Account → Curator Studio: Bruce can push/select for lanes; Giap only manages Giap lane for edits. Universal pool rows are created with owner-authenticated API (e.g. POST /api/curators/pool/add with Bearer).
 

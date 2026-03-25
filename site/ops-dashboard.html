@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#050814" />
-  <meta name="description" content="Hit-A-Lick ops desk — PIN + API base. Deploy with Firebase Hosting or GitHub Pages." />
-  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Hit-A-Lick ops desk — private PIN (server-checked). GitHub Pages uses production API automatically." />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <!-- GitHub Pages has no custom HTTP headers; CSP matches Firebase Hosting for this file. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; frame-ancestors 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src https: data:; font-src data:; connect-src https:; upgrade-insecure-requests" />
   <title>Hit-A-Lick · Ops Desk</title>
   <style>
     :root {
@@ -152,12 +154,12 @@
         <a class="link" href="https://almightybruce01.github.io/Hit-A-Lick/ops/" target="_blank" rel="noopener">…/ops/</a><br />
         <span style="color:#ffb47a">Hit-A-Lick only: URL must start with <code>almightybruce01.github.io/Hit-A-Lick/</code>. If you see another app name, you opened the wrong bookmark. Source: <code>Hit-A-Lick/site/</code>.</span>
       </p>
-      <p class="sub">Enter your PIN. It is checked on the server (<code>X-Ops-Pin</code>). Default is <strong>2012</strong> unless <code>OPS_DASHBOARD_PIN</code> is set. Too many wrong guesses temporarily blocks your network (brute-force protection).</p>
+      <p class="sub">Enter the <strong>private ops PIN</strong> (from Bruce — same value as Cloud Function secret <code>OPS_DASHBOARD_PIN</code> if you set one). It is checked on the server (<code>X-Ops-Pin</code>). Too many wrong guesses temporarily blocks your network (brute-force protection). <strong>Do not put the PIN in GitHub issues or public chat.</strong></p>
       <label for="pinInput">PIN</label>
       <input id="pinInput" type="password" inputmode="numeric" maxlength="8" autocomplete="one-time-code" placeholder="••••" />
-      <label for="apiBaseLock" style="margin-top:14px">API base URL</label>
-      <input id="apiBaseLock" type="text" placeholder="Leave empty for same-origin (Firebase Hosting)" />
-      <p class="sug">GitHub Pages: paste your Cloud Run / API origin, e.g. <code>https://api-xxxxx-uc.a.run.app</code></p>
+      <label for="apiBaseLock" style="margin-top:14px">API base URL (optional)</label>
+      <input id="apiBaseLock" type="text" placeholder="Leave empty — GitHub Pages → production API; Firebase Hosting → same-origin /api" />
+      <p class="sug">Override only for staging or a custom host. Production: <code>https://api-lifnvql5aa-uc.a.run.app</code> (auto-used on <code>github.io</code> when this field is empty).</p>
       <div class="row" style="margin-top:16px">
         <button type="button" id="unlockBtn">Unlock</button>
       </div>
@@ -173,7 +175,7 @@
       <div>
         <div class="pill">LIVE OPS</div>
         <h1>Prop &amp; infrastructure desk</h1>
-        <p class="sub">Connected to <code id="apiShow"></code> — uses saved PIN for every API call. <a class="link" href="#" id="logoutLink">Lock / change PIN</a></p>
+        <p class="sub">API: <code id="apiShow"></code> — saved PIN sent as <code>X-Ops-Pin</code> on each request. <a class="link" href="#" id="logoutLink">Lock / change PIN</a></p>
       </div>
       <div class="row">
         <button type="button" class="secondary" id="btnRefresh">Refresh tab</button>
@@ -233,7 +235,7 @@
     <div id="pane-props" class="grid hidden">
       <div class="panel full">
         <h2>Props — rolling 3-day window</h2>
-        <p class="sub">Matches the iOS props board: <code>GET /api/props?sport=…&amp;windowDays=3&amp;includeBooks=1</code>. Each row shows matchup, <strong>AI confidence %</strong>, and core lines (spread / total / ML). Leg odds appear in the JSON panel.</p>
+        <p class="sub">Same data as the iOS props board: <code>GET /api/props?sport=…&amp;windowDays=3&amp;includeBooks=1</code>. <strong>Hide after tipoff</strong> mirrors the app (90s after start; longer window for tagged second-half markets). Check legs → pick lane → <strong>Append to board</strong> (deduped by <code>sourceKey</code>; does not replace the whole board).</p>
         <label for="propsSportSel" style="font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase">Sport</label>
         <select id="propsSportSel" style="display:block;margin:8px 0 12px;padding:10px 12px;border-radius:10px;width:100%;max-width:280px;background:rgba(0,0,0,0.35);color:#fff;border:1px solid var(--border)">
           <option value="all">ALL</option>
@@ -242,8 +244,18 @@
           <option value="mlb">MLB</option>
           <option value="wnba">WNBA</option>
         </select>
+        <label style="display:flex;gap:10px;align-items:center;margin:8px 0 12px;cursor:pointer;font-size:0.86rem;color:rgba(255,255,255,0.85)">
+          <input type="checkbox" id="propsHideStale" checked />
+          Hide games that already started (same rules as iOS)
+        </label>
+        <label for="propsBoardLane" style="font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.55);text-transform:uppercase">Append picks to lane</label>
+        <select id="propsBoardLane" style="display:block;margin:8px 0 12px;padding:10px 12px;border-radius:10px;width:100%;max-width:280px;background:rgba(0,0,0,0.35);color:#fff;border:1px solid var(--border)">
+          <option value="bruce">Bruce Pick's</option>
+          <option value="giap">Giap Pick's</option>
+        </select>
         <div class="row" style="margin-bottom:12px">
           <button type="button" class="secondary" id="btnLoadProps">Load props</button>
+          <button type="button" id="btnAppendProps">Append selected to board</button>
         </div>
         <p id="propsMeta" class="sug" style="margin-bottom:10px"></p>
         <div id="propsCards" style="max-height:380px;overflow:auto;margin-bottom:14px"></div>
@@ -260,8 +272,8 @@
         <div class="feat-section">
           <h3>Lock screen (before unlock)</h3>
           <ul>
-            <li><strong>PIN</strong> — sent as <code>X-Ops-Pin</code>; server default <strong>2012</strong> unless you set <code>OPS_DASHBOARD_PIN</code>.</li>
-            <li><strong>API base URL</strong> — required on GitHub Pages: paste your API origin (e.g. Cloud Run <code>https://…run.app</code> or Firebase Hosting with <code>/api</code> rewrite). Same-origin hosting can leave it empty.</li>
+            <li><strong>PIN</strong> — sent as <code>X-Ops-Pin</code>; value is the private ops PIN (set server-side with <code>OPS_DASHBOARD_PIN</code> — never commit it).</li>
+            <li><strong>API base URL</strong> — optional. On <code>github.io</code> the desk uses production Cloud Run when empty. Staging or custom hosts: paste origin (no trailing slash). Firebase Hosting with <code>/api</code> rewrite: leave empty for same-origin.</li>
           </ul>
         </div>
 
@@ -304,6 +316,14 @@
         </div>
 
         <div class="feat-section">
+          <h3>Props (3 days)</h3>
+          <ul>
+            <li><code>GET /api/props?sport=…&amp;windowDays=3</code> — same slate as iOS; optional hide-after-tipoff matches <code>HitALick/Props.swift</code>.</li>
+            <li><code>POST /api/ops/board/append-legs</code> — append checked legs to Bruce or Giap (deduped by <code>sourceKey</code>).</li>
+          </ul>
+        </div>
+
+        <div class="feat-section">
           <h3>Curator pool → subscriber boards</h3>
           <ul>
             <li><strong>Load pool</strong> — <code>GET /api/ops/universal-pool</code> (Firestore universal pool).</li>
@@ -331,7 +351,7 @@
         </div>
 
         <div class="callout">
-          <strong>Bruce</strong> — <code>brucebrian50@gmail.com</code> (main admin, owner). <strong>Giap</strong> — <code>giap.social1@gmail.com</code> (co-curator). Passwords live only in <strong>Firebase Authentication</strong> (e.g. <code>HitALick!Bruce2026</code> / <code>HitALick!Giap2026</code> — change anytime).
+          <strong>Bruce</strong> — <code>brucebrian50@gmail.com</code> (owner). <strong>Giap</strong> — <code>giap.social1@gmail.com</code> (co-curator). Account passwords are only in <strong>Firebase Authentication</strong> — reset via Firebase console or “Forgot password”; do not paste passwords into the repo or GitHub.
         </div>
       </div>
     </div>
@@ -381,10 +401,26 @@
   var STORAGE_PIN = "hitalick_ops_pin_v1";
   var STORAGE_API = "hitalick_ops_api_base_v1";
   var SESSION_OK = "hitalick_ops_session_ok_v1";
+  var DEFAULT_PROD_API = "https://api-lifnvql5aa-uc.a.run.app";
+  /** Props tab: filtered list aligned with checkbox indices */
+  var propsDeskList = [];
+
+  function isGitHubPagesHost() {
+    var h = (window.location.hostname || "").toLowerCase();
+    return h.indexOf("github.io") >= 0;
+  }
 
   function apiBase() {
-    var s = localStorage.getItem(STORAGE_API);
-    return (s || "").trim().replace(/\/$/, "");
+    var s = (localStorage.getItem(STORAGE_API) || "").trim().replace(/\/$/, "");
+    if (s) return s;
+    if (isGitHubPagesHost()) return DEFAULT_PROD_API;
+    return "";
+  }
+
+  function apiBaseDisplay() {
+    var b = apiBase();
+    if (b) return b;
+    return "(same origin — Firebase Hosting + /api rewrite)";
   }
 
   function getPin() {
@@ -419,7 +455,7 @@
   function showApp() {
     document.getElementById("lock").classList.add("hidden");
     document.getElementById("app").classList.remove("hidden");
-    document.getElementById("apiShow").textContent = apiBase() || "(same origin — Firebase Hosting + /api rewrite)";
+    document.getElementById("apiShow").textContent = apiBaseDisplay();
   }
 
   function setStatus(msg, cls) {
@@ -558,6 +594,7 @@
     if (name === "desk") loadDesk();
     if (name === "insights") loadInsights();
     if (name === "pricing") loadPricing();
+    if (name === "props") loadPropsDesk();
   }
 
   function escapeHtml(s) {
@@ -569,14 +606,126 @@
       .replace(/"/g, "&quot;");
   }
 
+  function parsePropStartMs(p) {
+    var iso = p.commenceTime;
+    if (iso) {
+      var ms = Date.parse(iso);
+      if (!isNaN(ms)) return ms;
+    }
+    var ymd = String(p.date || "").slice(0, 10);
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+    return null;
+  }
+
+  function propIsStale(p) {
+    var start = parsePropStartMs(p);
+    if (start == null || isNaN(start)) return false;
+    var now = Date.now();
+    var tags = (p.tags || []).map(function (t) { return String(t).toLowerCase(); });
+    var secondHalfish = tags.some(function (t) {
+      return t.indexOf("2h") >= 0 || t.indexOf("2nd") >= 0 || t.indexOf("second_half") >= 0 || t.indexOf("halftime") >= 0 || t.indexOf("h2") >= 0;
+    });
+    var graceMs = secondHalfish ? 2.25 * 3600000 : 90000;
+    return now > start + graceMs;
+  }
+
+  function buildLegPickRow(p, leg, pi, li) {
+    var sport = String(p.sport || "nba").toUpperCase();
+    var matchup = String(p.matchup || "Game");
+    var pn = String(leg.playerName || "").trim();
+    var label = String(leg.label || leg.market || "Prop").trim();
+    var side = String(leg.side || "").trim();
+    var line = leg.line != null && leg.line !== "" ? String(leg.line) : "";
+    var pick = [label, side, line].filter(Boolean).join(" ");
+    if (leg.odds != null && leg.odds !== "") pick += " @ " + leg.odds;
+    var title = pn ? pn + " · " + matchup : matchup;
+    var eid = String(p.eventId || p.id || "evt_" + pi);
+    var sourceKey = eid + "|" + String(leg.market || "") + "|" + label + "|" + side + "|" + line + "|" + String(leg.bookKey || "");
+    return {
+      sourceKey: sourceKey.slice(0, 280),
+      title: title.slice(0, 220),
+      pick: pick.slice(0, 500),
+      league: sport.slice(0, 32),
+      notes: String((p.date || "") + (p.commenceTime ? " · " + p.commenceTime : "")).slice(0, 1000),
+      confidence: Math.max(0, Math.min(100, Math.round(Number(p.confidence != null ? p.confidence : 60)))),
+      gameDate: String(p.date || "").slice(0, 80),
+    };
+  }
+
+  function buildGameLineRow(p, pi) {
+    var sport = String(p.sport || "nba").toUpperCase();
+    var matchup = String(p.matchup || "Game");
+    var parts = [];
+    if (p.spread) parts.push("Spread " + p.spread);
+    if (p.total) parts.push("Total " + p.total);
+    if (p.moneyline) parts.push("ML " + p.moneyline);
+    var pick = parts.join(" • ");
+    if (!pick) return null;
+    var eid = String(p.eventId || p.id || "evt_" + pi);
+    return {
+      sourceKey: (eid + "|snapshot|main").slice(0, 280),
+      title: matchup.slice(0, 220),
+      pick: pick.slice(0, 500),
+      league: sport.slice(0, 32),
+      notes: String((p.date || "") + (p.commenceTime ? " · " + p.commenceTime : "")).slice(0, 1000),
+      confidence: Math.max(0, Math.min(100, Math.round(Number(p.confidence != null ? p.confidence : 60)))),
+      gameDate: String(p.date || "").slice(0, 80),
+    };
+  }
+
+  function collectSelectedPropRows() {
+    var rows = [];
+    document.querySelectorAll(".props-leg-cb:checked").forEach(function (cb) {
+      var pi = Number(cb.getAttribute("data-pi"));
+      var li = Number(cb.getAttribute("data-li"));
+      var p = propsDeskList[pi];
+      if (!p || !p.playerProps || !p.playerProps[li]) return;
+      rows.push(buildLegPickRow(p, p.playerProps[li], pi, li));
+    });
+    document.querySelectorAll(".props-game-cb:checked").forEach(function (cb) {
+      var pi = Number(cb.getAttribute("data-pi"));
+      var p = propsDeskList[pi];
+      if (!p) return;
+      var r = buildGameLineRow(p, pi);
+      if (r) rows.push(r);
+    });
+    return rows;
+  }
+
+  async function appendPropsToBoard() {
+    var rows = collectSelectedPropRows();
+    if (!rows.length) {
+      alert("Select at least one leg or game snapshot.");
+      return;
+    }
+    var lane = document.getElementById("propsBoardLane").value;
+    setStatus("Appending to " + lane + "…", "");
+    try {
+      var res = await apiFetch("/api/ops/board/append-legs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ curatorId: lane, rows: rows }),
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || res.statusText);
+      setStatus("Appended " + (data.added != null ? data.added : rows.length) + " row(s); board total " + (data.total != null ? data.total : "?"), "ok");
+    } catch (e) {
+      setStatus("Append failed: " + e.message, "err");
+    }
+  }
+
   async function loadPropsDesk() {
     var sport = (document.getElementById("propsSportSel").value || "nba").toLowerCase();
+    var hideStaleEl = document.getElementById("propsHideStale");
+    var hideStale = hideStaleEl ? hideStaleEl.checked : true;
     var cards = document.getElementById("propsCards");
     var raw = document.getElementById("propsRaw");
     var meta = document.getElementById("propsMeta");
     meta.textContent = "";
     cards.innerHTML = "";
     raw.textContent = "";
+    propsDeskList = [];
     setStatus("Loading props (3-day window)…", "");
     try {
       var path = "/api/props?sport=" + encodeURIComponent(sport) + "&windowDays=3&includeBooks=1";
@@ -584,21 +733,97 @@
       var data = await res.json();
       if (!res.ok) throw new Error(data.error || res.statusText);
       var list = data.props || [];
+      var filtered = [];
+      for (var i = 0; i < list.length; i++) {
+        if (hideStale && propIsStale(list[i])) continue;
+        filtered.push(list[i]);
+      }
+      propsDeskList = filtered;
       var wd = (data.coverage && data.coverage.windowDays) || 3;
-      meta.textContent = "Events: " + list.length + " • windowDays=" + wd + (data.warning ? " • " + data.warning : "");
-      list.slice(0, 60).forEach(function (p) {
+      meta.textContent =
+        "Events shown: " +
+        filtered.length +
+        " (API returned " +
+        list.length +
+        ") • windowDays=" +
+        wd +
+        (data.warning ? " • " + data.warning : "");
+      filtered.slice(0, 60).forEach(function (p, pi) {
         var conf = Math.round(Number(p.confidence != null ? p.confidence : 0));
         var div = document.createElement("div");
         div.style.cssText = "border:1px solid rgba(255,255,255,0.14);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:rgba(0,0,0,0.25)";
-        div.innerHTML =
+        var head = document.createElement("div");
+        head.style.cssText = "display:flex;gap:10px;align-items:flex-start;margin-bottom:8px";
+        var master = document.createElement("input");
+        master.type = "checkbox";
+        master.className = "props-master-cb";
+        master.setAttribute("data-pi", String(pi));
+        head.appendChild(master);
+        var titleEl = document.createElement("div");
+        titleEl.style.cssText = "flex:1";
+        titleEl.innerHTML =
           '<div style="font-weight:800;color:#fff;margin-bottom:6px">' + escapeHtml(p.matchup || "(game)") + "</div>" +
           '<div style="font-size:0.8rem;line-height:1.45;color:rgba(255,255,255,0.82)">' +
-          "<strong>AI confidence</strong> " + conf + "% • Spread " + escapeHtml(p.spread || "—") +
-          " • Total " + escapeHtml(p.total || "—") + " • ML " + escapeHtml(p.moneyline || "—") +
+          "<strong>AI confidence</strong> " +
+          conf +
+          "% • Spread " +
+          escapeHtml(p.spread || "—") +
+          " • Total " +
+          escapeHtml(p.total || "—") +
+          " • ML " +
+          escapeHtml(p.moneyline || "—") +
           "</div>";
+        head.appendChild(titleEl);
+        div.appendChild(head);
+
+        var legBox = document.createElement("div");
+        legBox.style.cssText = "margin-left:28px;font-size:0.78rem;line-height:1.5;color:rgba(255,255,255,0.78)";
+        var legs = p.playerProps && p.playerProps.length ? p.playerProps : [];
+        if (legs.length) {
+          legs.forEach(function (leg, li) {
+            var lab = document.createElement("label");
+            lab.style.cssText = "display:flex;gap:8px;align-items:flex-start;margin-bottom:4px;cursor:pointer";
+            var cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.className = "props-leg-cb";
+            cb.setAttribute("data-pi", String(pi));
+            cb.setAttribute("data-li", String(li));
+            lab.appendChild(cb);
+            var sp = document.createElement("span");
+            var oddsStr = leg.odds != null ? " @" + leg.odds : "";
+            sp.textContent =
+              (leg.playerName ? leg.playerName + ": " : "") +
+              (leg.label || leg.market || "") +
+              (leg.side ? " " + leg.side : "") +
+              (leg.line != null ? " " + leg.line : "") +
+              oddsStr;
+            lab.appendChild(sp);
+            legBox.appendChild(lab);
+          });
+        } else {
+          var lab = document.createElement("label");
+          lab.style.cssText = "display:flex;gap:8px;align-items:flex-start;cursor:pointer";
+          var cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.className = "props-game-cb";
+          cb.setAttribute("data-pi", String(pi));
+          lab.appendChild(cb);
+          var sp = document.createElement("span");
+          sp.textContent = "Add game snapshot (spread / total / ML) to board";
+          lab.appendChild(sp);
+          legBox.appendChild(lab);
+        }
+        div.appendChild(legBox);
         cards.appendChild(div);
+
+        master.addEventListener("change", function () {
+          var on = master.checked;
+          div.querySelectorAll(".props-leg-cb, .props-game-cb").forEach(function (c) {
+            c.checked = on;
+          });
+        });
       });
-      raw.textContent = list.length ? JSON.stringify(list[0], null, 2) : "(empty)";
+      raw.textContent = filtered.length ? JSON.stringify(filtered[0], null, 2) : "(empty)";
       setStatus("Props OK", "ok");
     } catch (e) {
       setStatus("Props failed: " + e.message, "err");
@@ -691,6 +916,13 @@
 
   document.getElementById("btnLoadProps").addEventListener("click", function () {
     loadPropsDesk();
+  });
+  document.getElementById("btnAppendProps").addEventListener("click", function () {
+    appendPropsToBoard();
+  });
+  document.getElementById("propsHideStale").addEventListener("change", function () {
+    var active = document.querySelector(".tab.active");
+    if (active && active.getAttribute("data-tab") === "props") loadPropsDesk();
   });
 
   document.getElementById("btnAskGuide").addEventListener("click", function () {

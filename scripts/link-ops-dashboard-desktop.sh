@@ -1,38 +1,33 @@
 #!/usr/bin/env bash
-# Creates the Desktop shortcut with the canonical HitALick ops dashboard name.
+# Canonical Desktop entry: live GitHub Pages ops desk (webloc on Desktop root).
+# Removes legacy local-file symlinks / PIN-named shortcuts that pointed at repo HTML.
 set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TARGET="$REPO_ROOT/site/ops-dashboard.html"
-LINK="$HOME/Desktop/HitALick-OpsControl-PublicDashboard-PIN2012.html"
-README="$HOME/Desktop/HitALick-OpsControl-Desktop-README.txt"
 
-ln -sf "$TARGET" "$LINK"
+"$REPO_ROOT/scripts/install-live-dashboard-desktop.sh"
+
+README="$HOME/Desktop/Hit-A-Lick-Ops-Desk-README.txt"
 cat > "$README" << EOF
-HitALick Ops Control — Desktop pointer
-=====================================
+Hit-A-Lick Ops Desk — Desktop
+=============================
 
-Shortcut file (open in browser):
-  HitALick-OpsControl-PublicDashboard-PIN2012.html
+Open (double-click): Hit-A-Lick-Ops-Desk.webloc
+Live URL: https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html
 
-Points to:
-  $TARGET
+Recreate shortcut from repo:
+  bash $REPO_ROOT/scripts/install-live-dashboard-desktop.sh
+  (or) bash $REPO_ROOT/scripts/link-ops-dashboard-desktop.sh
 
-Live (GitHub Pages — same files as repo folder site/):
-  https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html
-  https://almightybruce01.github.io/Hit-A-Lick/ops/
+Printable steps (save as PDF from browser):
+  https://almightybruce01.github.io/Hit-A-Lick/staff-access-print.html
 
-Safari bookmark file (online only, on Desktop — no subfolder):
-  Hit-A-Lick-Ops-Desk.webloc
-  Create/update: bash scripts/install-live-dashboard-desktop.sh
-
-GitHub repo:
-  https://github.com/Almightybruce01/Hit-A-Lick
-
-PIN: 2012 (or OPS_DASHBOARD_PIN in production)
-
-Recreate this link after moving the repo:
-  bash $REPO_ROOT/scripts/link-ops-dashboard-desktop.sh
+Do not store your ops PIN in this text file.
 EOF
 
-echo "OK: $LINK -> $TARGET"
-echo "OK: wrote $README"
+# Legacy: local symlink + old names (misleading; file:// breaks API / security expectations)
+LEGACY_SYMLINK="$HOME/Desktop/HitALick-OpsControl-PublicDashboard-PIN2012.html"
+LEGACY_README="$HOME/Desktop/HitALick-OpsControl-Desktop-README.txt"
+rm -f "$LEGACY_SYMLINK" "$LEGACY_README" 2>/dev/null || true
+
+echo "OK: Hit-A-Lick-Ops-Desk.webloc + README on Desktop"
+echo "    Live: https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html"
