@@ -75,12 +75,41 @@
     }
     .foot { margin-top: 28px; font-size: 0.75rem; color: rgba(255,255,255,0.45); }
     a.link { color: var(--mint); }
+    .sites {
+      margin: 18px 0 22px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.25);
+      font-size: 0.84rem;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+    }
+    .sites strong { color: var(--accent); display: block; margin-top: 10px; }
+    .sites strong:first-child { margin-top: 0; }
+    .sites code { font-size: 0.78em; word-break: break-all; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>Hit-A-Lick — post picks to the live boards</h1>
-    <p class="lead">This page is only for <strong>Hit-A-Lick</strong> (repo <a class="link" href="https://github.com/Almightybruce01/Hit-A-Lick">Almightybruce01/Hit-A-Lick</a>). Use the ops desk below; choose <strong>Bruce Pick's</strong> or <strong>Giap Pick's</strong> when you save. Fans see picks in the iOS app tab <strong>Picks</strong>.</p>
+    <p class="lead">This page is only for <strong>Hit-A-Lick</strong> (repo <a class="link" href="https://github.com/Almightybruce01/Hit-A-Lick">Almightybruce01/Hit-A-Lick</a>). You <strong>choose</strong> which pool rows go on your live board here or in the iOS app — you do <strong>not</strong> edit picks on the marketing site or pricing page.</p>
+
+    <div class="sites">
+      <strong>A) This page (picks-hub)</strong>
+      Instructions + buttons only. No database edits here — it links you to the ops desk.
+      <br /><code>…/picks-hub.html</code>
+
+      <strong>B) Ops desk (real “dashboard”)</strong>
+      Where you <strong>select</strong> rows from the universal pool and <strong>Save to board</strong> for Giap or Bruce. Needs PIN <strong>2012</strong> + API base on phone/browser.
+      <br /><code>…/ops-dashboard.html</code>
+
+      <strong>C) iOS Hit-A-Lick app (phone)</strong>
+      Same job as the ops desk for you: <strong>Account → Curator Studio → Giap lane</strong> (Firebase login). Fans use tab <strong>Picks</strong> to <strong>view</strong> only — they don’t publish.
+
+      <strong>D) Other pages (not for posting)</strong>
+      <code>index.html</code> = marketing. <code>app.html</code> = elite web demo. <code>pricing.html</code> = subscribe. <code>app-access.html</code> = link hub. None of these replace B or C for posting.
+    </div>
 
     <div class="pin-banner">
       Ops desk PIN (both Bruce and Giap type this): <code>2012</code>
