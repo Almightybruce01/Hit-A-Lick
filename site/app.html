@@ -1239,7 +1239,7 @@
       user-select: none;
       transition: filter 0.22s ease;
     }
-    /** Tap / click blurred workspace → membership page (tabs & header stay usable). */
+    /** Tap / click blurred panels → pricing; hero/toolbar/tabs/quick-actions stay above the shield (see positionPaywallShield). */
     #hlPaywallShield {
       display: none;
       position: absolute;
@@ -2380,8 +2380,8 @@
           <label class="muted">Max picks</label>
           <input id="aiMaxPicks" type="number" value="8" min="3" max="20" style="width:90px;" />
           <input id="aiBooks" placeholder="Books: draftkings,fanduel,betmgm" style="min-width:180px;flex:1;" />
-          <label class="muted">Stake $</label>
-          <input id="aiStake" type="number" value="20" min="1" step="0.01" style="width:100px;" />
+          <label class="muted" for="aiStake">Bet amount ($)</label>
+          <input id="aiStake" type="number" value="20" min="0.01" step="0.01" style="width:110px;" title="Wager used for projected payout below" oninput="renderAI()" />
           <button class="btn btn-primary" id="aiGenerateBtn">Generate AI</button>
         </div>
         <div class="row" style="width:100%;">
@@ -2871,10 +2871,14 @@
       const col = document.querySelector(".app-main-col");
       const sh = document.getElementById("hlPaywallShield");
       if (!col || !sh || sh.hidden) return;
-      const topEl = col.querySelector("section.top");
-      const h = topEl ? topEl.offsetHeight : 140;
-      sh.style.top = `${Math.max(0, h)}px`;
-      sh.style.height = `${Math.max(160, col.clientHeight - h)}px`;
+      /** Cover only workspace panels — not hero, command deck, filters, tabs, or quick-actions (they stayed under an invisible full-height shield and blocked all clicks). */
+      const qa = col.querySelector("section.quick-actions");
+      const tb = col.querySelector("section.toolbar");
+      const anchor = qa || tb || col.querySelector("section.top");
+      const topPx = anchor ? anchor.offsetTop + anchor.offsetHeight : 140;
+      sh.style.top = `${Math.max(0, topPx)}px";
+      const span = Math.max(0, col.scrollHeight - topPx);
+      sh.style.height = `${Math.max(200, span)}px`;
     }
 
     function updateSubscriptionGates() {
@@ -5215,14 +5219,21 @@
     }
 
     function localParlayPayoutFromCart(stake) {
+      const s = Number(stake);
+      if (!Number.isFinite(s) || s <= 0) return null;
       const legs = state.cart.map((c) => normalizeParlayAmerican(c.odds));
       if (!legs.length || legs.some((x) => x == null || x === 0)) return null;
       const comb = combineAmericanParlayOdds(legs);
       if (!Number.isFinite(comb)) return null;
       const dec = americanOddsToImpliedDecimal(comb);
       if (!dec) return null;
-      const ret = stake * dec;
-      return { combinedAmerican: comb, projectedReturn: ret, projectedProfit: ret - stake };
+      const totalPayout = s * dec;
+      return {
+        combinedAmerican: comb,
+        projectedReturn: totalPayout,
+        projectedProfit: totalPayout - s,
+        stake: s,
+      };
     }
 
     function totalPlayerPropsLoaded() {
@@ -8310,16 +8321,24 @@
         .join("");
       const cfgAi = aiConfig();
       const localPar = state.cart.length ? localParlayPayoutFromCart(cfgAi.stake) : null;
+      const payoutBox = state.cart.length
+        ? localPar
+          ? `
+          <div class="ai-parlay-payout" style="margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid rgba(129,255,216,0.35);background:rgba(8,20,40,0.55);">
+            <div class="mini-value muted" style="margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em;font-size:10px;">Projected payout — change <strong>Bet amount ($)</strong> above anytime</div>
+            <div class="kpi" style="margin:4px 0;"><strong>Wager:</strong> $${escapeHtml(localPar.stake != null ? localPar.stake.toFixed(2) : String(cfgAi.stake))}</div>
+            <div class="kpi" style="margin:4px 0;"><strong>Total payout if all legs win:</strong> $${escapeHtml(localPar.projectedReturn.toFixed(2))} <span class="muted">(includes your stake)</span></div>
+            <div class="kpi" style="margin:4px 0;"><strong>Projected winnings (profit):</strong> $${escapeHtml(localPar.projectedProfit.toFixed(2))}</div>
+            <div class="mini-value muted" style="margin-top:8px;line-height:1.45;">Combined line (independent legs, not SGP): <strong>${escapeHtml(formatAmericanOddsLabel(localPar.combinedAmerican))}</strong> — decimal prices multiply per leg; verify at your book.</div>
+          </div>`
+          : `<div class="mini-value muted" style="margin-top:8px;">Cannot project payout — use a wager &gt; 0 and ensure every leg has a valid price.</div>`
+        : `<div class="mini-value muted" style="margin-top:8px;">Add picks from above or from the <strong>Prop</strong> tab, then set your bet amount.</div>`;
       const cartHtml = `
-        <article class="card">
+        <article class="card ai-cart-card">
           <h3>AI Cart (${state.cart.length})</h3>
           ${state.cart.length ? state.cart.map((c, idx) => `<div class="kpi">• ${escapeHtml(aiPickDisplayTitle(c))} (${escapeHtml(formatAmericanOddsLabel(Number(c.odds)))}) ${renderBookBadges([c.bookKey || c.book], 1)} <button class="btn" onclick="removeAiFromCart(${idx})" style="padding:2px 8px;margin-left:6px;">Remove</button></div>`).join("") : '<div class="kpi">Cart is empty.</div>'}
-          ${
-            localPar
-              ? `<div class="mini-value muted" style="margin-top:6px;">Combined (independent legs): multiply decimal prices per leg, then back to American — <strong>${escapeHtml(formatAmericanOddsLabel(localPar.combinedAmerican))}</strong> at $${escapeHtml(String(cfgAi.stake))} stake → return $${localPar.projectedReturn.toFixed(2)} (not an SGP; verify at your book).</div>`
-              : ""
-          }
-          <button class="btn btn-primary" style="margin-top:8px;" onclick="calcAIParlay()">Calculate Parlay</button>
+          ${payoutBox}
+          <button class="btn btn-primary" style="margin-top:12px;" onclick="calcAIParlay()">Calculate Parlay (confirm / cloud)</button>
         </article>
       `;
       const filterEmpty =
