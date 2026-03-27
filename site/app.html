@@ -1234,12 +1234,13 @@
       line-height: 1.45;
     }
     /** Logged-in, no website subscription: blur workspace; keep top nav + upgrade dock usable. */
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) > :not(.top) {
+    /** Exclude toolbar, quick-actions, and shield from blur — filter breaks hit-testing on tabs/buttons in WebKit. */
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) > :not(.top):not(.toolbar):not(.quick-actions):not(#hlPaywallShield) {
       filter: blur(9px);
       user-select: none;
       transition: filter 0.22s ease;
     }
-    /** Tap / click blurred panels → pricing; hero/toolbar/tabs/quick-actions stay above the shield (see positionPaywallShield). */
+    /** Legacy overlay (kept hidden); upgrade path is the bottom dock + pricing links. */
     #hlPaywallShield {
       display: none;
       position: absolute;
@@ -2918,23 +2919,10 @@
       }
       document.body.classList.remove("hl-device-limit-open");
       if (sh) {
-        sh.hidden = !needSub;
-        if (needSub) {
-          const go = () => {
-            window.location.href = PRICING_PAGE_URL;
-          };
-          sh.onclick = go;
-          sh.onkeydown = (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              go();
-            }
-          };
-          requestAnimationFrame(() => positionPaywallShield());
-        } else {
-          sh.onclick = null;
-          sh.onkeydown = null;
-        }
+        /** Full-height shield overlapped sticky toolbar / tabs on some layouts; blur + dock CTAs are enough. */
+        sh.hidden = true;
+        sh.onclick = null;
+        sh.onkeydown = null;
       }
       if (col) {
         col.classList.toggle("hl-blur-paywall", needSub);
@@ -6587,13 +6575,13 @@
       const [settled, gameDataRaw] = await Promise.all([
         Promise.allSettled(
           sports.map((sport) =>
-            fetchJson(`/api/props?sport=${sport}${coverageQuery()}${propsLiveSuffix}`, {}, 2, propTimeoutMs).then((data) => ({
+            fetchJson(`/api/props?sport=${sport}${coverageQuery()}${propsLiveSuffix}`, {}, 3, propTimeoutMs).then((data) => ({
               sport,
               data,
             })),
           ),
         ),
-        fetchJson(gamesUrl, {}, 2, 22000).catch(() => null),
+        fetchJson(gamesUrl, {}, 3, 22000).catch(() => null),
       ]);
       for (let i = 0; i < settled.length; i += 1) {
         const sport = sports[i];
@@ -9601,6 +9589,10 @@
     }
     setSessionUI();
     hydrateSharedSlipFromHash();
+    {
+      const bs = getSession();
+      if (bs.uid && bs.token) void refreshAll();
+    }
     loadSubscriptionEntitlement()
       .catch(() => {})
       .finally(() => syncCloudBootstrap().finally(() => refreshAll()));
