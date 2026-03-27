@@ -2315,6 +2315,7 @@
           <h2 class="elite-prop-hub-title">Prop</h2>
           <p class="elite-prop-hub-sub muted mini-value">
             Every priced player leg in the active window. Uses the board toolbar (sport, market, book, odds, bang-for-buck) plus search and sort here.
+            <strong>Parlay math:</strong> independent legs — multiply each leg’s <em>decimal price</em> (American → decimal, then product); add legs to the AI cart and use <strong>Calculate Parlay</strong> on the AI tab.
           </p>
         </header>
         <div class="elite-prop-hub-toolbar toolbar">
@@ -2612,6 +2613,8 @@
       hlFiltersRemember: false,
       curatorWebPoolItems: [],
       curatorPropDeskRows: [],
+      /** Last rendered Prop hub rows (for Add to cart index). */
+      propHubCartRows: [],
       curatorFeedPendingImageDataUrl: "",
       curatorFeed: {
         posts: [],
@@ -5132,6 +5135,38 @@
       return rows;
     }
 
+    function pickFromPropHubRow(row) {
+      if (!row) return null;
+      const am = normalizeParlayAmerican(row.odds);
+      if (am == null || am === 0) return null;
+      const line = String(row.readableLine || "").trim();
+      const player = String(row.label || "").trim();
+      const label = line ? `${player} · ${line}` : player || "Prop";
+      return {
+        label,
+        odds: am,
+        bookKey: row.bookKey || "",
+        confidence: row.confidence,
+        readableLine: line,
+        market: row.leg?.market || "",
+        source: "prop_hub",
+      };
+    }
+
+    function addPropHubLegToCart(idx) {
+      const row = state.propHubCartRows?.[idx];
+      const pick = pickFromPropHubRow(row);
+      if (!pick) {
+        setStatus("That leg has no valid American price — refresh or pick another book.", true);
+        return;
+      }
+      state.cart.push(pick);
+      triggerHaptic(8);
+      setStatus(`Added to AI cart (${formatAmericanOddsLabel(pick.odds)}). Open AI → Calculate Parlay.`, false);
+      setActiveTab("ai");
+      renderAI();
+    }
+
     /** American odds → decimal price (for parlay multiplication). */
     function americanOddsToImpliedDecimal(am) {
       const n = Number(am);
@@ -5146,7 +5181,7 @@
       return Math.round(-100 / (dec - 1));
     }
 
-    /** Standard same-game-independent parlay: multiply decimal prices. */
+    /** Standard same-game-independent parlay: multiply decimal prices (each leg independent). */
     function combineAmericanParlayOdds(americanList) {
       let d = 1;
       for (const a of americanList) {
@@ -5157,6 +5192,22 @@
       return impliedDecimalToAmerican(d);
     }
 
+    /** Coerce cart / API picks (American int, string "+140", or decimal 1.91) to American for parlay math. */
+    function normalizeParlayAmerican(raw) {
+      return normalizeToAmericanOdds(raw);
+    }
+
+    function combineAmericanParlayOddsFromRaw(rawOddsList) {
+      const norm = [];
+      for (const raw of rawOddsList) {
+        const a = normalizeParlayAmerican(raw);
+        if (a == null || a === 0) return null;
+        norm.push(a);
+      }
+      if (!norm.length) return null;
+      return combineAmericanParlayOdds(norm);
+    }
+
     function formatAmericanOddsLabel(n) {
       const am = normalizeToAmericanOdds(n);
       if (am == null) return "—";
@@ -5164,8 +5215,8 @@
     }
 
     function localParlayPayoutFromCart(stake) {
-      const legs = state.cart.map((c) => Number(c.odds));
-      if (!legs.length || !legs.every((x) => Number.isFinite(x) && x !== 0)) return null;
+      const legs = state.cart.map((c) => normalizeParlayAmerican(c.odds));
+      if (!legs.length || legs.some((x) => x == null || x === 0)) return null;
       const comb = combineAmericanParlayOdds(legs);
       if (!Number.isFinite(comb)) return null;
       const dec = americanOddsToImpliedDecimal(comb);
@@ -7798,8 +7849,9 @@
         return;
       }
       empty.style.display = "none";
+      state.propHubCartRows = visible;
       grid.innerHTML = visible
-        .map((row) => {
+        .map((row, idx) => {
           const sp = row.sport || "nba";
           const legStub = {
             label: row.label,
@@ -7815,6 +7867,10 @@
               ? "—"
               : `${Math.round(Number(row.confidence))}%`;
           const bookL = bookSymbol(row.bookKey || "");
+          const canCart = am != null && am !== 0;
+          const addBtn = canCart
+            ? `<button type="button" class="btn btn-primary elite-prop-hub-add" onclick="addPropHubLegToCart(${idx})">Add to AI cart</button>`
+            : `<span class="mini-value muted">No price</span>`;
           return `
             <article class="elite-prop-hub-card">
               <div class="elite-prop-hub-av">${av}</div>
@@ -7827,12 +7883,13 @@
                 <div class="elite-prop-hub-ouline">${escapeHtml(row.readableLine || "—")}</div>
                 <div class="elite-prop-hub-market muted mini-value">${escapeHtml(propMarketDisplayTitle(row.leg?.market))}</div>
                 <div class="elite-prop-hub-meta">
-                  <span class="${oc}">${escapeHtml(formatAmericanOddsLabel(row.odds))}</span>
+                  <span class="${oc}">${escapeHtml(formatAmericanOddsLabel(am ?? row.odds))}</span>
                   <span class="muted">·</span>
                   <span>${escapeHtml(confLabel)} conf</span>
                   <span class="muted">·</span>
                   <span class="elite-prop-hub-book">${escapeHtml(bookL || "—")}</span>
                 </div>
+                <div class="elite-prop-hub-actions">${addBtn}</div>
               </div>
             </article>
           `;
@@ -8115,7 +8172,12 @@
     function addAiToCart(idx) {
       const pick = state.aiPicks[idx];
       if (!pick) return;
-      state.cart.push(pick);
+      const am = normalizeParlayAmerican(pick.odds);
+      if (am == null || am === 0) {
+        setStatus("That pick has no valid price — regenerate or pick another leg.", true);
+        return;
+      }
+      state.cart.push({ ...pick, odds: am });
       triggerHaptic(8);
       renderAI();
     }
@@ -8159,10 +8221,19 @@
           body: JSON.stringify({
             uid: s.uid,
             stake: cfg.stake,
-            picks: state.cart.map((c) => ({ label: c.label, odds: c.odds })),
+            picks: state.cart.map((c) => ({
+              label: c.label,
+              odds: normalizeParlayAmerican(c.odds) ?? c.odds,
+            })),
           }),
         });
-        setStatus(`AI Parlay • Legs ${data.legCount} • Return $${data.projectedReturn ?? "-"} • Profit $${data.projectedProfit ?? "-"}`);
+        const comb =
+          data.combinedAmerican != null && Number.isFinite(Number(data.combinedAmerican))
+            ? formatAmericanOddsLabel(Number(data.combinedAmerican))
+            : "—";
+        setStatus(
+          `AI Parlay • ${data.legCount} legs • Combined ${comb} • Return $${data.projectedReturn ?? "-"} • Profit $${data.projectedProfit ?? "-"}`,
+        );
       } catch (e) {
         const msg = String(e.message || e || "");
         if (msg.includes("NEEDS_APP_SUBSCRIPTION") || msg.includes("AI_QUOTA_EXCEEDED") || msg.includes("limit reached")) {
@@ -8245,7 +8316,7 @@
           ${state.cart.length ? state.cart.map((c, idx) => `<div class="kpi">• ${escapeHtml(aiPickDisplayTitle(c))} (${escapeHtml(formatAmericanOddsLabel(Number(c.odds)))}) ${renderBookBadges([c.bookKey || c.book], 1)} <button class="btn" onclick="removeAiFromCart(${idx})" style="padding:2px 8px;margin-left:6px;">Remove</button></div>`).join("") : '<div class="kpi">Cart is empty.</div>'}
           ${
             localPar
-              ? `<div class="mini-value muted" style="margin-top:6px;">Local combined line ${escapeHtml(formatAmericanOddsLabel(localPar.combinedAmerican))} at $${escapeHtml(String(cfgAi.stake))} → return $${localPar.projectedReturn.toFixed(2)} (decimal-product method).</div>`
+              ? `<div class="mini-value muted" style="margin-top:6px;">Combined (independent legs): multiply decimal prices per leg, then back to American — <strong>${escapeHtml(formatAmericanOddsLabel(localPar.combinedAmerican))}</strong> at $${escapeHtml(String(cfgAi.stake))} stake → return $${localPar.projectedReturn.toFixed(2)} (not an SGP; verify at your book).</div>`
               : ""
           }
           <button class="btn btn-primary" style="margin-top:8px;" onclick="calcAIParlay()">Calculate Parlay</button>
@@ -9324,6 +9395,7 @@
     window.generateAIPicks = generateAIPicks;
     window.startAiCreditsCheckout = startAiCreditsCheckout;
     window.addAiToCart = addAiToCart;
+    window.addPropHubLegToCart = addPropHubLegToCart;
     window.removeAiFromCart = removeAiFromCart;
     window.calcAIParlay = calcAIParlay;
     window.curatorWebLoadPool = curatorWebLoadPool;

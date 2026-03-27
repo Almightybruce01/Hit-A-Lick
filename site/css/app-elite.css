@@ -1716,3 +1716,16 @@ details.card > summary::-webkit-details-marker {
   color: rgba(150, 220, 255, 0.95);
 }
 
+.elite-prop-hub-actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.elite-prop-hub-add {
+  font-size: 12px;
+  padding: 7px 12px;
+}
+
