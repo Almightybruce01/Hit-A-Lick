@@ -1,0 +1,1718 @@
+/**
+ * Hit-A-Lick Elite layer — extends app.html base styles.
+ * Load after inline base CSS; uses .elite-* and data-elite attributes.
+ */
+
+/* ---- Elite design tokens (override-friendly) ---- */
+:root {
+  --elite-cyan: #5ef5d8;
+  --elite-blue: #5eb0ff;
+  --elite-violet: #b8a6ff;
+  --elite-rose: #ff8fab;
+  --elite-surface-0: rgba(6, 11, 26, 0.55);
+  --elite-surface-1: rgba(12, 22, 48, 0.78);
+  --elite-surface-2: rgba(18, 32, 64, 0.88);
+  --elite-edge: rgba(130, 200, 255, 0.22);
+  --elite-edge-strong: rgba(120, 255, 210, 0.45);
+  --elite-blur: 18px;
+  --elite-radius-xl: 20px;
+  --elite-radius-lg: 16px;
+  --elite-shadow-elev: 0 24px 64px rgba(0, 8, 24, 0.55);
+  --elite-shadow-glow: 0 0 40px rgba(94, 245, 216, 0.12);
+  --elite-font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --elite-t: 0.22s;
+  --elite-t-slow: 0.45s;
+}
+
+html.elite-ui-ready {
+  scroll-behavior: smooth;
+}
+
+html.elite-ui-ready body {
+  font-feature-settings: "ss01" on, "cv02" on;
+}
+
+/* ---- App shell polish ---- */
+.app-layout.elite-shell-enhanced {
+  gap: 20px;
+  align-items: stretch;
+}
+
+.side-rail.elite-rail-v2 {
+  width: 208px;
+  padding: 4px 0;
+  border-radius: var(--elite-radius-lg);
+  border: 1px solid var(--elite-edge);
+  background: linear-gradient(165deg, var(--elite-surface-1), var(--elite-surface-0));
+  backdrop-filter: blur(var(--elite-blur));
+  box-shadow: var(--elite-shadow-elev), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.rail-head.elite-rail-head {
+  padding: 0 12px 6px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  background: linear-gradient(90deg, var(--elite-cyan), var(--elite-blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.rail-link.elite-rail-link {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(120, 170, 255, 0.2);
+  background: rgba(8, 14, 34, 0.65);
+  transition:
+    transform var(--elite-t) ease,
+    border-color var(--elite-t),
+    box-shadow var(--elite-t);
+}
+
+.rail-link.elite-rail-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 40%, rgba(120, 255, 220, 0.07) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.rail-link.elite-rail-link:hover::before {
+  transform: translateX(100%);
+}
+
+.rail-link.elite-rail-link:hover {
+  border-color: var(--elite-edge-strong);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), var(--elite-shadow-glow);
+}
+
+.rail-hint {
+  opacity: 0.88;
+}
+
+.kbd,
+.elite-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25em;
+  padding: 1px 5px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  border: 1px solid rgba(140, 180, 240, 0.35);
+  background: rgba(0, 0, 0, 0.25);
+  color: #c8ddff;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ---- Top bar & hero ---- */
+.top.elite-top-bar {
+  border-radius: var(--elite-radius-lg);
+  background: linear-gradient(135deg, rgba(14, 24, 52, 0.92), rgba(8, 14, 32, 0.88));
+  border: 1px solid rgba(130, 175, 255, 0.2);
+  box-shadow: 0 16px 40px rgba(0, 4, 18, 0.45);
+}
+
+.brand.elite-brand {
+  gap: 12px;
+}
+
+.brand.elite-brand img {
+  box-shadow: 0 0 20px rgba(120, 255, 210, 0.15);
+}
+
+.hero.elite-hero-v2 {
+  border-radius: var(--elite-radius-xl);
+  border: 1px solid rgba(100, 220, 200, 0.22);
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(80, 200, 255, 0.12), transparent 50%),
+    linear-gradient(155deg, rgba(10, 22, 52, 0.95), rgba(6, 12, 28, 0.88));
+  box-shadow: var(--elite-shadow-elev), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hero-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.pill-stat.elite-pill {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(130, 210, 255, 0.35);
+  background: rgba(0, 20, 40, 0.45);
+  color: #c8f7ff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ---- Toolbar elite ---- */
+.toolbar.elite-toolbar {
+  border-radius: var(--elite-radius-lg);
+  border: 1px solid rgba(120, 160, 230, 0.22);
+  background: linear-gradient(180deg, rgba(12, 20, 44, 0.92), rgba(8, 14, 32, 0.85));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+.hl-toolbar-primary {
+  align-items: stretch;
+}
+
+.hl-toolbar-primary label.muted {
+  align-self: center;
+}
+
+/* ---- Tabs elite ---- */
+.tabs.elite-tabs {
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(0, 8, 24, 0.35);
+  border: 1px solid rgba(120, 160, 220, 0.15);
+}
+
+.tab-btn.elite-tab {
+  border-radius: 999px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  transition:
+    background var(--elite-t),
+    color var(--elite-t),
+    box-shadow var(--elite-t);
+}
+
+.tab-btn.elite-tab.active {
+  background: linear-gradient(135deg, rgba(80, 200, 255, 0.25), rgba(100, 255, 200, 0.18));
+  box-shadow:
+    0 0 0 1px rgba(120, 255, 210, 0.35),
+    0 8px 20px rgba(0, 0, 0, 0.25);
+  color: #e8fff8 !important;
+}
+
+/* ---- Panels & cards ---- */
+.panel.elite-panel-active {
+  animation: elitePanelIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes elitePanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card.elite-card {
+  border-radius: 14px;
+  border: 1px solid rgba(130, 170, 240, 0.18);
+  background: linear-gradient(165deg, rgba(14, 24, 52, 0.95), rgba(8, 14, 32, 0.82));
+  box-shadow: 0 14px 36px rgba(0, 4, 20, 0.38);
+}
+
+.card.elite-card:hover {
+  border-color: rgba(120, 255, 210, 0.28);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.42), 0 0 32px rgba(80, 200, 255, 0.06);
+}
+
+.card.elite-card h3 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ---- Command palette overlay ---- */
+#elite-command-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8vh 16px 24px;
+  background: rgba(2, 6, 18, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+#elite-command-root.elite-open {
+  display: flex;
+  animation: eliteFadeIn 0.2s ease both;
+}
+
+@keyframes eliteFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.elite-command-dialog {
+  width: min(560px, 100%);
+  max-height: min(72vh, 560px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--elite-radius-xl);
+  border: 1px solid rgba(130, 200, 255, 0.28);
+  background: linear-gradient(165deg, rgba(12, 22, 48, 0.98), rgba(6, 12, 28, 0.96));
+  box-shadow: var(--elite-shadow-elev), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  overflow: hidden;
+}
+
+.elite-command-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(120, 160, 230, 0.15);
+  background: rgba(0, 12, 32, 0.4);
+}
+
+.elite-command-head label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7ecfff;
+  white-space: nowrap;
+}
+
+.elite-command-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(4, 10, 28, 0.85) !important;
+  border: 1px solid rgba(130, 200, 255, 0.25) !important;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+  font-size: 15px !important;
+  color: #eef6ff !important;
+  outline: none !important;
+}
+
+.elite-command-input::placeholder {
+  color: rgba(180, 200, 240, 0.45);
+}
+
+.elite-command-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.elite-command-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  margin: 2px 0;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: #e8f2ff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background var(--elite-t),
+    border-color var(--elite-t);
+}
+
+.elite-command-item small {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(180, 205, 240, 0.65);
+}
+
+.elite-command-item:hover,
+.elite-command-item.elite-cmd-active {
+  background: rgba(80, 160, 255, 0.12);
+  border-color: rgba(120, 220, 255, 0.22);
+}
+
+.elite-command-item .elite-cmd-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.elite-command-footer {
+  padding: 10px 14px;
+  font-size: 11px;
+  color: rgba(160, 190, 230, 0.75);
+  border-top: 1px solid rgba(120, 160, 230, 0.12);
+  background: rgba(0, 8, 22, 0.5);
+}
+
+/* ---- Toast stack ---- */
+#elite-toast-stack {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(88px, calc(env(safe-area-inset-bottom) + 72px));
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: min(400px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.elite-toast {
+  pointer-events: auto;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(130, 200, 255, 0.28);
+  background: linear-gradient(135deg, rgba(16, 28, 58, 0.96), rgba(8, 16, 36, 0.94));
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  font-size: 13px;
+  font-weight: 600;
+  color: #eef4ff;
+  animation: eliteToastIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.elite-toast.elite-toast-warn {
+  border-color: rgba(255, 200, 120, 0.45);
+  background: linear-gradient(135deg, rgba(48, 36, 12, 0.95), rgba(28, 22, 10, 0.92));
+}
+
+.elite-toast.elite-toast-bad {
+  border-color: rgba(255, 130, 130, 0.45);
+  background: linear-gradient(135deg, rgba(48, 18, 22, 0.95), rgba(30, 10, 14, 0.92));
+}
+
+.elite-toast.elite-toast-ok {
+  border-color: rgba(100, 255, 200, 0.4);
+  background: linear-gradient(135deg, rgba(12, 42, 36, 0.95), rgba(8, 28, 24, 0.92));
+}
+
+@keyframes eliteToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* ---- Live region (screen reader) ---- */
+#elite-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ---- Bottom nav polish ---- */
+.bottom-nav.elite-bottom-nav {
+  border-radius: 20px;
+  border: 1px solid rgba(130, 190, 255, 0.22);
+  background: linear-gradient(180deg, rgba(10, 18, 42, 0.94), rgba(6, 12, 28, 0.92));
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.bottom-tab.elite-bottom-tab {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s;
+}
+
+.bottom-tab.elite-bottom-tab:active {
+  transform: scale(0.96);
+}
+
+/* ---- Quick actions strip ---- */
+.quick-actions.elite-quick-actions {
+  border-radius: var(--elite-radius-lg);
+  border: 1px solid rgba(130, 180, 255, 0.18);
+  background: rgba(6, 12, 30, 0.75);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- Buttons: elite ripple target ---- */
+.btn.elite-btn-ghost {
+  background: rgba(12, 22, 48, 0.6);
+  border-color: rgba(130, 170, 240, 0.28);
+}
+
+.btn.elite-btn-ghost:hover {
+  border-color: rgba(120, 255, 210, 0.45);
+}
+
+/* ---- Focus visible (a11y) ---- */
+.elite-focus-ring:focus-visible {
+  outline: 2px solid rgba(120, 255, 210, 0.85);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+.tab-btn:focus-visible,
+.bottom-tab:focus-visible,
+.rail-link:focus-visible {
+  outline: 2px solid rgba(120, 220, 255, 0.75);
+  outline-offset: 2px;
+}
+
+/* ---- Tables ---- */
+.board-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.mini-table tr:nth-child(even) td {
+  background: rgba(0, 8, 24, 0.15);
+}
+
+/* ---- Desk / leg panels ---- */
+.leg-panel.elite-leg-glow:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 24px rgba(80, 200, 255, 0.06);
+}
+
+/* ---- Prop rail mask refine ---- */
+.prop-rail {
+  scroll-padding-inline: 8px;
+}
+
+/* ---- Status line ---- */
+.status.elite-status-pulse {
+  transition: color 0.3s ease;
+}
+
+/* ---- Reduced motion: elite animations off ---- */
+@media (prefers-reduced-motion: reduce) {
+  .elite-toast,
+  .panel.elite-panel-active,
+  #elite-command-root.elite-open {
+    animation: none !important;
+  }
+  .card.elite-card:hover,
+  .rail-link.elite-rail-link:hover {
+    transform: none !important;
+  }
+}
+
+/* ---- Light theme: elite overrides ---- */
+body.light .elite-command-dialog {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 255, 0.96));
+  border-color: rgba(80, 120, 200, 0.22);
+}
+
+body.light .elite-command-input {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0f2248 !important;
+  border-color: rgba(80, 120, 200, 0.28) !important;
+}
+
+body.light .elite-command-item {
+  color: #142a52;
+}
+
+body.light .elite-toast {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 246, 255, 0.96));
+  color: #142a52;
+  border-color: rgba(80, 120, 200, 0.25);
+}
+
+body.light .side-rail.elite-rail-v2 {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(244, 248, 255, 0.88));
+  border-color: rgba(80, 120, 200, 0.2);
+}
+
+/* ---- Print ---- */
+@media print {
+  #elite-command-root,
+  #elite-toast-stack,
+  .side-rail,
+  .bottom-nav,
+  .quick-actions,
+  .bg-scene {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
+
+/* ---- Mobile: rail collapse hint ---- */
+@media (max-width: 1100px) {
+  .side-rail.elite-rail-v2 {
+    display: none;
+  }
+}
+
+/* ---- Utility: spacing ---- */
+.elite-mt-0 {
+  margin-top: 0 !important;
+}
+.elite-mt-1 {
+  margin-top: 4px !important;
+}
+.elite-mt-2 {
+  margin-top: 8px !important;
+}
+.elite-mt-3 {
+  margin-top: 12px !important;
+}
+.elite-mt-4 {
+  margin-top: 16px !important;
+}
+.elite-mb-2 {
+  margin-bottom: 8px !important;
+}
+.elite-mb-3 {
+  margin-bottom: 12px !important;
+}
+.elite-p-3 {
+  padding: 12px !important;
+}
+.elite-rounded {
+  border-radius: 12px !important;
+}
+.elite-text-gradient {
+  background: linear-gradient(90deg, #9fffe8, #7ec0ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.elite-opacity-70 {
+  opacity: 0.7;
+}
+.elite-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ---- Extended surface variants (density) ---- */
+.elite-surface-a {
+  background: linear-gradient(145deg, rgba(14, 26, 56, 0.92), rgba(8, 14, 32, 0.88));
+  border: 1px solid rgba(120, 170, 240, 0.18);
+  border-radius: 14px;
+}
+.elite-surface-b {
+  background: linear-gradient(160deg, rgba(10, 20, 44, 0.9), rgba(6, 12, 28, 0.85));
+  border: 1px solid rgba(100, 200, 255, 0.12);
+  border-radius: 12px;
+}
+.elite-surface-c {
+  background: rgba(4, 10, 26, 0.65);
+  border: 1px solid rgba(130, 160, 220, 0.14);
+  border-radius: 10px;
+}
+.elite-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(120, 170, 240, 0.25), transparent);
+  margin: 10px 0;
+}
+.elite-glow-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #9fffd8, #3aa8ff);
+  box-shadow: 0 0 12px rgba(120, 255, 210, 0.5);
+  flex-shrink: 0;
+}
+.elite-row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.elite-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.elite-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid rgba(130, 200, 255, 0.35);
+  background: rgba(0, 20, 48, 0.5);
+  color: #bfe8ff;
+}
+.elite-badge-live {
+  border-color: rgba(255, 120, 160, 0.45);
+  color: #ffc8d8;
+  animation: elitePulseSoft 2.4s ease-in-out infinite;
+}
+@keyframes elitePulseSoft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+/* ---- Chart & data viz accents ---- */
+.chart.elite-chart-accent {
+  border-color: rgba(120, 200, 255, 0.22);
+}
+.line-path.elite-line-bright {
+  stroke: url(#eliteLineGrad);
+  stroke-width: 2.2;
+}
+.elite-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 10px;
+  color: rgba(180, 205, 240, 0.75);
+  margin-top: 6px;
+}
+.elite-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.elite-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #7effd0, #4a9fff);
+}
+
+/* ---- Scrollbar (webkit) ---- */
+.elite-command-list::-webkit-scrollbar,
+.prop-rail::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.elite-command-list::-webkit-scrollbar-thumb,
+.prop-rail::-webkit-scrollbar-thumb {
+  background: rgba(120, 170, 240, 0.35);
+  border-radius: 6px;
+}
+.elite-command-list::-webkit-scrollbar-track,
+.prop-rail::-webkit-scrollbar-track {
+  background: rgba(0, 8, 24, 0.35);
+}
+
+/* ---- Skeleton elite ---- */
+.elite-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(20, 32, 64, 0.4) 0%, rgba(40, 60, 100, 0.35) 50%, rgba(20, 32, 64, 0.4) 100%);
+  background-size: 200% 100%;
+  animation: eliteShimmer 1.2s ease-in-out infinite;
+  border-radius: 10px;
+}
+@keyframes eliteShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ---- AI plays strip ---- */
+.ai-plays-of-day.elite-ai-plays {
+  border-radius: var(--elite-radius-lg);
+  border: 1px solid rgba(100, 240, 200, 0.25);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32);
+}
+.ai-play-row.elite-ai-row {
+  border-top-color: rgba(100, 160, 220, 0.12);
+}
+
+/* ---- Confidence orbs: subtle pulse on high conf ---- */
+.confidence-orb.green.elite-orb-hot {
+  animation: eliteOrbPulse 2.8s ease-in-out infinite;
+}
+@keyframes eliteOrbPulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 20px rgba(255, 255, 255, 0.08),
+      0 8px 14px rgba(0, 0, 0, 0.32);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 24px rgba(255, 255, 255, 0.12),
+      0 8px 20px rgba(60, 220, 160, 0.22);
+  }
+}
+
+/* ---- Feed cards ---- */
+.feed-post-card.elite-feed-card {
+  border-radius: 16px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.feed-post-card.elite-feed-card:hover {
+  border-color: rgba(130, 200, 255, 0.35);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+/* ---- Games grid cards ---- */
+.game-card-v2.elite-game-card {
+  border-radius: 16px;
+}
+.game-card-v2.elite-game-card[open] {
+  border-color: rgba(120, 200, 255, 0.35);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* ---- Integrity / account section tone ---- */
+.section-tone-pro.elite-section-pro {
+  border-radius: var(--elite-radius-lg);
+}
+
+/* ---- More utility density (layout) ---- */
+.elite-gap-1 {
+  gap: 4px !important;
+}
+.elite-gap-2 {
+  gap: 8px !important;
+}
+.elite-gap-3 {
+  gap: 12px !important;
+}
+.elite-flex-wrap {
+  flex-wrap: wrap !important;
+}
+.elite-min-w-0 {
+  min-width: 0 !important;
+}
+.elite-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.elite-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.elite-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 720px) {
+  .elite-grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .elite-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Link underline animation ---- */
+.elite-link-animated {
+  position: relative;
+  text-decoration: none;
+  color: inherit;
+}
+.elite-link-animated::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--elite-cyan), var(--elite-blue));
+  transition: width 0.25s ease;
+}
+.elite-link-animated:hover::after {
+  width: 100%;
+}
+
+/* ---- Noise overlay optional ---- */
+.elite-noise-lite::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  border-radius: inherit;
+}
+
+/* ---- High contrast hint (not full HC theme) ---- */
+@media (prefers-contrast: more) {
+  .btn,
+  .tab-btn,
+  .card {
+    border-width: 2px;
+  }
+}
+
+/* ---- Hover media ---- */
+@media (hover: none) {
+  .card:hover {
+    transform: none;
+  }
+}
+
+/* ---- Safe area padding helpers ---- */
+.elite-safe-pad {
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
+}
+
+/* ---- Z-index scale ---- */
+.elite-z-dropdown {
+  z-index: 50;
+}
+.elite-z-modal {
+  z-index: 1000;
+}
+.elite-z-toast {
+  z-index: 999;
+}
+
+/* ---- Monospace data ---- */
+.elite-mono-data {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: #c5ddff;
+}
+
+/* ---- Tier strip (decorative) ---- */
+.elite-tier-strip {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3a6fff, #5ef5d8, #b8a6ff);
+  opacity: 0.85;
+  margin-bottom: 10px;
+}
+
+/* ---- Extended: dashboard / desk density ---- */
+.dash-bento.elite-bento {
+  gap: 16px;
+}
+.dash-hero.elite-dash-hero {
+  border-radius: var(--elite-radius-xl);
+}
+.dash-side-card.elite-dash-aside {
+  border-radius: 14px;
+  border: 1px solid rgba(120, 170, 240, 0.2);
+  background: rgba(6, 12, 28, 0.75);
+  padding: 14px;
+}
+.burn-bar {
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+}
+.burn-bar > i {
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.quota-table-wrap.elite-quota-wrap {
+  border-radius: 12px;
+  overflow: auto;
+  border: 1px solid rgba(120, 160, 230, 0.15);
+}
+.quota-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* ---- Curator rail ---- */
+.curator-prop-desk.elite-curator-desk {
+  border-radius: 14px;
+}
+
+/* ---- Premium / AI panels ---- */
+#panel-premium .card,
+#panel-ai .card {
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+/* ---- Sticky toolbar enhancement (desktop) ---- */
+@media (min-width: 900px) {
+  .toolbar.elite-toolbar-sticky {
+    position: sticky;
+    top: 8px;
+    z-index: 8;
+  }
+}
+
+/* ---- Story / creator lanes ---- */
+.story-row.elite-story-smooth {
+  scroll-snap-type: x proximity;
+}
+.story-card.elite-story-card {
+  scroll-snap-align: start;
+}
+
+/* ---- Inbox ---- */
+.inbox-item.elite-inbox-hover:hover {
+  border-color: rgba(130, 200, 255, 0.35);
+}
+
+/* ---- Paywall shield ---- */
+#hlPaywallShield {
+  transition: opacity 0.3s ease;
+}
+
+/* ---- Empty states ---- */
+.empty-card.elite-empty-v2 {
+  border-style: solid;
+  background: linear-gradient(135deg, rgba(12, 22, 48, 0.55), rgba(8, 14, 32, 0.5));
+}
+
+/* ---- Flow strip elite ---- */
+.flow-strip.elite-flow-3 {
+  gap: 10px;
+}
+.flow-step.elite-flow-step {
+  position: relative;
+  overflow: hidden;
+}
+.flow-step.elite-flow-step::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(120, 200, 255, 0.2), transparent);
+}
+.flow-step.elite-flow-step:last-child::after {
+  display: none;
+}
+
+/* ---- Search input highlight ---- */
+#searchInput.elite-search-glow:focus {
+  box-shadow:
+    0 0 0 3px rgba(100, 220, 200, 0.12),
+    0 12px 28px rgba(0, 0, 0, 0.25);
+}
+
+/* ---- Select native polish ---- */
+select.elite-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, rgba(180, 210, 255, 0.6) 50%),
+    linear-gradient(135deg, rgba(180, 210, 255, 0.6) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 2px),
+    calc(100% - 11px) calc(50% - 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+/* ---- Checkbox bang-for-buck row ---- */
+label[for="bangForBuckToggle"],
+label:has(#bangForBuckToggle) {
+  user-select: none;
+}
+
+/* ---- Details / summary marker ---- */
+details.card > summary {
+  list-style: none;
+}
+details.card > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* ---- Logo pulse (subtle) ---- */
+@keyframes eliteLogoGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(120, 220, 255, 0.2));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(120, 255, 210, 0.35));
+  }
+}
+.brand img.elite-logo-anim {
+  animation: eliteLogoGlow 4s ease-in-out infinite;
+}
+
+/* ---- Data density table (games) ---- */
+.mini-table.elite-table-dense td,
+.mini-table.elite-table-dense th {
+  padding: 4px 5px;
+  font-size: 10px;
+}
+
+/* ---- Prop micro grid ---- */
+.prop-micro-grid.elite-micro-grid {
+  gap: 10px;
+}
+.prop-micro-card.elite-pm-card {
+  transition:
+    transform 0.18s ease,
+    border-color 0.2s;
+}
+
+/* ---- Bottom tab grid (when many tabs) ---- */
+.bottom-nav {
+  transition: transform 0.25s ease;
+}
+
+/* ---- Command deck tiles ---- */
+.tile-row .league-tile.elite-tile,
+.tile-row .heat-tile.elite-tile {
+  border-radius: 12px;
+}
+
+/* ---- Ring chart (home) ---- */
+.ring-wrap.elite-ring {
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.35));
+}
+
+/* ---- Tab bottom safe area ---- */
+@media (max-width: 900px) {
+  .panel {
+    padding-bottom: max(28px, calc(20px + env(safe-area-inset-bottom)));
+  }
+}
+
+/* ---- Large typography scale ---- */
+.elite-text-xs {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(160, 190, 230, 0.85);
+}
+.elite-text-sm {
+  font-size: 12px;
+  line-height: 1.45;
+}
+.elite-text-md {
+  font-size: 14px;
+  line-height: 1.45;
+}
+.elite-text-lg {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ---- Flex alignment utilities ---- */
+.elite-items-start {
+  align-items: flex-start !important;
+}
+.elite-items-center {
+  align-items: center !important;
+}
+.elite-justify-end {
+  justify-content: flex-end !important;
+}
+
+/* ---- Border utilities ---- */
+.elite-border-dashed {
+  border-style: dashed !important;
+}
+.elite-border-glow {
+  box-shadow: 0 0 0 1px rgba(120, 255, 210, 0.15), 0 0 24px rgba(80, 200, 255, 0.08);
+}
+
+/* ---- Backdrop blur utility ---- */
+.elite-blur-sm {
+  backdrop-filter: blur(8px);
+}
+.elite-blur-md {
+  backdrop-filter: blur(16px);
+}
+
+/* ---- Transform GPU hint ---- */
+.elite-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* ---- Extended responsive (tablet / phone) ---- */
+@media (max-width: 900px) {
+  .wrap {
+    padding: 12px !important;
+  }
+  .hero.elite-hero-v2 {
+    padding: 12px !important;
+  }
+  .toolbar.elite-toolbar {
+    padding: 8px !important;
+  }
+  .tabs.elite-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs.elite-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-btn.elite-tab {
+    flex-shrink: 0;
+  }
+  .deck-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .flow-strip {
+    grid-template-columns: 1fr !important;
+  }
+  .flow-step.elite-flow-step::after {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .top.elite-top-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .nav {
+    justify-content: center;
+  }
+  .hero-strip {
+    justify-content: center;
+  }
+  .pill-stat.elite-pill {
+    font-size: 10px;
+    padding: 5px 9px;
+  }
+}
+
+/* ---- Elite panel section backgrounds ---- */
+#panel-home .grid > .card:first-child {
+  position: relative;
+}
+#panel-dash .dashboard-shell {
+  gap: 16px;
+}
+
+/* ---- Button group ---- */
+.elite-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ---- Stat pill row ---- */
+.elite-stat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.elite-stat-pills span {
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(130, 180, 255, 0.22);
+  background: rgba(0, 12, 32, 0.45);
+  color: #c5d8f5;
+}
+
+/* ---- Divider with label ---- */
+.elite-divider-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 10px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(160, 195, 240, 0.75);
+}
+.elite-divider-label::before,
+.elite-divider-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(120, 170, 240, 0.28), transparent);
+}
+
+/* ---- Loading dots ---- */
+.elite-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.elite-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(130, 220, 255, 0.85);
+  animation: eliteDot 1.1s ease-in-out infinite both;
+}
+.elite-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.elite-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes eliteDot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ---- Tag list ---- */
+.elite-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.elite-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(140, 180, 240, 0.25);
+  background: rgba(8, 16, 36, 0.65);
+  color: #b8cff5;
+}
+
+/* ---- Progress thin ---- */
+.elite-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin-top: 8px;
+}
+.elite-progress > i {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4a9fff, #5ef5d8);
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---- Tooltip (title attr styled via data attribute optional) ---- */
+.elite-hint[data-hint]::after {
+  content: attr(data-hint);
+  position: absolute;
+  /* minimal — real tooltips need JS; this is decorative fallback */
+}
+
+/* ---- Glass card variant ---- */
+.elite-glass {
+  background: linear-gradient(135deg, rgba(20, 32, 64, 0.45), rgba(10, 18, 40, 0.35)) !important;
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(130, 200, 255, 0.15) !important;
+}
+
+/* ---- Inset highlight ---- */
+.elite-inset {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ---- Text balance (where supported) ---- */
+.elite-balance {
+  text-wrap: balance;
+}
+
+/* ---- Selection color ---- */
+::selection {
+  background: rgba(100, 200, 255, 0.35);
+  color: #fff;
+}
+
+/* ---- Link buttons in nav ---- */
+.nav a.elite-nav-link {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---- Hero CTA emphasis ---- */
+.hero .btn-primary {
+  box-shadow: 0 8px 24px rgba(60, 180, 255, 0.22);
+}
+
+/* ---- AI grid spacing ---- */
+#panel-ai .grid {
+  gap: 12px;
+}
+
+/* ---- Premium grid spacing ---- */
+#panel-premium .grid {
+  gap: 12px;
+}
+
+/* ---- Alerts grid ---- */
+#panel-alerts .inbox-list {
+  gap: 10px;
+}
+
+/* ---- Account grid ---- */
+#panel-account .grid {
+  gap: 12px;
+}
+
+/* ---- Integrity ---- */
+#panel-integrity .grid {
+  gap: 12px;
+}
+
+/* ---- Posts / curator ---- */
+#panel-posts .grid {
+  gap: 12px;
+}
+
+/* ---- Players grid density ---- */
+#panel-players .grid {
+  gap: 11px;
+}
+
+/* ---- Games grid ---- */
+#panel-games .grid {
+  gap: 11px;
+}
+
+/* ---- Home grid ---- */
+#panel-home .grid {
+  gap: 12px;
+}
+
+/* ---- Command deck responsive ---- */
+@media (max-width: 720px) {
+  .command-deck .deck-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .heat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .tile-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ---- Floating label feel (search) ---- */
+#searchInput::placeholder {
+  opacity: 0.55;
+}
+
+/* ---- Tier select hidden still occupies no extra gap ---- */
+#tierSelect[hidden],
+#tierSelect[style*="display: none"] {
+  display: none !important;
+}
+
+/* ---- Skeleton elite variant hook ---- */
+.skeleton.elite-skel-v2 {
+  min-height: 120px;
+  border-radius: 14px;
+}
+
+/* ---- Status chroma by class (JS can set) ---- */
+#globalStatus.elite-status-ok {
+  color: #7dffd0 !important;
+}
+#globalStatus.elite-status-warn {
+  color: #ffd49c !important;
+}
+#globalStatus.elite-status-err {
+  color: #ff9f9f !important;
+}
+
+/* ---- Bottom tab wrap on tiny screens ---- */
+@media (max-width: 380px) {
+  .bottom-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ---- Rail link active state (optional class from JS) ---- */
+.rail-link.elite-rail-active {
+  border-color: rgba(120, 255, 210, 0.55);
+  background: rgba(20, 50, 60, 0.45);
+}
+
+/* ---- Prop leg strip chips ---- */
+.prop-leg-chip {
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.prop-leg-chip:hover {
+  border-color: rgba(130, 200, 255, 0.4);
+}
+
+/* ---- Mini table zebra stronger ---- */
+.mini-table tbody tr:hover td {
+  background: rgba(30, 50, 90, 0.25);
+}
+
+/* ---- Board table sticky first col (optional) ---- */
+.board-table th:first-child,
+.board-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: rgba(11, 19, 40, 0.96);
+}
+
+/* ---- Desk leg panels ---- */
+.leg-panel-grid {
+  gap: 1.2rem;
+}
+
+/* ---- Fade edge on horizontal scroll areas ---- */
+.prop-rail.elite-rail-mask {
+  mask-image: linear-gradient(to right, transparent 0, black 3%, black 97%, transparent 100%);
+}
+
+/* ---- Quote / callout ---- */
+.elite-callout {
+  border-left: 3px solid rgba(100, 220, 255, 0.55);
+  padding: 10px 12px;
+  margin: 10px 0;
+  border-radius: 0 10px 10px 0;
+  background: rgba(0, 20, 48, 0.35);
+  font-size: 12px;
+  line-height: 1.45;
+  color: #d0e4ff;
+}
+
+/* ---- Numeric emphasis ---- */
+.elite-num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Subtle grid background on panels ---- */
+.panel.active {
+  position: relative;
+}
+.panel.active::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.04;
+  background-image: linear-gradient(rgba(120, 170, 255, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 170, 255, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+  z-index: 0;
+}
+.panel.active > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Skip link (app shell) ---- */
+.elite-skip {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 100001;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  color: #041322;
+  background: linear-gradient(135deg, #5ec9ff, #7dffd4);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  transform: translateY(-160%);
+  transition: transform 0.2s ease;
+}
+.elite-skip:focus {
+  transform: translateY(0);
+  outline: 2px solid rgba(130, 220, 255, 0.95);
+  outline-offset: 3px;
+}
+
+/* ---- Prop hub (all legs) ---- */
+.elite-prop-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 42vh;
+}
+
+.elite-prop-hub-head {
+  padding: 4px 2px 0;
+}
+
+.elite-prop-hub-title {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-family: var(--elite-font-display);
+  background: linear-gradient(92deg, var(--elite-cyan), var(--elite-blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.elite-prop-hub-sub {
+  margin: 0;
+  max-width: 52rem;
+  line-height: 1.45;
+}
+
+.elite-prop-hub-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--elite-radius-lg);
+  border: 1px solid var(--elite-edge);
+  background: linear-gradient(145deg, var(--elite-surface-1), var(--elite-surface-0));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.elite-prop-hub-toolbar select {
+  border-radius: 10px;
+  border: 1px solid rgba(130, 175, 255, 0.28);
+  background: rgba(6, 12, 28, 0.72);
+  color: #e8f0ff;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.elite-prop-hub-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.elite-prop-hub-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: var(--elite-radius-lg);
+  border: 1px solid rgba(120, 190, 255, 0.2);
+  background: linear-gradient(155deg, var(--elite-surface-2), rgba(10, 18, 40, 0.72));
+  box-shadow: 0 12px 32px rgba(0, 6, 20, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    border-color var(--elite-t),
+    transform var(--elite-t),
+    box-shadow var(--elite-t);
+}
+
+.elite-prop-hub-card:hover {
+  border-color: var(--elite-edge-strong);
+  box-shadow: var(--elite-shadow-elev), var(--elite-shadow-glow);
+  transform: translateY(-1px);
+}
+
+.elite-prop-hub-av .leg-headshot-slot {
+  width: 44px;
+  height: 44px;
+}
+
+.elite-prop-hub-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.elite-prop-hub-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.elite-prop-hub-player {
+  font-weight: 800;
+  font-size: 0.98rem;
+  letter-spacing: 0.02em;
+}
+
+.elite-prop-hub-sport {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.elite-prop-hub-match {
+  font-size: 12px;
+  color: rgba(200, 220, 255, 0.88);
+  margin-top: 2px;
+}
+
+.elite-prop-hub-line {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #f2f7ff;
+}
+
+.elite-prop-hub-ouline {
+  margin-top: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  color: #f6fbff;
+  font-variant-numeric: tabular-nums;
+}
+
+.elite-prop-hub-market {
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.elite-prop-hub-meta {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.elite-prop-hub-book {
+  color: rgba(150, 220, 255, 0.95);
+}
+
