@@ -73,7 +73,7 @@ async function requestWithRetry(config, attempts = 2) {
       // Retry only transient failures.
       if (status && status < 500 && status !== 429) break;
       if (i < attempts - 1) {
-        await new Promise((r) => setTimeout(r, 250 * (i + 1)));
+        await new Promise((r) => setTimeout(r, 150 * (i + 1)));
       }
     }
   }

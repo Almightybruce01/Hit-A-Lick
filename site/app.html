@@ -3809,9 +3809,9 @@
     }
 
     async function runRapidDiagnostics(full = false) {
-      try {
-        const suffix = full ? "?full=1" : "";
-        const data = await fetchJson(`/api/setup/rapid-diagnostics${suffix}`);
+        try {
+          const suffix = full ? "?full=1" : "";
+          const data = await fetchJson(`/api/setup/rapid-diagnostics${suffix}`, {}, 1, 8000);
         state.providerStats.diagnosticsRuns = Number(state.providerStats.diagnosticsRuns || 0) + 1;
         state.diagnosticsSummary = data || null;
         recordProviderHealth(Boolean(data?.ok !== false), "Rapid diagnostics reported issues.");
@@ -6341,7 +6341,7 @@
         dateKey = __aiPlaysOfDayMemo.dateKey;
       } else {
         try {
-          const data = await fetchJson("/api/ai/plays-of-day", { method: "GET" }, 1, 15000);
+          const data = await fetchJson("/api/ai/plays-of-day", { method: "GET" }, 1, 8000);
           if (Array.isArray(data.picks) && data.picks.length) {
             __aiPlaysOfDayMemo = { t: Date.now(), picks: data.picks, dateKey: data.dateKey || null };
             serverPicks = data.picks;
@@ -6533,7 +6533,7 @@
       );
     }
 
-    async function fetchWithTimeout(url, options = {}, timeoutMs = 20000) {
+    async function fetchWithTimeout(url, options = {}, timeoutMs = 9000) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
@@ -6543,7 +6543,7 @@
       }
     }
 
-    async function fetchJson(path, options = {}, attempts = 2, timeoutMs = 20000) {
+    async function fetchJson(path, options = {}, attempts = 2, timeoutMs = 9000) {
       let lastErr = null;
       const hdrs = { ...(options.headers && typeof options.headers === "object" ? options.headers : {}) };
       if (!hdrs["X-Hit-Device-Id"] && !hdrs["x-hit-device-id"]) {
@@ -6754,7 +6754,7 @@
       let totalPlayerProps = 0;
       const sportFailures = [];
       const sourceMix = {};
-      const propTimeoutMs = maxCovOn() ? 22000 : 18000;
+      const propTimeoutMs = maxCovOn() ? 10000 : 8000;
       const bustPropsCache = Boolean(state.forcePropsLiveNext);
       state.forcePropsLiveNext = false;
       const propsLiveSuffix = bustPropsCache ? "&forceLive=1" : "";
@@ -6834,9 +6834,9 @@
       /**
        * All leagues: **parallel per-sport first** (4 smaller responses; most reliable on laptops / flaky networks).
        * If still empty, one combined `/sport=all` pass as backup (server fan-out).
-       * Keep the combined timeout aggressive so the UI never appears “stuck” on Loading for more than ~45s.
+       * Keep the combined timeout aggressive so the UI never appears “stuck” on Loading for more than ~10s.
        */
-      const combinedPropsTimeoutMs = Math.min(45000, Math.max(propTimeoutMs, 25000));
+      const combinedPropsTimeoutMs = Math.min(10000, Math.max(propTimeoutMs, 7000));
       const propsPromise = (async () => {
         if (sportSelect.value === "all") {
           await loadPropsParallelBySport();
@@ -6864,7 +6864,7 @@
 
       const [_, gameDataRaw] = await Promise.all([
         propsPromise,
-        fetchJson(gamesUrl, {}, 3, 60000).catch(() => null),
+        fetchJson(gamesUrl, {}, 2, 9000).catch(() => null),
       ]);
       /**
        * Initial sort only — `finalizeDerivedBoardState()` runs after players load so
@@ -9476,11 +9476,11 @@
         await Promise.all([
           (async () => {
             try {
-              /** Hard cap props/games phase so the UI never feels locked for more than ~40s even if the API is unhealthy. */
+              /** Hard cap props/games phase so the UI never feels locked for more than ~10s even if the API is unhealthy. */
               await Promise.race([
                 loadPropsAndGames(),
                 new Promise((_, reject) =>
-                  setTimeout(() => reject(new Error("props/games timed out after 40s")), 40000),
+                  setTimeout(() => reject(new Error("props/games timed out after 10s")), 10000),
                 ),
               ]);
             } catch (e) {
