@@ -2576,7 +2576,8 @@
       },
     };
     const HITALICK_CLOUD_RUN_API = "https://api-lifnvql5aa-uc.a.run.app";
-    const API_BASES = ["", HITALICK_CLOUD_RUN_API];
+    /** Always hit Cloud Run directly for app APIs; the static host just serves HTML/JS/CSS. */
+    const API_BASES = [HITALICK_CLOUD_RUN_API];
     /** GitHub Pages has no `/api` rewrite — billing must hit Cloud Run directly. */
     function hitBillingApiUrl(path) {
       if ((location.hostname || "").toLowerCase().indexOf("github.io") >= 0) {
