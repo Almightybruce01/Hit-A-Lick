@@ -1286,15 +1286,16 @@
       user-select: text !important;
       -webkit-user-select: text !important;
     }
-    /** Legacy overlay (kept hidden); upgrade path is the bottom dock + pricing links. */
+    /** Legacy overlay — always hard-disabled on web so it can never block clicks, even if JS fails. */
     #hlPaywallShield {
-      display: none;
+      display: none !important;
+      pointer-events: none !important;
       position: absolute;
       left: 0;
       right: 0;
       bottom: 0;
       z-index: 56;
-      cursor: pointer;
+      cursor: default;
       background: rgba(2, 8, 20, 0.08);
       align-items: center;
       justify-content: center;
@@ -1302,7 +1303,7 @@
       box-sizing: border-box;
     }
     #hlPaywallShield:not([hidden]) {
-      display: flex;
+      display: none !important;
     }
     #hlPaywallShield .hl-paywall-shield-msg {
       pointer-events: none;
@@ -2522,7 +2523,7 @@
     </div>
   </div>
 
-  <script src="/js/app-elite.js"></script>
+  <script src="/js/app-elite.js?v=20260401"></script>
   <script>
     const SPORTS = ["nba", "nfl", "mlb", "wnba"];
 
