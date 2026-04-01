@@ -21,13 +21,6 @@ enum PropHeadshotResolver {
         return URL(string: "https://a.espncdn.com/i/headshots/\(league)/players/full/\(id).png")
     }
 
-    static func uiAvatarURL(name: String) -> URL? {
-        let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let q = n.isEmpty ? "Player" : n
-        let enc = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Player"
-        return URL(string: "https://ui-avatars.com/api/?name=\(enc)&size=192&background=0a1227&color=7ef9d5&bold=true&font-size=0.33")
-    }
-
     static func playerDisplayName(from leg: PlayerProp) -> String {
         if let n = leg.playerName?.trimmingCharacters(in: .whitespaces), !n.isEmpty { return n }
         return extractNameFromLabel(leg.label)
@@ -55,14 +48,13 @@ enum PropHeadshotResolver {
         return name.isEmpty ? noOu : name
     }
 
+    /// Real CDN URLs only — no generated avatars; UI uses `EliteGreyMediaSlot` when nil.
     static func resolvedURL(sport: String, leg: PlayerProp) -> URL? {
-        if let h = leg.headshot?.trimmingCharacters(in: .whitespaces), let u = URL(string: h) {
-            return u
+        if let h = leg.headshot?.trimmingCharacters(in: .whitespaces), !h.isEmpty, let u = URL(string: h) {
+            let s = u.scheme?.lowercased() ?? ""
+            if s == "http" || s == "https" { return u }
         }
-        if let u = espnHeadshotURL(sport: sport, espnAthleteId: leg.espnAthleteId) {
-            return u
-        }
-        return uiAvatarURL(name: playerDisplayName(from: leg))
+        return espnHeadshotURL(sport: sport, espnAthleteId: leg.espnAthleteId)
     }
 }
 
@@ -71,30 +63,25 @@ enum PropHeadshotResolver {
 struct PropPlayerHeadshot: View {
     let sport: String
     let leg: PlayerProp
-    @State private var failed = false
 
     var body: some View {
         let name = PropHeadshotResolver.playerDisplayName(from: leg)
         Group {
-            if let url = PropHeadshotResolver.resolvedURL(sport: sport, leg: leg), !failed {
+            if let url = PropHeadshotResolver.resolvedURL(sport: sport, leg: leg) {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let img):
                         img.resizable().scaledToFill()
                     case .failure:
-                        fallbackInitials(name: name)
-                            .onAppear { failed = true }
+                        EliteGreyMediaSlot(size: 46, cornerFraction: 12 / 46)
                     case .empty:
-                        ZStack {
-                            Color.white.opacity(0.08)
-                            ProgressView().tint(.cyan)
-                        }
+                        EliteGreyMediaSlot(size: 46, cornerFraction: 12 / 46)
                     @unknown default:
-                        fallbackInitials(name: name)
+                        EliteGreyMediaSlot(size: 46, cornerFraction: 12 / 46)
                     }
                 }
             } else {
-                fallbackInitials(name: name)
+                EliteGreyMediaSlot(size: 46, cornerFraction: 12 / 46)
             }
         }
         .frame(width: 46, height: 46)
@@ -105,19 +92,5 @@ struct PropPlayerHeadshot: View {
         )
         .shadow(color: .black.opacity(0.35), radius: 6, y: 3)
         .accessibilityLabel("Player headshot for \(name)")
-    }
-
-    private func fallbackInitials(name: String) -> some View {
-        let initials = name.split(separator: " ").prefix(2).compactMap { $0.first }.map(String.init).joined()
-        return ZStack {
-            LinearGradient(
-                colors: [Color.purple.opacity(0.75), Color.cyan.opacity(0.55)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            Text(initials.isEmpty ? "P" : initials.uppercased())
-                .font(.system(size: 15, weight: .heavy))
-                .foregroundColor(.white)
-        }
     }
 }

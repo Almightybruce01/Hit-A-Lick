@@ -1,6 +1,6 @@
 import express from "express";
 import admin from "firebase-admin";
-import { mergeStaffEntitlement } from "./billing.js";
+import { mergeStaffEntitlement, hydrateEntitlementForApi } from "./billing.js";
 
 const router = express.Router();
 const OWNER_EMAIL = (process.env.OWNER_EMAIL || "brucebrian50@gmail.com").toLowerCase();
@@ -98,8 +98,8 @@ function userCuratorAccess(entitlement = {}) {
     return raw.map((s) => String(s).toLowerCase()).filter((s) => CURATOR_SLUGS.includes(s));
   }
   const tier = String(entitlement.tier || "").toLowerCase();
-  if (tier === "premium") return ALL_CURATORS;
-  if (tier === "bruce") return ["bruce"];
+  if (tier === "bruce" || tier === "curator_bruce") return ["bruce"];
+  if (tier === "curator_giap" || tier === "giap") return ["giap"];
   if (tier.startsWith("curator_")) {
     const slug = tier.slice("curator_".length);
     return CURATOR_SLUGS.includes(slug) ? [slug] : [];
@@ -127,7 +127,7 @@ async function requireCuratorSubscriber(req, res, next) {
     }
     const snap = await admin.firestore().collection("users").doc(uid).get();
     const rawEnt = snap.exists ? snap.data()?.entitlement || {} : {};
-    const ent = mergeStaffEntitlement({ ...rawEnt }, req.viewer.email);
+    const ent = hydrateEntitlementForApi(mergeStaffEntitlement({ ...rawEnt }, req.viewer.email));
     const active = ent.active === true;
     const access = userCuratorAccess(ent);
     const expectedCuratorEmail = curatorEmailEnv(curatorId);
@@ -200,6 +200,228 @@ router.get("/catalog", (_req, res) => {
       label: CURATOR_LABELS[id] || id,
     })),
   });
+});
+
+const curatorFeedCol = () => admin.firestore().collection("curatorFeedPosts");
+
+function canPostCuratorFeed(email) {
+  const e = String(email || "").toLowerCase();
+  if (e === OWNER_EMAIL) return true;
+  const giap = curatorEmailEnv("giap");
+  return Boolean(giap && e === giap);
+}
+
+async function requireCuratorFeedPoster(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const uid = String(req.body?.uid || req.query?.uid || "").trim();
+    if (!token || !uid) return res.status(401).json({ error: "Auth token and uid are required." });
+    const decoded = await admin.auth().verifyIdToken(token);
+    if (decoded.uid !== uid) return res.status(403).json({ error: "Token uid mismatch." });
+    const email = (decoded.email || "").toLowerCase();
+    if (!canPostCuratorFeed(email)) {
+      return res.status(403).json({ error: "Only Bruce or Giap can publish or delete feed posts." });
+    }
+    req.curatorFeedPoster = { uid, email };
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid auth token." });
+  }
+}
+
+async function requireFeedCommentAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const uid = String(req.body?.uid || req.query?.uid || "").trim();
+    if (!token || !uid) return res.status(401).json({ error: "Log in to comment." });
+    const decoded = await admin.auth().verifyIdToken(token);
+    if (decoded.uid !== uid) return res.status(403).json({ error: "Token uid mismatch." });
+    req.feedCommenter = {
+      uid,
+      email: (decoded.email || "").toLowerCase(),
+      name: String(decoded.name || "").trim(),
+    };
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid auth token." });
+  }
+}
+
+function allowedPosterSlugForEmail(email) {
+  const slug = curatorSlugForEmail(email);
+  if (slug) return slug;
+  if (String(email || "").toLowerCase() === OWNER_EMAIL) return "bruce";
+  return null;
+}
+
+/** Public: Bruce & Giap posts (newest first). */
+router.get("/feed/posts", async (req, res) => {
+  try {
+    const limit = Math.min(40, Math.max(1, Number(req.query.limit) || 18));
+    const cursorId = String(req.query.cursor || "").trim();
+    let q = curatorFeedCol().orderBy("createdAt", "desc").limit(limit);
+    if (cursorId) {
+      const curSnap = await curatorFeedCol().doc(cursorId).get();
+      if (curSnap.exists) q = q.startAfter(curSnap);
+    }
+    const snap = await q.get();
+    const posts = snap.docs.map((doc) => {
+      const d = doc.data() || {};
+      let createdAtIso = null;
+      if (d.createdAt?.toDate) createdAtIso = d.createdAt.toDate().toISOString();
+      return {
+        id: doc.id,
+        authorSlug: d.authorSlug || "",
+        authorLabel: d.authorLabel || "",
+        body: d.body || "",
+        imageUrl: d.imageUrl || null,
+        commentCount: Number(d.commentCount || 0),
+        createdAt: createdAtIso,
+      };
+    });
+    const nextCursor = snap.docs.length === limit ? snap.docs[snap.docs.length - 1].id : null;
+    return res.json({ posts, nextCursor });
+  } catch (e) {
+    console.error("feed/posts list error", e.message || e);
+    return res.status(500).json({ error: "Failed to load posts." });
+  }
+});
+
+router.get("/feed/posts/:postId/comments", async (req, res) => {
+  try {
+    const postId = String(req.params.postId || "").trim();
+    if (!postId) return res.status(400).json({ error: "Missing post." });
+    const parent = await curatorFeedCol().doc(postId).get();
+    if (!parent.exists) return res.status(404).json({ error: "Post not found." });
+    const lim = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
+    const snap = await curatorFeedCol()
+      .doc(postId)
+      .collection("comments")
+      .orderBy("createdAt", "asc")
+      .limit(lim)
+      .get();
+    const comments = snap.docs.map((doc) => {
+      const d = doc.data() || {};
+      let createdAtIso = null;
+      if (d.createdAt?.toDate) createdAtIso = d.createdAt.toDate().toISOString();
+      return {
+        id: doc.id,
+        text: d.text || "",
+        authorLabel: d.authorLabel || "Member",
+        createdAt: createdAtIso,
+      };
+    });
+    return res.json({ postId, comments });
+  } catch (e) {
+    console.error("feed comments list error", e.message || e);
+    return res.status(500).json({ error: "Failed to load comments." });
+  }
+});
+
+router.post("/feed/posts", requireCuratorFeedPoster, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const authorSlug = String(body.authorSlug || "").toLowerCase();
+    if (!CURATOR_SLUGS.includes(authorSlug)) {
+      return res.status(400).json({ error: "authorSlug must be bruce or giap." });
+    }
+    const posterEmail = String(req.curatorFeedPoster.email || "").toLowerCase();
+    const allowed = allowedPosterSlugForEmail(posterEmail);
+    const ownerPostingAsGiap = posterEmail === OWNER_EMAIL && authorSlug === "giap";
+    if (!ownerPostingAsGiap && (!allowed || allowed !== authorSlug)) {
+      return res.status(403).json({ error: "You can only post to your own curator lane." });
+    }
+    const text = String(body.body || "").trim().slice(0, 8000);
+    const rawImg = String(body.imageUrl || "").trim().slice(0, 800);
+    const rawDataImg = String(body.imageDataUrl || "").trim();
+    let imageUrl = null;
+    if (rawDataImg) {
+      if (!/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(rawDataImg) || rawDataImg.length > 900_000) {
+        return res.status(400).json({
+          error: "imageDataUrl must be a JPEG/PNG/WebP data URL under ~900KB.",
+        });
+      }
+      imageUrl = rawDataImg;
+    } else if (rawImg) {
+      if (!/^https:\/\//i.test(rawImg)) {
+        return res.status(400).json({ error: "imageUrl must be an https link." });
+      }
+      imageUrl = rawImg;
+    }
+    if (!text && !imageUrl) {
+      return res.status(400).json({ error: "Add message text and/or an image (https URL or photo upload)." });
+    }
+    const ref = curatorFeedCol().doc();
+    await ref.set({
+      authorSlug,
+      authorLabel: CURATOR_LABELS[authorSlug] || authorSlug,
+      body: text,
+      imageUrl,
+      commentCount: 0,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdBy: req.curatorFeedPoster.email,
+      postedByOwnerForLane: ownerPostingAsGiap ? "giap" : null,
+    });
+    return res.json({ ok: true, id: ref.id });
+  } catch (e) {
+    return res.status(500).json({ error: e.message || "Failed to publish post." });
+  }
+});
+
+router.delete("/feed/posts/:postId", requireCuratorFeedPoster, async (req, res) => {
+  try {
+    const postId = String(req.params.postId || "").trim();
+    if (!postId) return res.status(400).json({ error: "Missing post." });
+    const postRef = curatorFeedCol().doc(postId);
+    const snap = await postRef.get();
+    if (!snap.exists) return res.status(404).json({ error: "Post not found." });
+    const d = snap.data() || {};
+    const authorSlug = String(d.authorSlug || "").toLowerCase();
+    const posterEmail = String(req.curatorFeedPoster.email || "").toLowerCase();
+    const allowed = allowedPosterSlugForEmail(posterEmail);
+    const isOwner = posterEmail === OWNER_EMAIL;
+    if (!isOwner && (!allowed || allowed !== authorSlug)) {
+      return res.status(403).json({ error: "You can only delete your own posts." });
+    }
+    const csnap = await postRef.collection("comments").limit(500).get();
+    const batch = admin.firestore().batch();
+    for (const doc of csnap.docs) batch.delete(doc.ref);
+    batch.delete(postRef);
+    await batch.commit();
+    return res.json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ error: e.message || "Failed to delete post." });
+  }
+});
+
+router.post("/feed/posts/:postId/comments", requireFeedCommentAuth, async (req, res) => {
+  try {
+    const postId = String(req.params.postId || "").trim();
+    const text = String(req.body?.text || "").trim().slice(0, 2000);
+    if (!postId) return res.status(400).json({ error: "Missing post." });
+    if (!text) return res.status(400).json({ error: "Comment cannot be empty." });
+    const parent = await curatorFeedCol().doc(postId).get();
+    if (!parent.exists) return res.status(404).json({ error: "Post not found." });
+    const labelRaw = req.feedCommenter.name || req.feedCommenter.email || "Member";
+    const authorLabel = String(labelRaw).split("@")[0].slice(0, 48);
+    const cref = curatorFeedCol().doc(postId).collection("comments").doc();
+    const batch = admin.firestore().batch();
+    batch.set(cref, {
+      text,
+      uid: req.feedCommenter.uid,
+      authorLabel,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    batch.update(curatorFeedCol().doc(postId), {
+      commentCount: admin.firestore.FieldValue.increment(1),
+    });
+    await batch.commit();
+    return res.json({ ok: true, id: cref.id });
+  } catch (e) {
+    return res.status(500).json({ error: e.message || "Failed to post comment." });
+  }
 });
 
 router.get("/me", requireAuthUid, async (req, res) => {
@@ -401,6 +623,51 @@ router.post("/:curatorId/select", requireCuratorLogin, async (req, res) => {
     { merge: true }
   );
   return res.json({ ok: true, count: upcoming.length });
+});
+
+function normalizeBoardAppendItem(body = {}) {
+  const base = normalizePoolItem(body);
+  const oddsAmerican = Number(body.oddsAmerican);
+  return {
+    ...base,
+    oddsAmerican: Number.isFinite(oddsAmerican) ? Math.trunc(oddsAmerican) : null,
+    book: String(body.book || "").trim().slice(0, 80),
+    source: String(body.source || "web_props").trim().slice(0, 40),
+    legKey: String(body.legKey || "").trim().slice(0, 320),
+  };
+}
+
+/** Curator (Bruce/Giap): prepend custom legs from the web prop desk without universal pool rows. */
+router.post("/:curatorId/board/append-upcoming", requireCuratorLogin, async (req, res) => {
+  const curatorId = req.curatorId;
+  const raw = Array.isArray(req.body?.items) ? req.body.items : [];
+  if (!raw.length) return res.status(400).json({ error: "items array required." });
+  const items = raw.slice(0, 25).map((x) => normalizeBoardAppendItem(x));
+  for (const it of items) {
+    if (!it.title || !it.pick) {
+      return res.status(400).json({ error: "Each item needs title and pick (leg description)." });
+    }
+  }
+
+  const snap = await boardRef(curatorId).get();
+  const prev = snap.exists && Array.isArray(snap.data()?.upcoming) ? snap.data().upcoming : [];
+  const ts = Date.now();
+  const manual = items.map((row, i) => ({
+    id: `web_${ts}_${i}_${Math.random().toString(36).slice(2, 8)}`,
+    ...row,
+  }));
+  const merged = [...manual, ...prev].slice(0, 80);
+
+  await boardRef(curatorId).set(
+    {
+      upcoming: merged,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastPickPostAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedBy: req.viewer.email,
+    },
+    { merge: true },
+  );
+  return res.json({ ok: true, count: manual.length, totalUpcoming: merged.length });
 });
 
 router.post("/:curatorId/history/add", requireCuratorLogin, async (req, res) => {

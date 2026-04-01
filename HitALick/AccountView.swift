@@ -95,6 +95,48 @@ struct AccountView: View {
                     .background(Color.black.opacity(0.35))
                     .cornerRadius(16)
 
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Website subscriptions")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.7))
+                        Text(
+                            "All paid plans use Stripe on the Hit-A-Lick site only — no in-app purchases. Sign in on the web with the same email, then open pricing."
+                        )
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.78))
+                        NavigationLink(
+                            destination: InAppBrowserView(urlString: APIConfig.membershipAccountURL.absoluteString)
+                        ) {
+                            HStack {
+                                Image(systemName: "person.crop.circle.badge.checkmark")
+                                    .foregroundColor(.cyan)
+                                Text("Open account / sign in (Safari)")
+                                    .foregroundColor(.white)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.45))
+                            }
+                            .padding(.vertical, 6)
+                        }
+                        NavigationLink(
+                            destination: InAppBrowserView(urlString: APIConfig.membershipPurchaseURL.absoluteString)
+                        ) {
+                            HStack {
+                                Image(systemName: "safari")
+                                    .foregroundColor(.orange)
+                                Text("Open pricing & checkout (Safari)")
+                                    .foregroundColor(.orange)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.45))
+                            }
+                            .padding(.vertical, 6)
+                        }
+                    }
+                    .padding()
+                    .background(Color.black.opacity(0.35))
+                    .cornerRadius(16)
+
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 10) {
                             ForEach(sections, id: \.self) { section in
@@ -316,7 +358,7 @@ struct AccountView: View {
             let token = try await user.getIDToken()
             let url = URL(string: "\(APIConfig.baseURL)/api/curators/me?uid=\(user.uid)")!
             var req = URLRequest(url: url)
-            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            req.hitApplySessionHeaders(firebaseIdToken: token)
             let (data, response) = try await URLSession.shared.data(for: req)
             guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
                 let body = String(data: data, encoding: .utf8) ?? ""

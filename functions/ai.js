@@ -1,13 +1,13 @@
 import express from "express";
 import admin from "firebase-admin";
-import { mergeStaffEntitlement, hydrateEntitlementForApi } from "./billing.js";
+import {
+  mergeStaffEntitlement,
+  hydrateEntitlementForApi,
+  isUnlimitedStaffEmail,
+  staffLabelForEmail,
+} from "./billing.js";
 
 const router = express.Router();
-
-const OWNER_EMAIL = (process.env.OWNER_EMAIL || "brucebrian50@gmail.com").toLowerCase();
-const GIAP_EMAIL = String(process.env.CURATOR_GIAP_EMAIL || "giap.social1@gmail.com")
-  .trim()
-  .toLowerCase();
 
 /** Regular ($19.99/mo) app access: included AI Copilot + picks calls per month before paywall / credit packs. */
 const FREE_AI_REQUESTS_MONTHLY = 5;
@@ -82,8 +82,8 @@ async function readAiQuotaState(uid) {
  * @returns {"unlimited"|"subscription"|"metered"|"deny"}
  */
 async function classifyAiAccess(uid, email) {
+  if (isUnlimitedStaffEmail(email)) return "unlimited";
   const e = String(email || "").toLowerCase();
-  if (e === OWNER_EMAIL || (GIAP_EMAIL && e === GIAP_EMAIL)) return "unlimited";
 
   const userSnap = await admin.firestore().collection("users").doc(uid).get();
   const rawEnt = userSnap.exists ? userSnap.data()?.entitlement || {} : {};
@@ -131,11 +131,11 @@ router.get("/quota", async (req, res) => {
     if (v.error) return res.status(v.error).json({ error: v.message });
     const { uid, email } = v;
 
-    if (email === OWNER_EMAIL || (GIAP_EMAIL && email === GIAP_EMAIL)) {
+    if (isUnlimitedStaffEmail(email)) {
       return res.json({
         unlimited: true,
         freeMonthly: FREE_AI_REQUESTS_MONTHLY,
-        staff: email === OWNER_EMAIL ? "owner" : "giap",
+        staff: staffLabelForEmail(email),
       });
     }
 

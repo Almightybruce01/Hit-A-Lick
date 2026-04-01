@@ -1,9 +1,8 @@
 import express from "express";
 import admin from "firebase-admin";
-import { mergeStaffEntitlement } from "./billing.js";
+import { mergeStaffEntitlement, hydrateEntitlementForApi, isUnlimitedStaffEmail } from "./billing.js";
 import {
   TIER_RANK,
-  normalizeTier,
   featureFlagsForTier,
   evaluateUserAlerts,
   updateOutcomeModel,
@@ -12,6 +11,9 @@ import {
 
 const router = express.Router();
 const OWNER_EMAIL = (process.env.OWNER_EMAIL || "brucebrian50@gmail.com").toLowerCase();
+const GIAP_EMAIL = String(process.env.CURATOR_GIAP_EMAIL || "giap.social1@gmail.com")
+  .trim()
+  .toLowerCase();
 
 async function requireAuth(req, res, next) {
   try {
@@ -29,15 +31,16 @@ async function requireAuth(req, res, next) {
 
     let tier = "core";
     const email = (decoded.email || "").toLowerCase();
-    if (email === OWNER_EMAIL) {
+    if (isUnlimitedStaffEmail(email)) {
       tier = "elite";
     } else {
       const userSnap = await admin.firestore().collection("users").doc(uid).get();
       const rawEnt = userSnap.exists ? userSnap.data()?.entitlement || {} : {};
-      const entitlement = mergeStaffEntitlement({ ...rawEnt }, email);
-      const active = entitlement.active === true;
-      const rawTier = normalizeTier(entitlement.tier || "core");
-      tier = active ? rawTier : "core";
+      const entitlement = hydrateEntitlementForApi(mergeStaffEntitlement({ ...rawEnt }, email));
+      const appOk = Boolean(entitlement.hasAppAccess);
+      if (appOk && entitlement.hasPremium) tier = "elite";
+      else if (appOk && entitlement.hasRegular) tier = "pro";
+      else tier = "core";
     }
 
     req.viewer = {

@@ -172,7 +172,7 @@ export function buildQuotaPlanningReport({
     worstCaseMonthlyIfNoCache: worst.monthlyRequestsIfAlwaysCold,
     playbook: [
       "Set PROPS_LIVE_CACHE_TTL_SECONDS to 45–90s so all users share one live pull per sport per TTL window.",
-      "Use ODDS_PROP_MARKET_TIER=core for quota-tight periods; standard is the balanced default; full is for paid deep pulls.",
+      "Use ODDS_PROP_MARKET_TIER=core for quota-tight periods; standard is balanced; full is base max lists; elite adds NFL/MLB alts + WNBA=NBA depth (paid default when tier unset).",
       "Historical dates read propHistory — no Odds API repeat spend once the day is warmed.",
       "ENFORCE_BUDGET_GUARD=0 (default) monitors usage without blocking; flip to 1 if you need hard caps.",
       "Free plan: recommendedEventPropLimit stays ~4–7 legs/event until ODDS_API_PLAN_MODE=paid.",

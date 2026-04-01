@@ -1,12 +1,12 @@
 # Curator Firebase Auth + Stripe (one-time)
 
-Full step-by-step for the four lanes (emails, secrets, app behavior): **`docs/CURATOR_ACCOUNTS.md`**.
+Full step-by-step for **Bruce + Giap** lanes: **`docs/CURATOR_ACCOUNTS.md`**.
 
-## 1) Create four curator users in Firebase Auth
+## 1) Create curator users in Firebase Auth
 
 In [Firebase Console](https://console.firebase.google.com) → Authentication → Add user:
 
-- Use the **same emails** you will set in Functions env: `CURATOR_GIAP_EMAIL`, `CURATOR_MIKE_EMAIL`, `CURATOR_TORIANO_EMAIL`, and optionally `CURATOR_BRUCE_EMAIL` (or rely on `OWNER_EMAIL` for Bruce).
+- Use the **same emails** you set in Functions env: `OWNER_EMAIL` (Bruce / owner) and `CURATOR_GIAP_EMAIL` (Giap). Optional: `CURATOR_BRUCE_EMAIL` if the Bruce picks lane should not be the owner account.
 
 Or CLI (requires Firebase CLI logged in):
 
@@ -19,10 +19,9 @@ firebase auth:import curators-users.json --hash-algo=SCRYPT --hash-key=...
 ## 2) Set Functions secrets / env
 
 ```bash
+firebase functions:secrets:set OWNER_EMAIL
 firebase functions:secrets:set CURATOR_GIAP_EMAIL
-firebase functions:secrets:set CURATOR_MIKE_EMAIL
-firebase functions:secrets:set CURATOR_TORIANO_EMAIL
-# optional if Bruce is not the owner account:
+# optional if Bruce picks lane is not the owner account:
 firebase functions:secrets:set CURATOR_BRUCE_EMAIL
 ```
 
@@ -37,16 +36,13 @@ Local emulator: copy `functions/.env.example` → `functions/.env` and fill emai
 ```bash
 firebase functions:secrets:set STRIPE_PRICE_CURATOR_GIAP
 firebase functions:secrets:set STRIPE_PRICE_CURATOR_BRUCE
-firebase functions:secrets:set STRIPE_PRICE_CURATOR_MIKE
-firebase functions:secrets:set STRIPE_PRICE_CURATOR_TORIANO
-firebase functions:secrets:set STRIPE_PRICE_ALL_CURATORS
 ```
 
 4. Verify resolution (no auth required):
 
 `GET https://<your-api-host>/api/billing/pricing-status`
 
-Checkout body field `tier` must be one of: `curator_giap`, `curator_bruce`, `all_curators` (see `curatorMetaForTier` in `billing.js`).
+Checkout body field `tier` must be one of: `regular`, `premium`, `bruce`, `giap` (see `billing.js` `create-checkout-session`).
 
 ## 4) Deploy
 

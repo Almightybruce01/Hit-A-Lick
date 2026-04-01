@@ -16,6 +16,7 @@ functions/node_modules/
 functions/.env
 functions/.env.*
 !functions/.env.example
+!functions/.env.stripe.example
 
 # Firebase local cache
 .firebase/

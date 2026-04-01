@@ -133,6 +133,12 @@
       filter: brightness(1.05);
     }
     .btn-secondary { background: #23395f; color: #dce9ff; }
+    .logout-link-red {
+      background: rgba(64, 12, 25, 0.72) !important;
+      border: 1px solid rgba(255, 128, 145, 0.55) !important;
+      color: #ff8ea0 !important;
+      box-shadow: 0 0 16px rgba(255, 125, 146, 0.2);
+    }
     .hint { color: var(--muted); font-size: 13px; margin-top: 10px; line-height: 1.45; }
     .status { font-size: 14px; color: var(--success); min-height: 20px; margin: 8px 0 0; }
     .session-head {
@@ -157,8 +163,10 @@
       .wrap { padding: 20px 14px 28px; }
     }
   </style>
+  <link rel="stylesheet" href="/css/pages-elite.css" />
 </head>
 <body>
+  <a class="pg-skip" href="#sessionCard">Skip to session</a>
   <main class="wrap">
     <section class="hero">
       <div class="brand-row">
@@ -185,7 +193,7 @@
         <input id="loginPassword" type="password" placeholder="Password" />
         <button id="loginBtn">Log In</button>
         <div style="margin-top: 12px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button id="logoutBtn" class="btn-secondary">Log Out</button>
+          <button id="logoutBtn" class="logout-link-red">Log Out</button>
         </div>
       </article>
       <article class="card">
@@ -194,6 +202,12 @@
         <p class="hint">- Multi-book odds comparison and movement views</p>
         <p class="hint">- AI picks, parlay tools, and premium boards</p>
         <p class="hint">- Full web + iOS companion experience</p>
+      </article>
+      <article class="card">
+        <h2>Curator Quick Path</h2>
+        <p class="hint">1) Log in here with curator credentials.</p>
+        <p class="hint">2) Open <a class="link-btn" style="padding:6px 10px;margin-left:4px;" href="/app.html">App</a> and go to <strong>Posts</strong>.</p>
+        <p class="hint">3) Curator workbench appears at top: choose lane, load pool, save board, then publish post.</p>
       </article>
     </section>
 
@@ -205,10 +219,22 @@
       <p class="hint">Account identity details are hidden in this UI for privacy. Login state only is shown.</p>
       <p class="status" id="status"></p>
       <a class="link-btn" href="/pricing.html">Continue to Membership Plans</a>
+      <a class="link-btn logout-link-red" href="/app.html?logout=1" style="margin-left:8px;">Force Sign Out In App</a>
+      <p class="hint" style="margin-top:14px;">
+        Hit a <strong>device limit</strong> in the app? This resets the server-side device list for your account. Sign in again on each phone or browser you still use.
+      </p>
+      <button type="button" id="clearDeviceSlotsBtn" class="btn-secondary" style="margin-top:8px;">Reset device slots (server)</button>
     </section>
   </main>
 
   <script>
+    const HITALICK_CLOUD_API = "https://api-lifnvql5aa-uc.a.run.app";
+    function hitApiPath(path) {
+      const h = (location.hostname || "").toLowerCase();
+      if (h.indexOf("github.io") >= 0) return HITALICK_CLOUD_API + path;
+      return path;
+    }
+
     const API_KEY = "AIzaSyAUF7Oz6ZQMBTuMw2cyPUzjEg7RwUP1ngA";
     const signUpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`;
     const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`;
@@ -228,10 +254,22 @@
       }, delayMs);
     }
 
+    function ensureHitDeviceId() {
+      let id = localStorage.getItem("hitalick_device_id");
+      if (!id || id.length < 8) {
+        id =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `h-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
+        localStorage.setItem("hitalick_device_id", id);
+      }
+    }
+
     function persistSession(email, uid, idToken) {
       localStorage.setItem("hitalick_email", email);
       localStorage.setItem("hitalick_uid", uid);
       localStorage.setItem("hitalick_token", idToken);
+      ensureHitDeviceId();
       renderSession();
     }
 
@@ -239,10 +277,13 @@
       localStorage.removeItem("hitalick_email");
       localStorage.removeItem("hitalick_uid");
       localStorage.removeItem("hitalick_token");
+      localStorage.removeItem("hitalick_subscription_snapshot");
+      localStorage.removeItem("hitalick_last_entitlement");
       renderSession();
     }
 
     function renderSession() {
+      ensureHitDeviceId();
       const email = localStorage.getItem("hitalick_email");
       const uid = localStorage.getItem("hitalick_uid");
       const token = localStorage.getItem("hitalick_token");
@@ -297,7 +338,32 @@
       setStatus("Logged out.");
     });
 
+    document.getElementById("clearDeviceSlotsBtn").addEventListener("click", async () => {
+      const token = localStorage.getItem("hitalick_token");
+      if (!token) {
+        setStatus("Log in first.", true);
+        return;
+      }
+      ensureHitDeviceId();
+      const deviceId = localStorage.getItem("hitalick_device_id");
+      try {
+        const res = await fetch(hitApiPath("/api/auth/clear-device-slots"), {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "X-Hit-Device-Id": deviceId || "",
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Request failed");
+        setStatus("Device slots cleared on the server.", false);
+      } catch (e) {
+        setStatus(e.message || "Failed", true);
+      }
+    });
+
     renderSession();
   </script>
+  <script src="/js/pages-elite.js"></script>
 </body>
 </html>

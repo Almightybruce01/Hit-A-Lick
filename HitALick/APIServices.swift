@@ -93,6 +93,16 @@ struct OpsEnvBlock: Decodable {
     let activePropMarketTier: String?
 }
 
+/// Public `/status` fallback when `/ops/dashboard` requires PIN / owner auth.
+private struct PublicStatusResponse: Decodable {
+    let provider: PublicProvider?
+}
+
+private struct PublicProvider: Decodable {
+    let oddsApiConfigured: Bool?
+    let rapidApiConfigured: Bool?
+}
+
 extension PropsSnapshotEnvelope {
     /// When full envelope decoding fails (schema drift), still surface props from legacy `{ count, props }`.
     init(fallbackFrom response: PropsResponse) {
@@ -241,14 +251,19 @@ struct PreferredBook: Decodable {
     let bookmakerName: String?
 }
 
+struct PlayerPropBookQuote: Decodable {
+    let bookKey: String?
+    let bookName: String?
+    let odds: Int?
+}
+
 struct PlayerProp: Decodable, Identifiable {
     var id: String {
         let m = market ?? "market"
         let l = label ?? "label"
         let s = side ?? "side"
         let lineText = line.map { String($0) } ?? "na"
-        let b = bookKey ?? "bk"
-        return "\(m)-\(l)-\(s)-\(lineText)-\(odds ?? 0)-\(b)"
+        return "\(m)-\(l)-\(s)-\(lineText)"
     }
     let market: String?
     let label: String?
@@ -262,6 +277,11 @@ struct PlayerProp: Decodable, Identifiable {
     let headshot: String?
     let espnAthleteId: String?
     let synthetic: Bool?
+    /// Per-leg model confidence when the API provides it; otherwise UI falls back to game-level `Prop.confidence`.
+    let confidence: Double?
+    let projected: Bool?
+    /// All books offering this same line (merged on server). Primary `bookKey` / `odds` is display priority.
+    let bookQuotes: [PlayerPropBookQuote]?
 }
 
 enum PropFormatters {
@@ -419,6 +439,12 @@ class APIServices {
         return URLSession(configuration: cfg)
     }()
 
+    private func dataWithStatus(from url: URL) async throws -> (Data, Int) {
+        let (data, response) = try await urlSession.data(from: url)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 200
+        return (data, status)
+    }
+
     // MARK: Fetch Entity Stats (from /playerStats or /teamStats)
 
     func fetchEntityStats(for sport: String, mode: String, completion: @escaping ([EntityStat]) -> Void) {
@@ -532,15 +558,16 @@ class APIServices {
     // MARK: Fetch Props
 
     func fetchProps(for sport: String, completion: @escaping (Result<[Prop], Error>) -> Void) {
-        let isAll = sport.lowercased() == "all"
-        let coverage = isAll ? "&allEventProps=1&includeBooks=1&windowDays=3" : "&windowDays=3"
-        let urlString = "\(baseURL)/props?sport=\(sport.lowercased())\(coverage)"
-        guard let url = URL(string: urlString) else {
+        // Match web "Max Coverage": request full-event player-prop matrices for every sport, not only sport=all.
+        let primaryCoverage = "&allEventProps=1&includeBooks=0&windowDays=3"
+        let primaryUrlString = "\(baseURL)/props?sport=\(sport.lowercased())\(primaryCoverage)"
+        let fallbackUrlString = "\(baseURL)/props?sport=\(sport.lowercased())&includeBooks=0&windowDays=3"
+        guard let primaryUrl = URL(string: primaryUrlString), let fallbackUrl = URL(string: fallbackUrlString) else {
             completion(.failure(NSError(domain: "Invalid URL", code: 400)))
             return
         }
 
-        urlSession.dataTask(with: url) { data, _, error in
+        urlSession.dataTask(with: primaryUrl) { data, response, error in
             if let error = error {
                 print("❌ Props error:", error)
                 completion(.failure(error))
@@ -552,12 +579,36 @@ class APIServices {
                 return
             }
 
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 200
+            let primaryLooksBad = status >= 500 || String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) == "Internal Server Error"
+
             do {
                 // Decode wrapper { count, props: [...] }
                 let wrapper = try JSONDecoder().decode(PropsResponse.self, from: data)
                 print("✅ Decoded \(wrapper.count) props")
                 completion(.success(wrapper.props))
             } catch {
+                if primaryLooksBad {
+                    self.urlSession.dataTask(with: fallbackUrl) { data2, _, error2 in
+                        if let error2 = error2 {
+                            completion(.failure(error2))
+                            return
+                        }
+                        guard let data2 = data2 else {
+                            completion(.failure(NSError(domain: "No data", code: 500)))
+                            return
+                        }
+                        do {
+                            let wrapper2 = try JSONDecoder().decode(PropsResponse.self, from: data2)
+                            print("✅ Decoded \(wrapper2.count) props (fallback query)")
+                            completion(.success(wrapper2.props))
+                        } catch {
+                            print("❌ Props decode error (fallback):", error)
+                            completion(.failure(error))
+                        }
+                    }.resume()
+                    return
+                }
                 print("❌ Props decode error:", error)
                 completion(.failure(error))
             }
@@ -566,15 +617,15 @@ class APIServices {
 
     /// Full envelope for Elite Desk / dashboard (coverage, source, warnings).
     func fetchPropsSnapshot(for sport: String, completion: @escaping (Result<PropsSnapshotEnvelope, Error>) -> Void) {
-        let isAll = sport.lowercased() == "all"
-        let coverage = isAll ? "&allEventProps=1&includeBooks=1&windowDays=3" : "&windowDays=3"
-        let urlString = "\(baseURL)/props?sport=\(sport.lowercased())\(coverage)"
-        guard let url = URL(string: urlString) else {
+        let primaryCoverage = "&allEventProps=1&includeBooks=0&windowDays=3"
+        let primaryUrlString = "\(baseURL)/props?sport=\(sport.lowercased())\(primaryCoverage)"
+        let fallbackUrlString = "\(baseURL)/props?sport=\(sport.lowercased())&includeBooks=0&windowDays=3"
+        guard let primaryUrl = URL(string: primaryUrlString), let fallbackUrl = URL(string: fallbackUrlString) else {
             completion(.failure(NSError(domain: "Invalid URL", code: 400)))
             return
         }
 
-        urlSession.dataTask(with: url) { data, _, error in
+        urlSession.dataTask(with: primaryUrl) { data, response, error in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -583,6 +634,8 @@ class APIServices {
                 completion(.failure(NSError(domain: "No data", code: 500)))
                 return
             }
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 200
+            let primaryLooksBad = status >= 500 || String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) == "Internal Server Error"
             do {
                 let env = try JSONDecoder().decode(PropsSnapshotEnvelope.self, from: data)
                 completion(.success(env))
@@ -591,6 +644,30 @@ class APIServices {
                     let legacy = try JSONDecoder().decode(PropsResponse.self, from: data)
                     completion(.success(PropsSnapshotEnvelope(fallbackFrom: legacy)))
                 } catch {
+                    if primaryLooksBad {
+                        self.urlSession.dataTask(with: fallbackUrl) { data2, _, error2 in
+                            if let error2 = error2 {
+                                completion(.failure(error2))
+                                return
+                            }
+                            guard let data2 = data2 else {
+                                completion(.failure(NSError(domain: "No data", code: 500)))
+                                return
+                            }
+                            do {
+                                let env2 = try JSONDecoder().decode(PropsSnapshotEnvelope.self, from: data2)
+                                completion(.success(env2))
+                            } catch {
+                                do {
+                                    let legacy2 = try JSONDecoder().decode(PropsResponse.self, from: data2)
+                                    completion(.success(PropsSnapshotEnvelope(fallbackFrom: legacy2)))
+                                } catch {
+                                    completion(.failure(error))
+                                }
+                            }
+                        }.resume()
+                        return
+                    }
                     completion(.failure(error))
                 }
             }
@@ -654,17 +731,44 @@ extension APIServices {
         guard let url = URL(string: "\(baseURL)/ops/dashboard") else {
             throw NSError(domain: "HitAPI", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid ops URL"])
         }
-        let (data, response) = try await urlSession.data(from: url)
-        if let http = response as? HTTPURLResponse, !(200 ... 299).contains(http.statusCode) {
-            throw NSError(domain: "HitAPI", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode)"])
+        let (data, status) = try await dataWithStatus(from: url)
+        if (200 ... 299).contains(status) {
+            return try JSONDecoder().decode(OpsDashboardResponse.self, from: data)
         }
-        return try JSONDecoder().decode(OpsDashboardResponse.self, from: data)
+
+        // If ops dashboard needs PIN/owner auth, fallback to public /status so Desk stays usable.
+        if status == 401 || status == 403 {
+            guard let statusUrl = URL(string: "\(baseURL)/api/status") else {
+                throw NSError(domain: "HitAPI", code: status, userInfo: [NSLocalizedDescriptionKey: "Ops requires PIN/auth"])
+            }
+            let (sData, sCode) = try await dataWithStatus(from: statusUrl)
+            guard (200 ... 299).contains(sCode) else {
+                throw NSError(domain: "HitAPI", code: status, userInfo: [NSLocalizedDescriptionKey: "Ops requires PIN/auth"])
+            }
+            if let pub = try? JSONDecoder().decode(PublicStatusResponse.self, from: sData) {
+                return OpsDashboardResponse(
+                    ok: true,
+                    generatedAt: nil,
+                    env: OpsEnvBlock(
+                        oddsApiKeyPresent: pub.provider?.oddsApiConfigured,
+                        rapidApiConfigured: pub.provider?.rapidApiConfigured,
+                        activePropMarketTier: nil
+                    ),
+                    marketsBySport: nil,
+                    typicalPricedLegsPerSlateRetail: nil,
+                    notes: ["Ops dashboard is PIN-protected. Showing public provider status fallback in app."]
+                )
+            }
+            throw NSError(domain: "HitAPI", code: status, userInfo: [NSLocalizedDescriptionKey: "Ops requires PIN/auth"])
+        }
+
+        throw NSError(domain: "HitAPI", code: status, userInfo: [NSLocalizedDescriptionKey: "HTTP \(status)"])
     }
 
     func fetchBillingEntitlement(uid: String, token: String) async throws -> BillingEntitlementPayload? {
         let url = URL(string: "\(baseURL)/api/billing/entitlements/\(uid)")!
         var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.hitApplySessionHeaders(firebaseIdToken: token)
         let (data, _) = try await urlSession.data(for: request)
         let decoded = try JSONDecoder().decode(BillingEntitlementResponse.self, from: data)
         return decoded.entitlement

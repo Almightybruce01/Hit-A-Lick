@@ -1,4 +1,4 @@
-# Publishes /site (ops dashboard + static assets) to GitHub Pages when you push to main.
+# Publishes /site to GitHub Pages (optional mirror). Primary prod API + Hosting: Firebase — see firebase-deploy.yml and npm run deploy:firebase.
 # Repo Settings → Pages → Build and deployment → Source: GitHub Actions (required once).
 
 name: Deploy GitHub Pages

@@ -25,7 +25,7 @@
    Set strong passwords in Firebase (do not commit real passwords to git).  
 2. **Functions secrets** — `OWNER_EMAIL`, `CURATOR_GIAP_EMAIL=giap.social1@gmail.com`, deploy `functions:api`.  
 3. **Universal pool** — Picks must exist in the pool before boards show them. Add rows with **owner** tools (`POST /api/curators/pool/add` with Bruce’s Firebase **Bearer** token, or your internal scripts).  
-4. **Stripe** — Prices for `curator_giap`, `curator_bruce`, `all_curators` so fans can subscribe.
+4. **Stripe** — Use the **Hit-A-Lick** catalog only: products with metadata `app=hit_a_lick` (see `scripts/stripe_hit_a_lick_catalog.js`). Set Firebase secrets `STRIPE_PRICE_REGULAR_MONTHLY`, `STRIPE_PRICE_PREMIUM_*`, `STRIPE_PRICE_BRUCE_PICKS_MONTHLY`, `STRIPE_PRICE_GIAP_PICKS_MONTHLY`, `STRIPE_PRICE_AI_CREDITS_50`. Do not point checkout at legacy unnamed “Core” / old pick products in the same Stripe account.
 
 ### Bruce (main admin) — web ops desk
 
@@ -96,7 +96,7 @@ Pool rows are still created with **owner** tools (`POST /api/curators/pool/add` 
 
 ## Stripe
 
-Tiers: `curator_giap`, `curator_bruce`, `all_curators` (both lanes). Mike/Toriano removed from codebase.
+**Two curator lanes** in the product: **Bruce picks** and **Giap picks** (separate prices). App access is **Regular** or **Premium** (AI). Internal billing may still use aliases like `curator_giap` in code — fans only see the Hit-A-Lick–named Stripe products above.
 
 ## Repo / desktop / live ops link
 

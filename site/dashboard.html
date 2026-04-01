@@ -4,181 +4,128 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow, noarchive" />
+  <meta name="theme-color" content="#050914" />
   <title>Owner Dashboard | HitALick</title>
-  <style>
-    :root {
-      --bg: #060912;
-      --panel: rgba(13, 21, 44, 0.86);
-      --line: rgba(103, 144, 214, 0.35);
-      --ink: #eaf2ff;
-      --muted: #9fb4da;
-      --brand: #5bb7ff;
-      --accent: #8affd4;
-      --warn: #ffd37a;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      color: var(--ink);
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #15224c 0%, #060912 58%);
-    }
-    .gate {
-      position: fixed; inset: 0; z-index: 20;
-      background: radial-gradient(circle at top, #142555, #050812 68%);
-      display: flex; align-items: center; justify-content: center; padding: 16px;
-    }
-    .gate-card {
-      width: 100%; max-width: 480px; padding: 20px;
-      border-radius: 16px; border: 1px solid var(--line);
-      background: rgba(11, 18, 40, 0.85);
-      box-shadow: 0 30px 50px rgba(0,0,0,.4);
-    }
-    .gate-title { margin: 0 0 8px; font-size: 26px; }
-    .hint { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
-
-    #dashboardShell { display: none; }
-    .wrap { max-width: 1220px; margin: 0 auto; padding: 22px; }
-    .topbar {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--panel);
-      padding: 12px 14px;
-      display: flex; justify-content: space-between; align-items: center; gap: 12px;
-      margin-bottom: 14px;
-    }
-    .top-brand { display:flex; align-items:center; gap:10px; }
-    .top-brand img { width: 38px; height: 38px; border-radius: 8px; border: 1px solid rgba(121,160,226,.45); object-fit: cover; }
-    .badge { font-size: 12px; color: #00111f; background: linear-gradient(135deg,var(--brand),var(--accent)); padding: 5px 10px; border-radius: 999px; font-weight: 700; }
-    .grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 14px; }
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--panel);
-      padding: 14px;
-      min-height: 220px;
-    }
-    .card h2 { margin: 0 0 6px; font-size: 18px; }
-    .small { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
-    input, textarea, select {
-      width: 100%;
-      border: 1px solid rgba(111, 150, 212, 0.4);
-      border-radius: 10px;
-      background: #09122b;
-      color: var(--ink);
-      padding: 10px;
-      margin-top: 8px;
-    }
-    textarea { min-height: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    button {
-      border: 0;
-      border-radius: 999px;
-      padding: 10px 12px;
-      cursor: pointer;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--brand), var(--accent));
-      color: #041222;
-      margin-top: 10px;
-    }
-    .btn-outline { background: transparent; color: var(--ink); border: 1px solid rgba(143,177,233,.5); }
-    .status { font-size: 13px; margin-top: 8px; color: var(--accent); min-height: 18px; }
-    .bets-list { max-height: 310px; overflow: auto; padding-right: 4px; }
-    .bet-item {
-      border: 1px solid rgba(115, 155, 222, 0.33);
-      border-radius: 10px;
-      padding: 10px;
-      background: rgba(7, 14, 32, 0.7);
-      margin-bottom: 8px;
-    }
-    .bet-item strong { display: block; margin-bottom: 4px; }
-    .bet-meta { font-size: 12px; color: var(--muted); }
-    .bet-actions { display:flex; gap:8px; margin-top:8px; }
-    .bet-actions button { margin-top: 0; font-size: 12px; padding: 8px 10px; }
-    .board-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    @media (max-width: 1080px) {
-      .grid { grid-template-columns: 1fr; }
-    }
-  </style>
+  <link rel="stylesheet" href="/css/pages-elite.css" />
 </head>
-<body>
-  <section class="gate" id="ownerGate">
+<body class="dash-body">
+  <a class="pg-skip" href="#dashboard-main">Skip to workspace</a>
+  <div class="dash-bg" aria-hidden="true"></div>
+
+  <section class="gate dash-gate" id="ownerGate">
     <div class="gate-card">
-      <h1 class="gate-title">Owner Dashboard Access</h1>
-      <p class="hint">Owner account + access key required. Public users cannot view this dashboard.</p>
-      <input id="ownerKeyInput" type="password" placeholder="Owner access key" />
-      <button style="margin-top:10px;" onclick="unlockDashboard()">Unlock Dashboard</button>
-      <div class="status" id="gateStatus"></div>
+      <span class="gate-badge">Private</span>
+      <h1 class="gate-title">Owner Dashboard</h1>
+      <p class="hint">Owner account and access key required. Sessions carry over from the account hub.</p>
+      <label class="small" for="ownerKeyInput" style="display:block;margin-top:10px;">Access key</label>
+      <input id="ownerKeyInput" type="password" placeholder="Owner access key" autocomplete="off" />
+      <button type="button" style="margin-top:12px;" onclick="unlockDashboard()">Unlock dashboard</button>
+      <div class="status" id="gateStatus" role="status"></div>
     </div>
   </section>
 
-  <main class="wrap" id="dashboardShell">
-    <section class="topbar">
+  <main class="dash-wrap" id="dashboardShell" style="display:none;">
+    <header class="dash-topbar">
       <div class="top-brand">
-        <img src="/logo.png" alt="HitALick logo" />
+        <img src="/logo.png" alt="HitALick logo" width="42" height="42" />
         <div>
-        <strong>HitALick Owner Control Center</strong><br/>
-        <span class="small">Session: <span id="sessionLabel">-</span></span>
+          <strong>Owner control center</strong><br />
+          <span class="small">Session <span id="sessionLabel">—</span></span>
         </div>
       </div>
-      <span class="badge">Owner Mode</span>
-    </section>
+      <div class="dash-topbar-actions">
+        <span class="badge" style="font-size:12px;color:#00111f;background:linear-gradient(135deg,#5bb7ff,#8affd4);padding:6px 12px;border-radius:999px;font-weight:800;">Owner</span>
+        <button type="button" class="btn-ghost" style="margin-top:0;border-radius:999px;padding:9px 14px;cursor:pointer;font-weight:750;background:rgba(255,255,255,.08);color:#eaf2ff;border:1px solid rgba(130,170,230,.35);" onclick="void reloadDashboardData()">Reload boards</button>
+        <a class="dash-link" href="/app.html">Web app</a>
+        <a class="dash-link" href="/account.html">Account</a>
+      </div>
+    </header>
 
-    <section class="grid">
-      <article class="card">
-        <h2>Current Bets Panel</h2>
-        <p class="small">Add live/current bets, then route each bet to Bruce or Premium boards with one click.</p>
+    <div class="dash-layout" id="dashboard-main">
+      <article class="dash-card">
+        <h2>Stage a bet</h2>
+        <p class="small">Queue live legs, then push each row into Bruce or Premium JSON with one click.</p>
         <div class="row">
-          <input id="betTitle" placeholder="Bet title" />
-          <input id="betLeague" placeholder="League (NBA/NFL...)" />
+          <div>
+            <span class="small" style="display:block;margin:0;">Title</span>
+            <input id="betTitle" placeholder="Bet title" autocomplete="off" />
+          </div>
+          <div>
+            <span class="small" style="display:block;margin:0;">League</span>
+            <input id="betLeague" placeholder="NBA / NFL …" autocomplete="off" />
+          </div>
         </div>
-        <input id="betPick" placeholder="Pick (e.g. Player Points Over 24.5)" />
-        <textarea id="betNotes" placeholder="Why this bet is on the board"></textarea>
+        <span class="small" style="display:block;margin-top:6px;">Pick line</span>
+        <input id="betPick" placeholder="e.g. Player points over 24.5" autocomplete="off" />
+        <span class="small" style="display:block;margin-top:6px;">Notes</span>
+        <textarea id="betNotes" placeholder="Why this is on the board"></textarea>
         <div class="row">
-          <input id="betConfidence" type="number" min="1" max="100" value="90" />
-          <input id="betDate" placeholder="Game date (YYYY-MM-DD)" />
+          <div>
+            <span class="small" style="display:block;margin:0;">Confidence %</span>
+            <input id="betConfidence" type="number" min="1" max="100" value="90" />
+          </div>
+          <div>
+            <span class="small" style="display:block;margin:0;">Game date</span>
+            <input id="betDate" placeholder="YYYY-MM-DD" autocomplete="off" />
+          </div>
         </div>
-        <button onclick="addCurrentBet()">Add To Current Bets</button>
-        <button class="btn-outline" onclick="saveCurrentBets()">Save Current Bets Panel</button>
+        <div class="board-actions">
+          <button type="button" onclick="addCurrentBet()">Add to queue</button>
+          <button type="button" class="btn-outline" onclick="saveCurrentBets()">Save queue to server</button>
+        </div>
         <div class="status" id="currentBetsStatus"></div>
       </article>
 
-      <article class="card">
-        <h2>Current Bets (Live)</h2>
-        <p class="small">Click a bet to push it into Bruce Picks or Bruce Premium Picks.</p>
+      <article class="dash-card">
+        <h2>Queued bets</h2>
+        <p class="small">Review staged legs. Push into the board editor on the right.</p>
         <div class="bets-list" id="currentBetsList"></div>
       </article>
 
-      <article class="card">
-        <h2>Board Publishing</h2>
-        <p class="small">Edit board metadata and publish selected bets quickly.</p>
-        <input id="bruceHeadline" placeholder="Bruce Picks headline" />
-        <input id="bruceHitRate" placeholder="Bruce hit-rate claim" value="90%" />
-        <textarea id="bruceItems" placeholder="Bruce board JSON items"></textarea>
-        <div class="board-actions">
-          <button onclick="saveTier('bruce')">Save Bruce Board</button>
-          <button class="btn-outline" onclick="clearTier('bruce')">Clear Bruce JSON</button>
+      <article class="dash-card dash-publish">
+        <h2>Board publishing</h2>
+        <p class="small">Metadata plus JSON payloads. Copy before save if you need a backup.</p>
+        <div class="dash-board-split cols-2">
+          <div class="dash-board-pane pane-bruce">
+            <h3>Bruce</h3>
+            <input id="bruceHeadline" placeholder="Headline" />
+            <input id="bruceHitRate" placeholder="Hit-rate claim" value="90%" />
+            <textarea id="bruceItems" placeholder="Items JSON array"></textarea>
+            <div class="board-actions">
+              <button type="button" onclick="saveTier('bruce')">Save</button>
+              <button type="button" class="btn-outline" onclick="clearTier('bruce')">Clear</button>
+              <button type="button" class="btn-ghost" onclick="copyTierItems('bruce')">Copy JSON</button>
+            </div>
+            <div class="status" id="bruceStatus"></div>
+          </div>
+          <div class="dash-board-pane pane-premium">
+            <h3>Premium</h3>
+            <input id="premiumHeadline" placeholder="Headline" />
+            <input id="premiumHitRate" placeholder="Hit-rate claim" value="90%" />
+            <textarea id="premiumItems" placeholder="Items JSON array"></textarea>
+            <div class="board-actions">
+              <button type="button" onclick="saveTier('premium')">Save</button>
+              <button type="button" class="btn-outline" onclick="clearTier('premium')">Clear</button>
+              <button type="button" class="btn-ghost" onclick="copyTierItems('premium')">Copy JSON</button>
+            </div>
+            <div class="status" id="premiumStatus"></div>
+          </div>
         </div>
-        <div class="status" id="bruceStatus"></div>
-
-        <input id="premiumHeadline" placeholder="Headline (e.g. Bruce Premium Board)" />
-        <input id="premiumHitRate" placeholder="Hit-rate claim (e.g. 90%)" value="90%" />
-        <textarea id="premiumItems" placeholder="Premium board JSON items"></textarea>
-        <div class="board-actions">
-          <button onclick="saveTier('premium')">Save Premium Board</button>
-          <button class="btn-outline" onclick="clearTier('premium')">Clear Premium JSON</button>
-        </div>
-        <div class="status" id="premiumStatus"></div>
-        <div class="status" id="globalStatus"></div>
+        <div class="status" id="globalStatus" style="margin-top:12px;"></div>
       </article>
-    </section>
+    </div>
   </main>
 
+  <script src="/js/pages-elite.js"></script>
   <script>
     const API = "/api";
     const ownerEmail = "brucebrian50@gmail.com";
     const ownerAccessKey = "HAL-OWNER-246810";
     let currentBets = [];
+
+    function dashToast(msg, kind) {
+      if (window.PageElite && typeof PageElite.toast === "function") PageElite.toast(msg, kind || "ok");
+    }
 
     function getSession() {
       return {
@@ -188,16 +135,58 @@
       };
     }
 
+    function hitDeviceId() {
+      let id = localStorage.getItem("hitalick_device_id");
+      if (!id || id.length < 8) {
+        id =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `h-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
+        localStorage.setItem("hitalick_device_id", id);
+      }
+      return id;
+    }
+
+    function pickAuthHeaders(session) {
+      return {
+        Authorization: `Bearer ${session.token}`,
+        "X-Hit-Device-Id": hitDeviceId(),
+      };
+    }
+
     function setStatus(id, msg, isErr = false) {
       const el = document.getElementById(id);
       el.textContent = msg;
       el.style.color = isErr ? "#ff9f9f" : "#8affd4";
     }
 
+    async function copyTierItems(tier) {
+      const ta = document.getElementById(`${tier}Items`);
+      const t = (ta && ta.value) || "";
+      try {
+        await navigator.clipboard.writeText(t);
+        dashToast(`${tier} JSON copied`, "ok");
+      } catch {
+        dashToast("Clipboard unavailable in this context.", "warn");
+      }
+    }
+
+    async function reloadDashboardData() {
+      try {
+        await init();
+        dashToast("Boards refreshed", "ok");
+        if (window.PageElite) PageElite.announce("Dashboard data reloaded");
+      } catch (e) {
+        setStatus("globalStatus", e.message || String(e), true);
+        dashToast("Reload failed", "bad");
+      }
+    }
+
     async function unlockDashboard() {
       const key = (document.getElementById("ownerKeyInput").value || "").trim();
       if (key !== ownerAccessKey) {
         setStatus("gateStatus", "Invalid access key.", true);
+        dashToast("Access key rejected", "bad");
         return;
       }
 
@@ -211,9 +200,8 @@
         return;
       }
 
-      // Server-side owner validation check
       const probe = await fetch(`${API}/picks/bruce?uid=${encodeURIComponent(session.uid)}`, {
-        headers: { Authorization: `Bearer ${session.token}` },
+        headers: pickAuthHeaders(session),
       });
       if (!probe.ok) {
         const data = await probe.json().catch(() => ({}));
@@ -223,15 +211,15 @@
 
       document.getElementById("ownerGate").style.display = "none";
       document.getElementById("dashboardShell").style.display = "block";
+      dashToast("Dashboard unlocked", "ok");
+      if (window.PageElite) PageElite.announce("Owner dashboard open");
       await init();
     }
 
     async function loadTier(tier) {
       const session = getSession();
       const res = await fetch(`${API}/picks/${tier}?uid=${encodeURIComponent(session.uid)}`, {
-        headers: {
-          "Authorization": `Bearer ${session.token}`,
-        },
+        headers: pickAuthHeaders(session),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed load");
@@ -243,7 +231,7 @@
     async function loadCurrentBets() {
       const session = getSession();
       const res = await fetch(`${API}/picks/current-bets/list?uid=${encodeURIComponent(session.uid)}`, {
-        headers: { "Authorization": `Bearer ${session.token}` },
+        headers: pickAuthHeaders(session),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load current bets.");
@@ -254,22 +242,30 @@
     function renderCurrentBets() {
       const list = document.getElementById("currentBetsList");
       if (!currentBets.length) {
-        list.innerHTML = '<p class="small">No current bets yet.</p>';
+        list.innerHTML = '<p class="small">No queued bets yet. Stage one on the left.</p>';
         return;
       }
-      list.innerHTML = currentBets.map((item, idx) => `
+      list.innerHTML = currentBets
+        .map((item, idx) => {
+          const c = Number(item.confidence || 0);
+          const confClass = "bet-conf" + (c < 70 ? " lo" : "");
+          return `
         <div class="bet-item">
-          <strong>${escapeHtml(item.title || "Untitled Bet")}</strong>
-          <div class="bet-meta">${escapeHtml(item.league || "League")} • ${escapeHtml(item.pick || "Pick")} • ${Number(item.confidence || 0)}%</div>
+          <div class="bet-item-head">
+            <strong>${escapeHtml(item.title || "Untitled Bet")}</strong>
+            <span class="${confClass}">${c}%</span>
+          </div>
+          <div class="bet-meta">${escapeHtml(item.league || "League")} · ${escapeHtml(item.pick || "Pick")}</div>
           <div class="bet-meta">${escapeHtml(item.gameDate || "")}</div>
           <div class="bet-meta">${escapeHtml(item.notes || "")}</div>
           <div class="bet-actions">
-            <button onclick="pushToBoard(${idx}, 'bruce')">Add To Bruce</button>
-            <button onclick="pushToBoard(${idx}, 'premium')">Add To Premium</button>
-            <button class="btn-outline" onclick="removeBet(${idx})">Remove</button>
+            <button type="button" onclick="pushToBoard(${idx}, 'bruce')">To Bruce</button>
+            <button type="button" onclick="pushToBoard(${idx}, 'premium')">To Premium</button>
+            <button type="button" class="btn-outline" onclick="removeBet(${idx})">Remove</button>
           </div>
-        </div>
-      `).join("");
+        </div>`;
+        })
+        .join("");
     }
 
     function addCurrentBet() {
@@ -285,7 +281,8 @@
       }
       currentBets.unshift({ title, league, pick, notes, confidence, gameDate });
       renderCurrentBets();
-      setStatus("currentBetsStatus", "Added to current bets list.");
+      setStatus("currentBetsStatus", "Added to queue.");
+      dashToast("Bet staged", "ok");
     }
 
     function removeBet(idx) {
@@ -300,7 +297,7 @@
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.token}`,
+          ...pickAuthHeaders(session),
         },
         body: JSON.stringify({
           headline: "Current Bets Board",
@@ -310,9 +307,11 @@
       const data = await res.json();
       if (!res.ok) {
         setStatus("currentBetsStatus", data.error || "Failed to save.", true);
+        dashToast("Save failed", "bad");
         return;
       }
       setStatus("currentBetsStatus", `Saved ${data.count} current bets.`);
+      dashToast("Current bets saved", "ok");
     }
 
     function pushToBoard(idx, tier) {
@@ -325,12 +324,14 @@
       }
       items.unshift(currentBets[idx]);
       el.value = JSON.stringify(items, null, 2);
-      setStatus(tier === "bruce" ? "bruceStatus" : "premiumStatus", "Bet added to board JSON.");
+      setStatus(tier === "bruce" ? "bruceStatus" : "premiumStatus", "Bet merged into board JSON.");
+      dashToast(`Pushed to ${tier}`, "ok");
     }
 
     function clearTier(tier) {
       document.getElementById(`${tier}Items`).value = "[]";
       setStatus(tier === "bruce" ? "bruceStatus" : "premiumStatus", "Cleared board JSON.");
+      dashToast(`${tier} JSON cleared`, "warn");
     }
 
     function escapeHtml(value) {
@@ -365,21 +366,27 @@
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.token}`,
+          ...pickAuthHeaders(session),
         },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok) return setStatus(statusId, data.error || "Save failed.", true);
+      if (!res.ok) {
+        dashToast("Save failed", "bad");
+        return setStatus(statusId, data.error || "Save failed.", true);
+      }
       setStatus(statusId, `Saved ${data.count} picks.`);
+      dashToast(`${tier} board saved`, "ok");
     }
 
     async function init() {
       const session = getSession();
       const label = session.email ? `${session.email}` : "No account session found";
       document.getElementById("sessionLabel").textContent = label;
+      document.getElementById("globalStatus").textContent = "";
       if (!session.token || !session.uid) setStatus("globalStatus", "Log in at /account.html to edit picks.", true);
-      if (session.email && session.email.toLowerCase() !== ownerEmail) setStatus("globalStatus", "Viewer mode only. Owner account required for edits.", true);
+      if (session.email && session.email.toLowerCase() !== ownerEmail)
+        setStatus("globalStatus", "Viewer mode only. Owner account required for edits.", true);
 
       try {
         await loadTier("bruce");
@@ -389,8 +396,6 @@
         setStatus("globalStatus", e.message, true);
       }
     }
-
-    // Wait for owner gate unlock before init
   </script>
 </body>
 </html>

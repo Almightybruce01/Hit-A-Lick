@@ -1,4 +1,6 @@
 /*
+  Deprecated for Hit-A-Lick — use `scripts/stripe_hit_lick_catalog.cjs` instead (tags products with metadata hit_a_lick=1).
+
   Usage:
     STRIPE_SECRET_KEY=sk_live_xxx node scripts/bootstrap_stripe_assets.js
 

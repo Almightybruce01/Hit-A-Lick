@@ -56,14 +56,43 @@ function normalizeVenue(value) {
 }
 
 function toCompactGame(game = {}) {
+  const pts =
+    asNumber(game.points) ??
+    asNumber(game.PTS) ??
+    asNumber(game.pts) ??
+    asNumber(game.Pts);
+  const ast =
+    asNumber(game.assists) ??
+    asNumber(game.ast) ??
+    asNumber(game.AST) ??
+    asNumber(game.Assists);
+  const reb =
+    asNumber(game.rebounds) ??
+    asNumber(game.reb) ??
+    asNumber(game.REB) ??
+    asNumber(game.Rebounds);
+  const min =
+    asNumber(game.minutes) ??
+    asNumber(game.min) ??
+    asNumber(game.MIN) ??
+    asNumber(game.Minutes);
+  const threes =
+    asNumber(game.threes) ??
+    asNumber(game.threePointersMade) ??
+    asNumber(game.three_pointers_made) ??
+    asNumber(game.fg3m) ??
+    asNumber(game.FG3M) ??
+    asNumber(game["3pm"]) ??
+    asNumber(game.threePtMade);
   return {
     date: game.date || game.gameDate || "",
     opponent: game.opponent || game.vs || "",
     result: game.result || "",
-    points: asNumber(game.points),
-    assists: asNumber(game.assists),
-    rebounds: asNumber(game.rebounds),
-    minutes: asNumber(game.minutes || game.min),
+    points: pts,
+    assists: ast,
+    rebounds: reb,
+    minutes: min,
+    threes,
     venue: normalizeVenue(game.venue || game.homeAway),
   };
 }
@@ -74,6 +103,7 @@ function buildStatSummary(statHistory = [], candidateLine = null) {
   const ast = rows.map((r) => r.assists);
   const reb = rows.map((r) => r.rebounds);
   const min = rows.map((r) => r.minutes);
+  const tpm = rows.map((r) => r.threes);
   const homePts = rows.filter((r) => r.venue === "home").map((r) => r.points);
   const awayPts = rows.filter((r) => r.venue === "away").map((r) => r.points);
 
@@ -89,17 +119,20 @@ function buildStatSummary(statHistory = [], candidateLine = null) {
       assists: average(ast),
       rebounds: average(reb),
       minutes: average(min),
+      threes: average(tpm),
     },
     medians: {
       points: median(pts),
       assists: median(ast),
       rebounds: median(reb),
       minutes: median(min),
+      threes: median(tpm),
     },
     volatility: {
       points: stdDev(pts),
       assists: stdDev(ast),
       rebounds: stdDev(reb),
+      threes: stdDev(tpm),
     },
     splits: {
       homePointsAvg: average(homePts),
@@ -121,6 +154,7 @@ function buildStatSummary(statHistory = [], candidateLine = null) {
       assists: ast.filter((n) => n != null),
       rebounds: reb.filter((n) => n != null),
       minutes: min.filter((n) => n != null),
+      threes: tpm.filter((n) => n != null),
     },
   };
 }

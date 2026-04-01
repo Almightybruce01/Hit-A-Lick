@@ -22,10 +22,23 @@ check() {
   fi
 }
 
+# Ops HTML may require staff session — 401/403 still means the route is up.
+check_ops_dashboard() {
+  local url="$BASE/ops/dashboard"
+  local code
+  code=$(curl -sS -o /tmp/hitalick-smoke.json -w "%{http_code}" "$url" || echo "000")
+  if [[ "$code" =~ ^2 ]] || [[ "$code" == "401" ]] || [[ "$code" == "403" ]]; then
+    echo "  OK ($code) GET /ops/dashboard (reachable)"
+  else
+    echo "  FAIL ($code) GET /ops/dashboard"
+    fail=1
+  fi
+}
+
 check "GET /health" "$BASE/health"
 check "GET /api/health" "$BASE/api/health"
 check "GET /api/status" "$BASE/api/status"
-check "GET /ops/dashboard" "$BASE/ops/dashboard"
+check_ops_dashboard
 
 echo ""
 if [[ "$fail" -ne 0 ]]; then

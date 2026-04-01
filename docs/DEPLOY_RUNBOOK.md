@@ -10,15 +10,44 @@ npm --version
 ```
 
 ## 2) Configure Stripe secrets
-Set functions environment variables (replace placeholders):
+Set functions environment variables (replace placeholders). **Catalog helper** (creates Hit-A-Lick–tagged products only — safe alongside other apps in the same Stripe account):
+
+```bash
+cd /path/to/Hit-A-Lick
+STRIPE_SECRET_KEY=sk_live_... node scripts/hitlick_stripe_catalog_bootstrap.cjs
+# Copy printed STRIPE_PRICE_* lines into Firebase secrets.
+```
+
+**25% promo** (applies only to Regular + Premium *products* — set product IDs from bootstrap output):
+
+```bash
+STRIPE_SECRET_KEY=sk_live_... \
+HITALICK_STRIPE_PRODUCT_REGULAR=prod_... \
+HITALICK_STRIPE_PRODUCT_PREMIUM_BUNDLE=prod_... \
+HITALICK_STRIPE_PRODUCT_PREMIUM_AI_ADDON=prod_... \
+node scripts/stripe_create_hitalick25.cjs
+```
+
+**Archive old Hit-A-Lick products** (only rows with Stripe metadata `hit_a_lick=1`; never touches other apps):
+
+```bash
+STRIPE_SECRET_KEY=sk_live_... node scripts/stripe_archive_hit_a_lick_products.cjs
+```
+
+Core secrets:
+
 ```bash
 firebase functions:secrets:set STRIPE_SECRET_KEY
 firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
-firebase functions:secrets:set STRIPE_PRICE_BRUCE_MONTHLY
-firebase functions:secrets:set STRIPE_PRICE_BRUCE_ANNUAL
-firebase functions:secrets:set STRIPE_PRICE_BRUCE_ELITE_VIP
+firebase functions:secrets:set STRIPE_PRICE_REGULAR_MONTHLY
+firebase functions:secrets:set STRIPE_PRICE_PREMIUM_BUNDLE_MONTHLY
+firebase functions:secrets:set STRIPE_PRICE_PREMIUM_AI_ADDON_MONTHLY
+firebase functions:secrets:set STRIPE_PRICE_BRUCE_PICKS_MONTHLY
+firebase functions:secrets:set STRIPE_PRICE_GIAP_PICKS_MONTHLY
+firebase functions:secrets:set STRIPE_PRICE_AI_CREDITS_50
 firebase functions:secrets:set APP_SUCCESS_URL
 firebase functions:secrets:set APP_CANCEL_URL
+firebase functions:secrets:set APP_PRICING_URL
 ```
 
 ## 2b) Configure odds provider secrets (FanDuel + major books)
@@ -40,15 +69,14 @@ Optional:
 - `ODDS_API_DAILY_BURST_MULTIPLIER` — multiplies the “remaining ÷ days left” daily target (default 1.35). Catch-up when behind pace is also applied in `requestBudget.js`.
 
 ## 2c) Curator emails + Stripe curator prices
-See [`MARKETING_CURATORS.md`](./MARKETING_CURATORS.md). Set Firebase Auth accounts for each curator and configure:
+See [`CURATOR_ACCOUNTS.md`](./CURATOR_ACCOUNTS.md). In-app curator lanes are **Bruce** + **Giap** only (`functions/curators.js`, `functions/billing.js`). Configure:
 ```bash
 firebase functions:secrets:set STRIPE_PRICE_CURATOR_GIAP
 firebase functions:secrets:set STRIPE_PRICE_CURATOR_BRUCE
-firebase functions:secrets:set STRIPE_PRICE_CURATOR_MIKE
-firebase functions:secrets:set STRIPE_PRICE_CURATOR_TORIANO
-firebase functions:secrets:set STRIPE_PRICE_ALL_CURATORS
 ```
-Env keys: `CURATOR_GIAP_EMAIL`, `CURATOR_BRUCE_EMAIL` (optional), `CURATOR_MIKE_EMAIL`, `CURATOR_TORIANO_EMAIL` (see `functions/curators.js`).
+Optional alias secrets (same price IDs if you prefer shorter names): `STRIPE_PRICE_GIAP`, `STRIPE_PRICE_CURATORS_ALL`, `STRIPE_PRICE_BRUCE_CURATOR`.
+
+Env keys: `OWNER_EMAIL`, `CURATOR_GIAP_EMAIL`, optional `CURATOR_BRUCE_EMAIL` if Bruce’s lane differs from the owner account.
 
 ## 3) Deploy functions + hosting
 From repo root:

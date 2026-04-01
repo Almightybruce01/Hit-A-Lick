@@ -5,7 +5,7 @@ struct Stats: View {
     @State private var selectedSport: String = "ALL"
     @StateObject private var viewModel = StatsViewModel()
 
-    @State private var expandedStatId: UUID?
+    @State private var expandedStatId: String?
     @State private var selectedStatType: String = "Points"
     @State private var searchText: String = ""
 
@@ -26,80 +26,133 @@ struct Stats: View {
     var body: some View {
         ZStack {
             EliteBackground()
-
-            VStack(spacing: 12) {
-                HStack(spacing: 16) {
-                    Picker("Mode", selection: $selectedMode) {
-                        ForEach(modes, id: \.self) { Text($0) }
-                    }
-                    Picker("Sport", selection: $selectedSport) {
-                        ForEach(sports, id: \.self) { Text($0) }
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-                .onChange(of: selectedMode) { _ in
-                    viewModel.loadStats(for: selectedSport, mode: selectedMode)
-                }
-                .onChange(of: selectedSport) { _ in
-                    viewModel.loadStats(for: selectedSport, mode: selectedMode)
-                }
-
-                TextField("Search by name...", text: $searchText)
-                    .padding()
-                    .background(Color.white.opacity(0.2))
-                    .cornerRadius(8)
-                    .foregroundColor(.white)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(statTypes, id: \.self) { type in
-                            Button {
-                                selectedStatType = type
-                            } label: {
-                                Text(type)
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundColor(selectedStatType == type ? .black : .white)
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 12)
-                                    .background(selectedStatType == type ? Color.orange : Color.white.opacity(0.14))
-                                    .cornerRadius(999)
-                            }
-                        }
-                    }
-                }
-
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(filteredStats) { stat in
-                            StatCard(
-                                stat: stat,
-                                isExpanded: expandedStatId == stat.id,
-                                selectedStatType: $selectedStatType,
-                                onToggleExpand: {
-                                    withAnimation {
-                                        expandedStatId = (expandedStatId == stat.id) ? nil : stat.id
-                                    }
-                                }
-                            )
-                        }
-                    }
-                    .padding(.bottom, 40)
-                }
-            }
-            .padding()
+            content
         }
         .onAppear {
             viewModel.loadStats(for: selectedSport, mode: selectedMode)
         }
         .screenEntrance()
     }
+
+    private var content: some View {
+        VStack(spacing: 12) {
+            modeSportPickers
+            searchField
+            statTypeChips
+            statsList
+        }
+        .padding()
+    }
+
+    private var modeSportPickers: some View {
+        HStack(spacing: 16) {
+            Picker("Mode", selection: $selectedMode) {
+                ForEach(modes, id: \.self) { Text($0) }
+            }
+            Picker("Sport", selection: $selectedSport) {
+                ForEach(sports, id: \.self) { Text($0) }
+            }
+        }
+        .pickerStyle(SegmentedPickerStyle())
+        .onChange(of: selectedMode) { _ in
+            viewModel.loadStats(for: selectedSport, mode: selectedMode)
+        }
+        .onChange(of: selectedSport) { _ in
+            viewModel.loadStats(for: selectedSport, mode: selectedMode)
+        }
+    }
+
+    private var searchField: some View {
+        TextField("Search by name...", text: $searchText)
+            .padding()
+            .background(Color.white.opacity(0.2))
+            .cornerRadius(8)
+            .foregroundColor(.white)
+    }
+
+    private var statTypeChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(statTypes, id: \.self) { type in
+                    Button {
+                        selectedStatType = type
+                    } label: {
+                        Text(type)
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(selectedStatType == type ? .black : .white)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(selectedStatType == type ? Color.orange : Color.white.opacity(0.14))
+                            .cornerRadius(999)
+                    }
+                }
+            }
+        }
+    }
+
+    private var statsList: some View {
+        let rows = filteredStats
+        return ScrollView {
+            LazyVStack(spacing: 12) {
+                ForEach(rows) { stat in
+                    statRow(stat, sportKey: statsSportForMedia(selectedSport))
+                }
+            }
+            .padding(.bottom, 40)
+        }
+    }
+
+    private func statsSportForMedia(_ raw: String) -> String {
+        let u = raw.uppercased()
+        if u == "ALL" { return "nba" }
+        return raw.lowercased()
+    }
+
+    @ViewBuilder
+    private func statRow(_ stat: EntityStat, sportKey: String) -> some View {
+        let isExpanded = expandedStatId == stat.id
+        StatCard(
+            stat: stat,
+            sportKey: sportKey,
+            isExpanded: isExpanded,
+            selectedStatType: $selectedStatType,
+            onToggleExpand: { toggleExpandedState(for: stat.id) }
+        )
+    }
+
+    private func toggleExpandedState(for id: String) {
+        withAnimation {
+            expandedStatId = (expandedStatId == id) ? nil : id
+        }
+    }
 }
 
 struct StatCard: View {
     let stat: EntityStat
+    /// Lowercase league key for ESPN headshot path (nba, nfl, mlb, wnba).
+    let sportKey: String
     let isExpanded: Bool
     @Binding var selectedStatType: String
     var onToggleExpand: () -> Void
+
+    private func resolvedHeadshotURL() -> URL? {
+        if let h = stat.headshot?.trimmingCharacters(in: .whitespaces), !h.isEmpty,
+           h.lowercased().hasPrefix("http"), let u = URL(string: h) {
+            return u
+        }
+        guard let pid = stat.playerId?.trimmingCharacters(in: .whitespaces),
+              pid.unicodeScalars.allSatisfy({ CharacterSet.decimalDigits.contains($0) }) else { return nil }
+        let league: String = {
+            switch sportKey.lowercased() {
+            case "nba": return "nba"
+            case "wnba": return "wnba"
+            case "nfl": return "nfl"
+            case "mlb": return "mlb"
+            default: return "nba"
+            }
+        }()
+        return URL(string: "https://a.espncdn.com/i/headshots/\(league)/players/full/\(pid).png")
+    }
 
     var body: some View {
         ElitePanel {
@@ -117,20 +170,26 @@ struct StatCard: View {
 
                     Spacer()
 
-                    if let headshot = stat.headshot, let url = URL(string: headshot), UIApplication.shared.canOpenURL(url) {
-                        AsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 50, height: 50)
-                                .clipShape(Circle())
-                        } placeholder: {
-                            ProgressView()
+                    if let url = resolvedHeadshotURL() {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 50, height: 50)
+                                    .clipShape(Circle())
+                            case .failure, .empty:
+                                EliteGreyMediaSlot(size: 50, cornerFraction: 0.5)
+                                    .clipShape(Circle())
+                            @unknown default:
+                                EliteGreyMediaSlot(size: 50, cornerFraction: 0.5)
+                                    .clipShape(Circle())
+                            }
                         }
                     } else {
-                        Image(systemName: "person.crop.circle.fill")
-                            .font(.system(size: 46))
-                            .foregroundColor(.white.opacity(0.5))
+                        EliteGreyMediaSlot(size: 50, cornerFraction: 0.5)
+                            .clipShape(Circle())
                     }
                 }
 

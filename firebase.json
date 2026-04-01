@@ -24,6 +24,24 @@
     ],
     "headers": [
       {
+        "source": "**/*.js",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=1800, must-revalidate" }
+        ]
+      },
+      {
+        "source": "**/*.css",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=1800, must-revalidate" }
+        ]
+      },
+      {
+        "source": "**/*.{png,jpg,jpeg,gif,svg,ico,webp}",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
+      {
         "source": "**",
         "headers": [
           { "key": "X-Content-Type-Options", "value": "nosniff" },
@@ -34,7 +52,7 @@
       {
         "source": "**/*.html",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=120" }
+          { "key": "Cache-Control", "value": "public, max-age=120, must-revalidate" }
         ]
       },
       {

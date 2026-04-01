@@ -89,13 +89,38 @@ struct BillingEntitlementPayload: Decodable {
     let curatorIds: [String]?
     let staffRole: String?
     let aiUnlimited: Bool?
+    /// From `/api/billing/entitlements` after Stripe webhook merge (`billing.js`).
+    let hasRegular: Bool?
+    let hasPremium: Bool?
+    let hasAppAccess: Bool?
 
-    /// Bruce + Giap staff accounts: unlock stream center + tier-gated UI without changing the debug tier picker.
+    /// Bruce + Giap staff — full product access (no in-app purchases).
     var unlocksStaffVIPFeatures: Bool {
         guard active == true else { return false }
         if let s = staffRole, !s.isEmpty { return true }
         if curatorAllAccess == true { return true }
-        return (tier ?? "").lowercased() == "premium"
+        return false
+    }
+
+    /// Regular website subscription unlocks the app; Premium AI add-on alone does not (Apple-compliant web checkout).
+    var effectiveHasAppAccess: Bool {
+        if unlocksStaffVIPFeatures { return true }
+        if hasAppAccess == true { return true }
+        if hasRegular == true { return true }
+        let t = (tier ?? "").lowercased()
+        if t == "staff" || t == "premium_ai" || t == "premium_bundle" || t == "premium_all" { return true }
+        // Legacy Firestore rows that used `tier: premium` for full app + AI bundle.
+        if t == "premium", hasRegular != false { return true }
+        return false
+    }
+
+    var effectiveAiUnlimited: Bool {
+        if unlocksStaffVIPFeatures { return true }
+        if aiUnlimited == true { return true }
+        if hasPremium == true, effectiveHasAppAccess { return true }
+        let t = (tier ?? "").lowercased()
+        if (t == "premium_ai" || t == "premium_bundle" || t == "premium_all" || t == "staff"), effectiveHasAppAccess { return true }
+        return false
     }
 }
 

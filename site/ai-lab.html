@@ -31,9 +31,11 @@
     .row { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
     @media (max-width: 1080px) { .grid { grid-template-columns: 1fr; } }
   </style>
+  <link rel="stylesheet" href="/css/pages-elite.css" />
 </head>
 <body>
-  <main class="wrap">
+  <a class="pg-skip" href="#ai-lab-main">Skip to workspace</a>
+  <main class="wrap" id="ai-lab-main">
     <div class="brand-row">
       <img src="/logo.png" alt="HitALick logo" />
       <strong>HitALick</strong>
@@ -87,6 +89,26 @@
       };
     }
 
+    function hitDeviceId() {
+      let id = localStorage.getItem("hitalick_device_id");
+      if (!id || id.length < 8) {
+        id =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `h-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
+        localStorage.setItem("hitalick_device_id", id);
+      }
+      return id;
+    }
+
+    function aiAuthHeaders(tok) {
+      return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tok}`,
+        "X-Hit-Device-Id": hitDeviceId(),
+      };
+    }
+
     function setStatus(msg, err = false) {
       const el = document.getElementById("status");
       el.textContent = msg;
@@ -110,10 +132,7 @@
 
       const res = await fetch(`${API}/ai/picks`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${s.token}`,
-        },
+        headers: aiAuthHeaders(s.token),
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -189,10 +208,7 @@
       const stake = Number(document.getElementById("stake").value || 0);
       const res = await fetch(`${API}/ai/parlay`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${s.token}`,
-        },
+        headers: aiAuthHeaders(s.token),
         body: JSON.stringify({
           uid: s.uid,
           stake,
@@ -221,5 +237,6 @@
     renderPicks();
     renderCart();
   </script>
+  <script src="/js/pages-elite.js"></script>
 </body>
 </html>

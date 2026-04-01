@@ -92,8 +92,8 @@ function main() {
       } catch (e) {
         if (e.code === "auth/email-already-exists") {
           const u = await admin.auth().getUserByEmail(email);
-          await admin.auth().updateUser(u.uid, { displayName });
-          console.log(`Updated display name for existing ${slug}: ${email} uid=${u.uid}`);
+          await admin.auth().updateUser(u.uid, { displayName, password });
+          console.log(`Updated password + display name for existing ${slug}: ${email} uid=${u.uid}`);
         } else {
           console.error(`Failed ${slug}:`, e.message || e);
           process.exit(1);

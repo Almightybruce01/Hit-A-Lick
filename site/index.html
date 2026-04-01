@@ -289,12 +289,14 @@
       .topbar { padding: 10px; }
     }
   </style>
+  <link rel="stylesheet" href="/css/pages-elite.css" />
 </head>
 <body>
+  <a class="pg-skip" href="#site-main">Skip to content</a>
   <div class="bg-flow"></div>
   <div class="scan"></div>
 
-  <main class="wrap">
+  <main class="wrap" id="site-main">
     <section class="topbar">
       <div class="brand-wrap">
         <img src="/logo.png" alt="HitALick logo" />
@@ -393,19 +395,24 @@
 
       <section class="tiers">
         <article class="tier">
-          <h3>Core Membership</h3>
+          <h3>Regular</h3>
           <div class="price">$19.99</div>
-          <div class="meta">Monthly Access</div>
+          <div class="meta">App access + 5 AI/mo</div>
+        </article>
+        <article class="tier">
+          <h3>Premium</h3>
+          <div class="price">$49.99</div>
+          <div class="meta">App + unlimited AI</div>
         </article>
         <article class="tier">
           <h3>Bruce Picks</h3>
-          <div class="price">$20</div>
-          <div class="meta">Monthly Board</div>
+          <div class="price">$19.99</div>
+          <div class="meta">Separate feed</div>
         </article>
         <article class="tier">
-          <h3>Bruce Premium Picks</h3>
-          <div class="price">$50</div>
-          <div class="meta">Premium Board</div>
+          <h3>Giap Picks</h3>
+          <div class="price">$19.99</div>
+          <div class="meta">Separate feed</div>
         </article>
       </section>
 
@@ -432,5 +439,6 @@
       });
     });
   </script>
+  <script src="/js/pages-elite.js"></script>
 </body>
 </html>

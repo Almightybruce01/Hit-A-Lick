@@ -32,15 +32,20 @@
       margin-bottom: 14px;
       backdrop-filter: blur(10px);
     }
-    .row { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .row { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
     .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; backdrop-filter: blur(10px); }
-    .price { font-size: 38px; font-weight: 900; margin: 6px 0 12px; }
+    .price { font-size: 32px; font-weight: 900; margin: 6px 0 12px; }
     .unit { font-size: 14px; color: var(--muted); margin-left: 4px; }
     button {
       border: 0; border-radius: 999px; padding: 10px 14px; cursor: pointer; font-weight: 700;
       background: linear-gradient(135deg, var(--brand), var(--accent)); color: #03101f;
     }
-    .hint { color: var(--muted); font-size: 13px; margin-top: 16px; }
+    button.secondary {
+      background: rgba(255,255,255,0.12);
+      color: #e8f1ff;
+      border: 1px solid rgba(140, 190, 255, 0.35);
+    }
+    .hint { color: var(--muted); font-size: 13px; margin-top: 16px; line-height: 1.45; }
     .feature { font-size: 12px; color: #d8e6ff; margin-top: 6px; }
     .badge {
       display: inline-block;
@@ -54,48 +59,77 @@
       background: linear-gradient(135deg, #7fffd8, #89c6ff);
       font-weight: 800;
     }
+    h2 { margin: 0 0 6px; font-size: 1.15rem; }
+    .section-title { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; }
   </style>
+  <link rel="stylesheet" href="/css/pages-elite.css" />
 </head>
 <body>
-  <main class="wrap">
+  <a class="pg-skip" href="#pricing-main">Skip to content</a>
+  <main class="wrap" id="pricing-main">
     <div class="brand-row">
       <img src="/logo.png" alt="HitALick logo" />
       <strong>HitALick</strong>
     </div>
     <section class="hero">
-      <h1 style="margin:0 0 8px;">Choose Your Membership</h1>
-      <p class="hint">No free tier. Web account + active paid membership unlocks full app/site analytics.</p>
-      <p class="hint"><a href="/account.html" style="color:#8affd4;">Create/login account first</a> to attach entitlement to your identity.</p>
-      <p class="hint"><a href="/app.html" style="color:#8affd4;">Open HitALick Web App</a> for Pro Props Board, FanDuel + major book symbols, Games, AI Engine, and Premium picks.</p>
+      <h1 style="margin:0 0 8px;">Website subscriptions only</h1>
+      <p class="hint"><strong>Apple App Store:</strong> the iOS app has <strong>no in-app purchases</strong>. Create an account in the app, then subscribe here in Safari. All charges go through Stripe on this site.</p>
+      <p class="hint"><a href="/account.html" style="color:#8affd4;">Create / log in</a> first so checkout attaches to your Firebase user.</p>
+      <p class="hint"><strong>Promo:</strong> at checkout use <code style="background:rgba(0,0,0,.35);padding:2px 8px;border-radius:6px;">HITALICK25</code> for <strong>25% off</strong> — valid only on <strong>Regular</strong> and <strong>Premium</strong> (app subscription lines), not Bruce/Giap picks or AI credit packs. <strong>One-time VIP codes</strong> (25% off the first invoice, monthly or yearly) are created in Stripe and shared privately — each code redeems once.</p>
+      <p class="hint"><a href="/app.html" style="color:#8affd4;">Open web app</a></p>
+      <p class="hint"><strong>Stripe:</strong> checkout uses your backend <code>STRIPE_PRICE_*</code> secrets only. Point them at the <strong>Hit-A-Lick</strong> catalog (products with metadata <code>app=hit_a_lick</code> from <code>scripts/stripe_hit_a_lick_catalog.js</code>). Do not use old “core” or unnamed legacy prices from the same Stripe account.</p>
     </section>
 
+    <div class="section-title">App access (required for props, desk, games, alerts)</div>
     <section class="row">
       <article class="card">
-        <span class="badge">Core</span>
-        <h2>Core Membership</h2>
-        <div class="price">$19.99<span class="unit">/mo</span></div>
-        <div class="feature">- Thousands of props & games</div>
-        <div class="feature">- Advanced visual analytics boards</div>
-        <div class="feature">- Odds comparison and market movement</div>
-        <button onclick="startCheckout('core')">Start Core</button>
+        <span class="badge">Regular</span>
+        <h2>Regular membership</h2>
+        <div class="price">—<span class="unit">/mo</span></div>
+        <div class="feature">Full analytics boards, props, games, Elite Desk, alerts</div>
+        <div class="feature">AI engine: <strong>5 included requests / month</strong> (counter in app) — upgrade to Premium for unlimited</div>
+        <div class="feature">Bruce / Giap pick <strong>feeds are not included</strong> (separate below)</div>
+        <button onclick="startCheckout('regular')">Subscribe Regular</button>
       </article>
+      <article class="card">
+        <span class="badge">Premium AI</span>
+        <h2>Premium + unlimited AI</h2>
+        <div class="price">—<span class="unit">/mo</span></div>
+        <div class="feature"><strong>New here?</strong> This checkout is the <strong>all-in-one</strong> plan (app + unlimited AI).</div>
+        <div class="feature"><strong>Already on Regular?</strong> The same button starts the <strong>AI add-on</strong> subscription (second line item) — no duplicate base fee when your Stripe prices are set up that way.</div>
+        <div class="feature"><strong>Unlimited</strong> AI picks, Copilot, parlay math</div>
+        <div class="feature">Bruce &amp; Giap pick <strong>feeds stay separate</strong> below</div>
+        <button onclick="startCheckout('premium')">Subscribe Premium</button>
+      </article>
+    </section>
+
+    <div class="section-title">Curator pick feeds (each sold separately)</div>
+    <section class="row">
       <article class="card">
         <span class="badge">Bruce</span>
-        <h2>Bruce Picks</h2>
-        <div class="price">$20<span class="unit">/mo</span></div>
-        <div class="feature">- Daily curated Bruce board</div>
-        <div class="feature">- Certain plays + confidence context</div>
-        <div class="feature">- AI engine access bundle</div>
-        <button onclick="startCheckout('bruce')">Start Bruce Picks</button>
+        <h2>Bruce picks add-on</h2>
+        <div class="price">—<span class="unit">/mo</span></div>
+        <div class="feature">Unlocks Bruce daily + Bruce premium boards in the app</div>
+        <div class="feature">Requires Regular or Premium app plan to view in product</div>
+        <button onclick="startCheckout('bruce')">Subscribe Bruce picks</button>
       </article>
       <article class="card">
-        <span class="badge">Premium</span>
-        <h2>Bruce Premium Picks</h2>
-        <div class="price">$50<span class="unit">/mo</span></div>
-        <div class="feature">- Premium board and advanced stacks</div>
-        <div class="feature">- Higher-confidence curated portfolio</div>
-        <div class="feature">- Full AI + premium insights layer</div>
-        <button onclick="startCheckout('premium')">Start Premium Picks</button>
+        <span class="badge">Giap</span>
+        <h2>Giap picks add-on</h2>
+        <div class="price">—<span class="unit">/mo</span></div>
+        <div class="feature">Separate from Bruce — own pick feed</div>
+        <div class="feature">Requires Regular or Premium app plan</div>
+        <button onclick="startCheckout('giap')">Subscribe Giap picks</button>
+      </article>
+    </section>
+
+    <div class="section-title">AI top-ups (optional)</div>
+    <section class="row">
+      <article class="card">
+        <span class="badge">Credits</span>
+        <h2>+50 AI requests</h2>
+        <p class="hint" style="margin-top:0;">One-time pack for Regular members who hit the monthly cap (webhook must be enabled for <code>checkout.session.completed</code>).</p>
+        <button class="secondary" onclick="startAiCredits()">Buy +50 AI requests</button>
       </article>
     </section>
 
@@ -103,6 +137,13 @@
   </main>
 
   <script>
+    const HITALICK_CLOUD_API = "https://api-lifnvql5aa-uc.a.run.app";
+    function hitApiPath(path) {
+      const h = (location.hostname || "").toLowerCase();
+      if (h.indexOf("github.io") >= 0) return HITALICK_CLOUD_API + path;
+      return path;
+    }
+
     const sessionHint = document.getElementById("sessionHint");
 
     function readSession() {
@@ -118,7 +159,19 @@
         sessionHint.innerHTML = 'No active account session. <a href="/account.html" style="color:#8affd4;">Open account hub</a>.';
         return;
       }
-      sessionHint.innerHTML = 'Account connected. Subscription entitlement updates are enabled. <a href="/app.html" style="color:#8affd4;">Open Web App</a>.';
+      sessionHint.innerHTML = 'Account connected. <a href="/app.html" style="color:#8affd4;">Open Web App</a>.';
+    }
+
+    function hitDeviceId() {
+      let id = localStorage.getItem("hitalick_device_id");
+      if (!id || id.length < 8) {
+        id =
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `h-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
+        localStorage.setItem("hitalick_device_id", id);
+      }
+      return id;
     }
 
     async function startCheckout(tier) {
@@ -127,10 +180,19 @@
         alert("Create/login on the website first so we can attach your entitlement.");
         return;
       }
+      const token = localStorage.getItem("hitalick_token") || "";
+      if (!token) {
+        alert("Open account.html and sign in so checkout is tied to your session (required for security).");
+        return;
+      }
 
-      const res = await fetch("/api/billing/create-checkout-session", {
+      const res = await fetch(hitApiPath("/api/billing/create-checkout-session"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "X-Hit-Device-Id": hitDeviceId(),
+        },
         body: JSON.stringify({ uid, email, tier }),
       });
       const data = await res.json();
@@ -141,7 +203,36 @@
       window.location.href = data.url;
     }
 
+    async function startAiCredits() {
+      const { uid, email } = readSession();
+      if (!uid || !email) {
+        alert("Log in on account.html first.");
+        return;
+      }
+      const token = localStorage.getItem("hitalick_token") || "";
+      if (!token) {
+        alert("Sign in on account.html first (token required for credits checkout).");
+        return;
+      }
+      const res = await fetch(hitApiPath("/api/billing/create-ai-credits-session"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "X-Hit-Device-Id": hitDeviceId(),
+        },
+        body: JSON.stringify({ uid, email }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        alert(data.error || "Credits checkout not configured.");
+        return;
+      }
+      window.location.href = data.url;
+    }
+
     renderSessionHint();
   </script>
+  <script src="/js/pages-elite.js"></script>
 </body>
 </html>

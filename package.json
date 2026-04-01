@@ -4,12 +4,23 @@
   "description": "Monorepo scripts (iOS app in HitALick/, Firebase in functions/, static site in site/)",
   "scripts": {
     "deploy:backend": "bash scripts/deploy-backend.sh",
+    "deploy:firebase": "firebase deploy --only hosting,functions --project hit-a-lick-database",
+    "deploy:hosting": "firebase deploy --only hosting --project hit-a-lick-database",
+    "deploy:functions": "firebase deploy --only functions --project hit-a-lick-database",
     "smoke": "bash scripts/smoke-test.sh",
+    "e2e": "node scripts/e2e-full.mjs",
+    "e2e:api": "node scripts/e2e-full.mjs --api-only",
+    "e2e:ci": "HITALICK_E2E_SKIP_PLAYWRIGHT=1 node scripts/e2e-full.mjs",
+    "e2e:local": "node scripts/e2e-full.mjs --serve",
+    "e2e:web": "node scripts/e2e-web-app-smoke.mjs",
     "provider-test": "bash scripts/provider-test.sh",
     "verify:functions": "node --input-type=module -e \"import('./functions/index.js').then(()=>console.log('functions: import OK')).catch(e=>{console.error(e);process.exit(1)})\"",
     "emulators": "firebase emulators:start --only functions,hosting"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.1"
   }
 }

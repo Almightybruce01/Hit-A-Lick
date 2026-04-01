@@ -14,7 +14,7 @@ import {
   propMarketTierFromEnv,
   propMarketTierMeta,
 } from "./propMarketTuning.js";
-import { enrichPropsWithEntityResolution } from "./entityResolve.js";
+import { enrichPropsWithEntityResolution, parseMatchupTeams } from "./entityResolve.js";
 
 /** Display / merge priority — retail books first, then DFS (Odds API `us_dfs` region). */
 const PREFERRED_BOOKMAKERS = [
@@ -142,11 +142,85 @@ async function readPropsCache(sport) {
   };
 }
 
+function espnHeadshotUrlForCache(sport, espnAthleteId) {
+  const id = String(espnAthleteId || "").trim();
+  if (!/^\d+$/.test(id)) return null;
+  const league = espnLeagueFolderFromSport(sport);
+  return `https://a.espncdn.com/i/headshots/${league}/players/full/${id}.png`;
+}
+
+function slimLegForPropsCache(leg, sport) {
+  if (!leg || typeof leg !== "object") return {};
+  const out = {};
+  for (const k of ["market", "label", "side", "line", "odds", "bookKey", "bookName", "playerName", "espnAthleteId", "synthetic"]) {
+    if (leg[k] !== undefined) out[k] = leg[k];
+  }
+  const h = String(leg.headshot || "").trim();
+  if (/^https?:\/\//i.test(h)) out.headshot = h;
+  else {
+    const built = espnHeadshotUrlForCache(sport, leg.espnAthleteId);
+    if (built) out.headshot = built;
+  }
+  return out;
+}
+
+/** Firestore doc limit 1MB — never spread full `enriched` rows into cache (elite tiers are huge). */
+function slimPropRowForPropsCache(p, maxLegsPerEvent) {
+  const cap = Math.max(4, Number(maxLegsPerEvent) || 200);
+  const legs = Array.isArray(p?.playerProps)
+    ? p.playerProps.slice(0, cap).map((leg) => slimLegForPropsCache(leg, p.sport))
+    : [];
+  const a = p.analytics && typeof p.analytics === "object" ? p.analytics : null;
+  const row = {
+    sport: p.sport,
+    matchup: p.matchup,
+    spread: p.spread,
+    moneyline: p.moneyline,
+    total: p.total,
+    date: p.date,
+    commenceTime: p.commenceTime,
+    source: p.source,
+    availableBooks: Array.isArray(p.availableBooks) ? p.availableBooks : [],
+    preferredBook: p.preferredBook ?? null,
+    tags: Array.isArray(p.tags) ? p.tags.slice(0, 16) : [],
+    books: [],
+    playerProps: legs,
+  };
+  if (p.confidence !== undefined) row.confidence = p.confidence;
+  if (p.confidenceBand !== undefined) row.confidenceBand = p.confidenceBand;
+  if (a) {
+    const ax = {};
+    if (a.hasPlayerProps !== undefined) ax.hasPlayerProps = a.hasPlayerProps;
+    if (a.playerPropsCount !== undefined) ax.playerPropsCount = a.playerPropsCount;
+    if (a.reliabilityScore !== undefined) ax.reliabilityScore = a.reliabilityScore;
+    if (a.steamFlag !== undefined) ax.steamFlag = a.steamFlag;
+    ax.playerPropsCount = Math.max(legs.length, Number(ax.playerPropsCount || 0));
+    if (Object.keys(ax).length) {
+      const aClean = {};
+      for (const [ak, av] of Object.entries(ax)) {
+        if (av !== undefined) aClean[ak] = av;
+      }
+      if (Object.keys(aClean).length) row.analytics = aClean;
+    }
+  }
+  const cleaned = {};
+  for (const [k, v] of Object.entries(row)) {
+    if (v !== undefined) cleaned[k] = v;
+  }
+  return cleaned;
+}
+
 async function writePropsCache(sport, payload) {
+  const maxEvents = envPositiveInt("PROPS_CACHE_MAX_EVENTS", 72, 140);
+  const maxLegsPerEvent = envPositiveInt("PROPS_CACHE_MAX_PLAYER_PROPS_PER_EVENT", 240, 420);
+  const slimProps = (Array.isArray(payload?.props) ? payload.props : [])
+    .slice(0, maxEvents)
+    .map((p) => slimPropRowForPropsCache(p, maxLegsPerEvent));
   await propsCacheDoc(sport).set(
     {
       sport,
       ...payload,
+      props: slimProps,
       cachedAt: admin.firestore.FieldValue.serverTimestamp(),
       cachedAtIso: new Date().toISOString(),
     },
@@ -332,9 +406,39 @@ function computePropConfidence(prop, source) {
   const lineBoost = lineCompleteness * 7;
   const rangePenalty =
     Number(prop?.analytics?.moneylineRange?.delta || 0) > 500 ? 4 : 0;
+  const spreadDelta = Number(prop?.analytics?.spreadRange?.delta || 0);
+  const mlDelta = Number(prop?.analytics?.moneylineRange?.delta || 0);
+  /** Wider book disagreement → less “sure” confidence (proxy until defense/position ranks are wired in). */
+  const disagreementPenalty =
+    (spreadDelta > 2.5 ? 3 : 0) + (mlDelta > 120 ? 3 : mlDelta > 80 ? 2 : 0);
+  const depthCeiling =
+    booksCount >= 4 && playerPropCount >= 14 ? 94 : booksCount >= 3 && playerPropCount >= 8 ? 91 : 88;
 
-  const raw = sourceBase + booksBoost + propDepthBoost + lineBoost - rangePenalty;
-  return Math.max(35, Math.min(96, Math.round(raw)));
+  const micro = microstructureSignals(prop);
+  const steamPenalty = micro.steamFlag ? 4 : 0;
+  const edgeList = deriveTopPropEdges(prop.playerProps || [], 24);
+  const edgeBoost = Math.min(6, edgeList.length * 0.9);
+
+  const when = propScheduledDate(prop);
+  let tipAdj = 0;
+  if (when) {
+    const hours = (when.getTime() - Date.now()) / 3600000;
+    if (hours < -0.5) tipAdj = -5;
+    else if (hours < 2) tipAdj = 2;
+    else if (hours > 120) tipAdj = -3;
+  }
+
+  const raw =
+    sourceBase +
+    booksBoost +
+    propDepthBoost +
+    lineBoost -
+    rangePenalty -
+    disagreementPenalty -
+    steamPenalty +
+    edgeBoost +
+    tipAdj;
+  return Math.max(35, Math.min(depthCeiling, Math.round(raw)));
 }
 
 function americanFromProbability(prob) {
@@ -502,14 +606,13 @@ function extractPlayerNameFromLabel(label) {
   return out.length ? out.join(" ") : noOu;
 }
 
-function headshotUrlForLeg({ sport, playerName, espnAthleteId }) {
+function headshotUrlForLeg({ sport, espnAthleteId }) {
   const league = espnLeagueFolderFromSport(sport);
   const id = String(espnAthleteId || "").trim();
   if (/^\d+$/.test(id)) {
     return `https://a.espncdn.com/i/headshots/${league}/players/full/${id}.png`;
   }
-  const n = String(playerName || "Player").trim();
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(n)}&size=192&background=0a1227&color=7ef9d5&bold=true&font-size=0.33`;
+  return null;
 }
 
 /** Normalize player name for roster matching (lowercase, no suffixes, collapse spaces). */
@@ -517,44 +620,182 @@ function normalizePlayerNameForMatch(name) {
   if (!name || typeof name !== "string") return "";
   return name
     .toLowerCase()
+    .replace(/-/g, " ")
+    .replace(/\./g, " ")
+    .replace(/['`]/g, "")
     .replace(/\b(jr\.?|sr\.?|iii|ii|iv)\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-/** Build map: normalized player name → espnAthleteId from Firestore roster. */
-async function buildPlayerNameToEspnIdMap(sport) {
-  const map = new Map();
+function tokenOverlapScore(rawName, rosterDisplayName) {
+  const A = new Set(normalizePlayerNameForMatch(rawName).split(/\s+/).filter((t) => t.length > 0));
+  const B = new Set(normalizePlayerNameForMatch(rosterDisplayName).split(/\s+/).filter((t) => t.length > 0));
+  let n = 0;
+  for (const t of A) if (B.has(t)) n += 1;
+  return n;
+}
+
+/** Extra keys beyond full normalized name (Odds labels vs roster spellings). */
+function expandPlayerNameMatchKeys(playerName) {
+  const nk = normalizePlayerNameForMatch(playerName);
+  if (!nk) return [];
+  const keys = new Set([nk]);
+  const parts = nk.split(/\s+/).filter((t) => t.length > 0);
+  if (parts.length >= 2) {
+    const first = parts[0];
+    const last = parts[parts.length - 1];
+    if (first.length && last.length >= 2) {
+      keys.add(`${first[0]} ${last}`);
+      keys.add(`${first[0]}${last}`);
+    }
+    if (parts.length >= 3) {
+      keys.add(`${parts[0]} ${last}`);
+    }
+  }
+  return [...keys];
+}
+
+function normalizeTeamTokenForMatch(raw) {
+  return String(raw || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+/** Roster rows for cross-provider matching: name keys, team text, ESPN id. */
+async function buildPlayerRosterMatchContext(sport) {
+  const byNormName = new Map();
+  const flat = [];
   try {
+    const teamSnap = await db.collection("team").where("sportId", "==", sport).limit(260).get();
+    const teamIdToDisplay = new Map();
+    for (const tdoc of teamSnap.docs) {
+      const td = tdoc.data() || {};
+      const disp = String(td.name || td.displayName || "").trim();
+      const ab = String(td.abbreviation || td.abbr || "").trim().toLowerCase();
+      teamIdToDisplay.set(tdoc.id, { display: disp, abbrev: ab });
+    }
+
     const snap = await db.collection("players").where("sportId", "==", sport).limit(2500).get();
     for (const doc of snap.docs) {
-      const d = doc.data();
-      const espnId = d.espnAthleteId || d.playerId;
+      const d = doc.data() || {};
+      const espnRaw = d.espnAthleteId || d.espnId || d.espnPlayerId || d.playerId;
       const name = d.name;
-      if (espnId && /^\d+$/.test(String(espnId)) && name) {
-        const key = normalizePlayerNameForMatch(name);
-        if (key && !map.has(key)) map.set(key, String(espnId));
+      if (!name || !espnRaw || !/^\d+$/.test(String(espnRaw))) continue;
+      const nk = normalizePlayerNameForMatch(name);
+      if (!nk) continue;
+      const teamKey = String(d.team || d.teamId || "").trim();
+      const meta = teamIdToDisplay.get(teamKey) || {};
+      const teamRaw = String(d.teamName || meta.display || teamKey || "").trim();
+      const teamAbbrev = meta.abbrev || "";
+      const entry = {
+        espnId: String(espnRaw),
+        displayName: String(name).trim(),
+        teamRaw,
+        teamNorm: normalizeTeamTokenForMatch(teamRaw),
+        teamAbbrev,
+      };
+      const pushEntry = (key) => {
+        if (!key) return;
+        if (!byNormName.has(key)) byNormName.set(key, []);
+        byNormName.get(key).push(entry);
+      };
+      pushEntry(nk);
+      const parts = nk.split(/\s+/).filter((t) => t.length > 1);
+      if (parts.length >= 2) {
+        const lastFirst = `${parts[parts.length - 1]} ${parts[0]}`;
+        if (lastFirst !== nk) pushEntry(lastFirst);
       }
+      flat.push({ nk, ...entry, lastTok: nk.split(/\s+/).pop() || "" });
     }
   } catch (err) {
     console.warn("Roster lookup for prop matching failed:", err.message);
   }
-  return map;
+  return { byNormName, flat };
 }
 
-/** Ensures every leg has playerName + headshot URL. Matches roster to attach espnAthleteId when missing. */
-function enrichPlayerPropsWithHeadshots(prop, sport, rosterMap = null) {
+function matchupTeamNormList(matchup) {
+  const { away, home } = parseMatchupTeams(matchup);
+  return [normalizeTeamTokenForMatch(away), normalizeTeamTokenForMatch(home)].filter(Boolean);
+}
+
+function rosterEntryMatchesMatchup(entry, matchupNorms) {
+  if (!entry.teamNorm && !entry.teamRaw && !entry.teamAbbrev) return false;
+  const nick = entry.teamRaw
+    ? normalizeTeamTokenForMatch(entry.teamRaw.split(/\s+/).pop() || "")
+    : "";
+  const ab = entry.teamAbbrev ? normalizeTeamTokenForMatch(entry.teamAbbrev) : "";
+  for (const m of matchupNorms) {
+    if (!m) continue;
+    if (entry.teamNorm && (m.includes(entry.teamNorm) || entry.teamNorm.includes(m))) return true;
+    if (nick && (m.includes(nick) || nick.includes(m))) return true;
+    if (ab && ab.length >= 2 && (m.includes(ab) || ab.includes(m))) return true;
+  }
+  return false;
+}
+
+function resolveEspnFromRoster(playerName, matchup, ctx) {
+  if (!ctx || !playerName) return null;
+  const norms = matchupTeamNormList(matchup);
+
+  const pickFromCandidates = (cands) => {
+    if (!cands?.length) return null;
+    if (cands.length === 1) return cands[0].espnId;
+    const teamHits = cands.filter((e) => rosterEntryMatchesMatchup(e, norms));
+    if (teamHits.length === 1) return teamHits[0].espnId;
+    const pool = teamHits.length ? teamHits : cands;
+    if (pool.length === 1) return pool[0].espnId;
+    const scored = pool.map((e) => ({
+      e,
+      score: tokenOverlapScore(playerName, e.displayName || ""),
+    }));
+    scored.sort((a, b) => b.score - a.score);
+    if (scored[0].score >= 2 && scored[0].score > (scored[1]?.score ?? 0)) return scored[0].e.espnId;
+    return null;
+  };
+
+  for (const key of expandPlayerNameMatchKeys(playerName)) {
+    const id = pickFromCandidates(ctx.byNormName.get(key));
+    if (id) return id;
+  }
+
+  const nk = normalizePlayerNameForMatch(playerName);
+  const last = nk.split(/\s+/).pop();
+  if (!last || last.length < 3) return null;
+  const scoped = ctx.flat.filter((r) => r.lastTok === last && rosterEntryMatchesMatchup(r, norms));
+  if (scoped.length === 1) return scoped[0].espnId;
+  if (scoped.length > 1) {
+    const id = pickFromCandidates(scoped);
+    if (id) return id;
+  }
+  return null;
+}
+
+/** playerName + espnAthleteId from roster when possible; headshot = ESPN CDN only (clients use grey placeholder if absent). */
+function enrichPlayerPropsWithHeadshots(prop, sport, rosterCtx = null) {
   const legs = Array.isArray(prop.playerProps) ? prop.playerProps : [];
   if (!legs.length) return prop;
+  const matchup = prop.matchup || "";
   const next = legs.map((leg) => {
     let playerName = leg.playerName || extractPlayerNameFromLabel(leg.label);
     let espnAthleteId = leg.espnAthleteId;
-    if (!espnAthleteId && rosterMap && playerName) {
-      const key = normalizePlayerNameForMatch(playerName);
-      espnAthleteId = rosterMap.get(key) || null;
+    if (!espnAthleteId || !/^\d+$/.test(String(espnAthleteId))) {
+      const fromRoster = resolveEspnFromRoster(playerName, matchup, rosterCtx);
+      if (fromRoster) espnAthleteId = fromRoster;
     }
-    const headshot = leg.headshot || headshotUrlForLeg({ sport, playerName, espnAthleteId });
-    return { ...leg, playerName, espnAthleteId: espnAthleteId || leg.espnAthleteId, headshot };
+    const idOk = espnAthleteId && /^\d+$/.test(String(espnAthleteId));
+    const existingH = String(leg.headshot || "").trim();
+    const headshot = /^https?:\/\//i.test(existingH)
+      ? existingH
+      : idOk
+        ? headshotUrlForLeg({ sport, espnAthleteId })
+        : null;
+    return {
+      ...leg,
+      playerName,
+      espnAthleteId: idOk ? String(espnAthleteId) : leg.espnAthleteId || null,
+      headshot,
+    };
   });
   return { ...prop, playerProps: next };
 }
@@ -774,7 +1015,7 @@ function mapEventPlayerProps(payload, sport = "nba") {
           bookName: book.title || null,
           playerName,
           espnAthleteId,
-          headshot: headshotUrlForLeg({ sport, playerName, espnAthleteId }),
+          headshot: headshotUrlForLeg({ sport, espnAthleteId }),
         });
       }
     }
@@ -875,10 +1116,11 @@ async function requestEventPropPayloads({ eventUrl, headers = {}, paramsBase = {
 
 function combinePlayerPropsAcrossBooks(books = []) {
   const maxPerEvent = envPositiveInt("ODDS_API_MAX_PLAYER_PROPS_PER_EVENT", 1400, 5000);
-  const seen = new Set();
-  const merged = [];
+  const byKey = new Map();
 
   for (const book of books) {
+    const bkFallback = book?.bookmakerKey || "";
+    const bnFallback = book?.bookmakerName || "";
     for (const prop of book?.playerProps || []) {
       const key = [
         prop.market || "",
@@ -886,16 +1128,49 @@ function combinePlayerPropsAcrossBooks(books = []) {
         String(prop.side || "").toLowerCase(),
         prop.line ?? "",
       ].join("|");
-      if (seen.has(key)) continue;
-      seen.add(key);
-      merged.push({
-        ...prop,
-        bookKey: prop.bookKey || book.bookmakerKey || null,
-        bookName: prop.bookName || book.bookmakerName || null,
-      });
-      if (merged.length >= maxPerEvent) break;
+      const quote = {
+        bookKey: prop.bookKey || bkFallback || null,
+        bookName: prop.bookName || bnFallback || null,
+        odds: prop.odds ?? null,
+      };
+      if (!byKey.has(key)) {
+        byKey.set(key, {
+          ...prop,
+          bookKey: quote.bookKey,
+          bookName: quote.bookName,
+          odds: prop.odds,
+          bookQuotes: [quote],
+        });
+      } else {
+        const agg = byKey.get(key);
+        const dup = agg.bookQuotes.some(
+          (q) =>
+            String(q.bookKey || "") === String(quote.bookKey || "") && Number(q.odds ?? "") === Number(quote.odds ?? "")
+        );
+        if (!dup) agg.bookQuotes.push(quote);
+      }
     }
-    if (merged.length >= maxPerEvent) break;
+  }
+
+  const merged = Array.from(byKey.values());
+  for (const leg of merged) {
+    const qs = Array.isArray(leg.bookQuotes) ? leg.bookQuotes : [];
+    qs.sort((a, b) => {
+      const ap = sportsbookPriority(a.bookKey);
+      const bp = sportsbookPriority(b.bookKey);
+      if (ap !== bp) return ap - bp;
+      const ao = Number(a.odds);
+      const bo = Number(b.odds);
+      if (Number.isFinite(ao) && Number.isFinite(bo) && ao !== bo) return bo - ao;
+      return 0;
+    });
+    leg.bookQuotes = qs;
+    const primary = qs[0];
+    if (primary) {
+      leg.bookKey = primary.bookKey;
+      leg.bookName = primary.bookName;
+      leg.odds = primary.odds;
+    }
   }
 
   merged.sort((a, b) => {
@@ -1221,15 +1496,19 @@ export const handler = async (event) => {
   const today = new Date().toISOString().split("T")[0];
   const requestedDayKey = query.date ? ymd(query.date) : null;
   const includeBooks = String(query.includeBooks || "0") !== "0";
-  const planMode = String(process.env.ODDS_API_PLAN_MODE || "free").toLowerCase();
-  const paidMode = planMode === "paid";
+  // Default paid: a configured ODDS_API_KEY without explicit ODDS_API_PLAN_MODE=free should
+  // unlock full-slate fetches (Max Coverage / allEventProps) — free-tier keys set `free` explicitly.
+  const planMode = String(process.env.ODDS_API_PLAN_MODE || "paid").toLowerCase();
+  const paidMode = planMode === "paid" || planMode === "trial";
   const allEventProps = paidMode ? String(query.allEventProps || "0") === "1" : false;
   const forceLive = String(query.forceLive || "0") === "1";
   const tunedDefault = recommendedEventPropLimit(sport, planMode);
-  const defaultEventPropLimit = paidMode ? tunedDefault : 8;
+  // `tunedDefault` is a planning figure from coverageTuning; use it as a floor and expand the
+  // number of events we enrich with player props so paid keys surface full matrices (still capped in combinePlayerPropsAcrossBooks).
+  const defaultEventPropLimit = paidMode ? Math.max(40, tunedDefault) : Math.max(12, tunedDefault);
   const eventPropLimit = envPositiveInt("ODDS_API_EVENT_PROP_LIMIT", Number(query.eventPropLimit || defaultEventPropLimit), 500);
   const windowDays = envPositiveInt("PROPS_WINDOW_DAYS_DEFAULT", Number(query.windowDays || 3), 7);
-  const liveCacheTtlSec = envPositiveInt("PROPS_LIVE_CACHE_TTL_SECONDS", 55, 600);
+  const liveCacheTtlSec = envPositiveInt("PROPS_LIVE_CACHE_TTL_SECONDS", 72, 600);
   const propMarketTier = propMarketTierFromEnv();
   const propMarketMeta = propMarketTierMeta(propMarketTier);
 
@@ -1388,31 +1667,38 @@ export const handler = async (event) => {
           ...p,
           books: includeBooks ? (Array.isArray(p.books) ? p.books : []) : [],
         }));
-        return {
-          statusCode: 200,
-          body: JSON.stringify({
-            sport,
-            mode: "props",
-            count: filtered.length,
-            totalPlayerProps: filtered.reduce((sum, p) => sum + ((p.playerProps || []).length || 0), 0),
-            source: "live_cache",
-            generatedAt: new Date().toISOString(),
-            cachedAt: cached.cachedAt || null,
-            cachedAtIso: cached.cachedAtIso || null,
-            warning: null,
-        coverage: {
-          planMode,
-          allEventProps,
-          windowDays,
-          eventPropLimit: allEventProps ? "all_events" : eventPropLimit,
-          cacheTtlSeconds: liveCacheTtlSec,
-          propMarketTier,
-          propMarkets: propMarketMeta,
-          tuning: coverageGuidancePayload(sport, planMode, eventPropLimit, windowDays, liveCacheTtlSec, "live_cache"),
-        },
-            props: filtered,
-          }),
-        };
+        const cachedLegTotal = filtered.reduce((sum, p) => sum + ((p.playerProps || []).length || 0), 0);
+        const minLegsToTrustCache = paidMode ? Math.max(100, Math.min(400, filtered.length * 8)) : 18;
+        if (cachedLegTotal >= minLegsToTrustCache) {
+          return {
+            statusCode: 200,
+            body: JSON.stringify({
+              sport,
+              mode: "props",
+              count: filtered.length,
+              totalPlayerProps: cachedLegTotal,
+              source: "live_cache",
+              generatedAt: new Date().toISOString(),
+              cachedAt: cached.cachedAt || null,
+              cachedAtIso: cached.cachedAtIso || null,
+              warning: null,
+              coverage: {
+                planMode,
+                allEventProps,
+                windowDays,
+                eventPropLimit: allEventProps ? "all_events" : eventPropLimit,
+                cacheTtlSeconds: liveCacheTtlSec,
+                propMarketTier,
+                propMarkets: propMarketMeta,
+                tuning: coverageGuidancePayload(sport, planMode, eventPropLimit, windowDays, liveCacheTtlSec, "live_cache"),
+              },
+              props: filtered,
+            }),
+          };
+        }
+        console.warn(
+          `props cache ${sport}: skipping stale-density cache (legs=${cachedLegTotal}, min=${minLegsToTrustCache}); refreshing live`,
+        );
       }
     }
 
@@ -1537,11 +1823,11 @@ export const handler = async (event) => {
 
     console.log(`📊 Scraped ${props.length} props for ${sport.toUpperCase()} via ${source}`);
 
-    const rosterMap = await buildPlayerNameToEspnIdMap(sport);
+    const rosterCtx = await buildPlayerRosterMatchContext(sport);
 
     let enriched = props.map((p) => {
       const cleaned = stripSyntheticPlayerLegs(p);
-      const faced = enrichPlayerPropsWithHeadshots(cleaned, sport, rosterMap);
+      const faced = enrichPlayerPropsWithHeadshots(cleaned, sport, rosterCtx);
       return {
         ...faced,
         books: Array.isArray(faced.books) ? faced.books : [],
@@ -1577,7 +1863,7 @@ export const handler = async (event) => {
             : "Live provider had no player props; returned richer cached props.";
           enriched = props.map((p) => {
             const cleaned = stripSyntheticPlayerLegs(p);
-            const faced = enrichPlayerPropsWithHeadshots(cleaned, sport, rosterMap);
+            const faced = enrichPlayerPropsWithHeadshots(cleaned, sport, rosterCtx);
             return {
               ...faced,
               books: Array.isArray(faced.books) ? faced.books : [],
@@ -1611,7 +1897,7 @@ export const handler = async (event) => {
               : "Live provider had no player props; returned richer historical cache from Firestore.";
             enriched = props.map((p) => {
               const cleaned = stripSyntheticPlayerLegs(p);
-              const faced = enrichPlayerPropsWithHeadshots(cleaned, sport, rosterMap);
+              const faced = enrichPlayerPropsWithHeadshots(cleaned, sport, rosterCtx);
               return {
                 ...faced,
                 books: Array.isArray(faced.books) ? faced.books : [],

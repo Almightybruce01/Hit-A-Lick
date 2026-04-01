@@ -81,7 +81,21 @@ enum PropMarketKeyDisplay {
             "player_receptions": "REC",
             "player_reception_yds": "REC YDS",
             "player_anytime_td": "ANY TD",
+            "player_rush_longest": "LONG RUSH",
+            "player_reception_longest": "LONG REC",
+            "player_rush_tds": "RUSH TD",
+            "player_reception_tds": "REC TD",
+            "player_pass_longest_completion": "LONG PASS",
             "batter_hits": "HITS",
+            "batter_rbis": "RBI",
+            "batter_runs_scored": "R",
+            "batter_total_bases": "TB",
+            "batter_singles": "1B",
+            "batter_doubles": "2B",
+            "batter_triples": "3B",
+            "batter_walks": "BB",
+            "batter_strikeouts": "BAT K",
+            "batter_hits_runs_rbis": "H+R+RBI",
             "batter_home_runs": "HR",
             "pitcher_strikeouts": "K's",
             "pitcher_earned_runs": "ER",
@@ -95,5 +109,6 @@ enum PropMarketKeyDisplay {
 enum OddsPropTierCopy {
     static let core = "Lowest batch count — main scoring & usage markets only."
     static let standard = "Balanced retail depth (default). Strong coverage without every alt line."
-    static let full = "Maximum configured markets — highest Odds API payload per event."
+    static let full = "Full base market lists per sport."
+    static let elite = "Elite: widest NFL/MLB/WNBA + NBA retail & alt markets the API allows in our config."
 }

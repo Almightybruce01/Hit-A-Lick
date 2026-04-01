@@ -3,15 +3,79 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#050814" />
   <meta http-equiv="refresh" content="0; url=../ops-dashboard.html" />
   <title>HitALick Ops Desk — redirect</title>
   <link rel="canonical" href="../ops-dashboard.html" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 18px;
+      background: radial-gradient(900px 600px at 30% 0%, rgba(46, 230, 198, 0.18), transparent 55%),
+        radial-gradient(700px 500px at 90% 30%, rgba(122, 167, 255, 0.16), transparent 50%),
+        #050814;
+      color: #e8eeff;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    .card {
+      text-align: center;
+      max-width: 400px;
+      padding: 28px 24px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
+    }
+    p {
+      margin: 0 0 18px;
+      line-height: 1.55;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.78);
+    }
+    a {
+      display: inline-block;
+      color: #050814;
+      font-weight: 800;
+      text-decoration: none;
+      padding: 11px 20px;
+      border-radius: 12px;
+      background: linear-gradient(120deg, #2ee6c6, #7aa7ff);
+    }
+    .pulse {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2ee6c6;
+      margin-right: 8px;
+      box-shadow: 0 0 12px rgba(46, 230, 198, 0.8);
+      animation: blink 1.2s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.35;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pulse {
+        animation: none;
+      }
+    }
+  </style>
 </head>
-<body style="margin:0;background:#050814;color:#e8eeff;font-family:system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;">
-  <p style="text-align:center;padding:24px;">
-    Opening ops desk…
-    <br /><br />
-    <a href="../ops-dashboard.html" style="color:#2ee6c6;">Open HitALick Ops Desk</a>
-  </p>
+<body>
+  <div class="card">
+    <p><span class="pulse" aria-hidden="true"></span>Opening ops desk…</p>
+    <a href="../ops-dashboard.html">Open HitALick Ops Desk</a>
+  </div>
 </body>
 </html>

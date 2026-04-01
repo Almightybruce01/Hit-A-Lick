@@ -138,9 +138,117 @@
       max-height: 480px; overflow: auto;
     }
     .guide-meta { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-top: 8px; }
+
+    body {
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        radial-gradient(900px 520px at 12% -8%, rgba(46, 230, 198, 0.14), transparent 62%),
+        radial-gradient(800px 480px at 92% 4%, rgba(122, 167, 255, 0.12), transparent 58%),
+        radial-gradient(600px 400px at 50% 98%, rgba(255, 159, 10, 0.06), transparent 55%);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body::before { animation: none; }
+    }
+    .panel {
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .panel:hover {
+      border-color: rgba(46, 230, 198, 0.28);
+      box-shadow: 0 22px 48px rgba(0, 0, 0, 0.48);
+    }
+    pre {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(46, 230, 198, 0.35) transparent;
+    }
+    pre::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    pre::-webkit-scrollbar-thumb {
+      background: rgba(46, 230, 198, 0.3);
+      border-radius: 99px;
+    }
+    .tabs .tab:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 2px solid rgba(46, 230, 198, 0.75);
+      outline-offset: 2px;
+    }
+    .lock-card {
+      border: 1px solid rgba(46, 230, 198, 0.22);
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    .topbar {
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+      backdrop-filter: blur(12px);
+      margin-bottom: 20px;
+    }
+
+    .ops-toast-stack {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: min(360px, calc(100vw - 32px));
+      pointer-events: none;
+    }
+    .ops-toast {
+      pointer-events: auto;
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 0.84rem;
+      font-weight: 680;
+      line-height: 1.4;
+      color: #f4f7ff;
+      background: linear-gradient(145deg, rgba(18, 26, 44, 0.96), rgba(8, 12, 24, 0.94));
+      border: 1px solid rgba(46, 230, 198, 0.32);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      animation: opsToastIn 0.28s ease both;
+    }
+    .ops-toast-ok { border-color: rgba(94, 243, 169, 0.4); }
+    .ops-toast-err {
+      border-color: rgba(255, 107, 107, 0.45);
+      color: #ffecec;
+    }
+    .ops-toast-out {
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.28s ease, transform 0.28s ease;
+    }
+    @keyframes opsToastIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ops-toast {
+        animation: none;
+      }
+    }
   </style>
 </head>
 <body>
+  <div id="ops-toast-stack" class="ops-toast-stack" aria-live="polite"></div>
   <div id="lock" class="lock-screen">
     <div class="lock-card">
       <div class="pill">SECURE OPS</div>
@@ -152,7 +260,10 @@
         <a class="link" href="https://almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html" target="_blank" rel="noopener">almightybruce01.github.io/Hit-A-Lick/ops-dashboard.html</a>
         &nbsp;·&nbsp;
         <a class="link" href="https://almightybruce01.github.io/Hit-A-Lick/ops/" target="_blank" rel="noopener">…/ops/</a><br />
-        <span style="color:#ffb47a">Hit-A-Lick only: URL must start with <code>almightybruce01.github.io/Hit-A-Lick/</code>. If you see another app name, you opened the wrong bookmark. Source: <code>Hit-A-Lick/site/</code>.</span>
+        <strong style="color:#b8fff0">Custom domain (if configured on Firebase):</strong><br />
+        <a class="link" href="https://www.hitalick.org/ops-dashboard.html" target="_blank" rel="noopener">www.hitalick.org/ops-dashboard.html</a>
+        &nbsp;·&nbsp; same file as GitHub Pages — use whichever host you actually deployed.<br />
+        <span style="color:#ffb47a">Hit-A-Lick only: bookmark must be this repo’s path (<code>…/Hit-A-Lick/…</code> on GitHub or your <code>hitalick.org</code> site). If the tab title or URL shows a different product name, delete that bookmark and open one of the links above.</span>
       </p>
       <p class="sub">Enter the <strong>private ops PIN</strong> (from Bruce — same value as Cloud Function secret <code>OPS_DASHBOARD_PIN</code> if you set one). It is checked on the server (<code>X-Ops-Pin</code>). Too many wrong guesses temporarily blocks your network (brute-force protection). <strong>Do not put the PIN in GitHub issues or public chat.</strong></p>
       <label for="pinInput">PIN</label>
@@ -164,8 +275,9 @@
         <button type="button" id="unlockBtn">Unlock</button>
       </div>
       <ul class="hint">
+        <li><strong>Giap / co-curator:</strong> this screen is <strong>PIN-only</strong> (not your Firebase password). Bruce shares the same ops PIN with anyone who needs desk access; wrong PIN or rate limits look like “can’t sign in.”</li>
         <li>Desktop shortcut (no folder): run <code>bash scripts/install-live-dashboard-desktop.sh</code> → <code>Hit-A-Lick-Ops-Desk.webloc</code> on Desktop</li>
-        <li>Repo: <code>site/ops-dashboard.html</code> · docs: <code>docs/DASHBOARD.md</code>, <code>docs/CURATOR_ACCOUNTS.md</code></li>
+        <li>Repo: <code>site/ops-dashboard.html</code> · staff runbook: <code>docs/STAFF_LOGIN_AND_OPS.md</code> · <code>docs/DASHBOARD.md</code>, <code>docs/CURATOR_ACCOUNTS.md</code></li>
       </ul>
     </div>
   </div>
@@ -458,6 +570,23 @@
     document.getElementById("apiShow").textContent = apiBaseDisplay();
   }
 
+  function opsToast(msg, kind) {
+    var stack = document.getElementById("ops-toast-stack");
+    if (!stack || !msg) return;
+    var d = document.createElement("div");
+    d.className = "ops-toast" + (kind === "err" ? " ops-toast-err" : " ops-toast-ok");
+    d.textContent = msg;
+    stack.appendChild(d);
+    setTimeout(function () {
+      d.classList.add("ops-toast-out");
+      setTimeout(function () {
+        try {
+          d.remove();
+        } catch (e) {}
+      }, 300);
+    }, 2900);
+  }
+
   function setStatus(msg, cls) {
     var el = document.getElementById("status");
     el.textContent = msg || "";
@@ -578,8 +707,10 @@
       var data = await res.json();
       if (!res.ok) throw new Error(data.error || res.statusText);
       setStatus("Saved " + (data.count || 0) + " pick(s) to " + lane, "ok");
+      opsToast("Board saved · " + lane, "ok");
     } catch (e) {
       setStatus("Save failed: " + e.message, "err");
+      opsToast("Board save failed", "err");
     }
   }
 
@@ -710,8 +841,10 @@
       var data = await res.json();
       if (!res.ok) throw new Error(data.error || res.statusText);
       setStatus("Appended " + (data.added != null ? data.added : rows.length) + " row(s); board total " + (data.total != null ? data.total : "?"), "ok");
+      opsToast("Props appended to " + lane, "ok");
     } catch (e) {
       setStatus("Append failed: " + e.message, "err");
+      opsToast("Append failed", "err");
     }
   }
 
@@ -888,6 +1021,7 @@
       }
       sessionStorage.setItem(SESSION_OK, "1");
       showApp();
+      opsToast("Ops desk unlocked", "ok");
       activateTab("desk");
     } catch (e) {
       setPin("");

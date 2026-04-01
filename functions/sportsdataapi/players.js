@@ -46,12 +46,17 @@ export const handler = async (event) => {
       const name = data.name || "Player";
       const rawImg = String(data.headshot || data.image || "").trim();
       const hasHttp = /^https?:\/\//i.test(rawImg);
-      const avatarUrl = hasHttp
-        ? rawImg
-        : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=192&background=0a1227&color=7ef9d5&bold=true&font-size=0.33`;
+      const espnId = data.espnAthleteId || data.espnId || data.espnPlayerId || null;
+      const sid = data.sportId || inferred || (sport === "all" ? "nba" : sport);
+      const league = { nba: "nba", wnba: "wnba", nfl: "nfl", mlb: "mlb" }[String(sid).toLowerCase()] || "nba";
+      const espnShot =
+        espnId && /^\d+$/.test(String(espnId))
+          ? `https://a.espncdn.com/i/headshots/${league}/players/full/${String(espnId)}.png`
+          : null;
+      const headshot = hasHttp ? rawImg : espnShot;
       return {
         playerId: doc.id,
-        sport: data.sportId || inferred || (sport === "all" ? "nba" : sport),
+        sport: sid,
         name,
         team: data.team || data.teamName || "",
         position: data.position || "",
@@ -62,10 +67,10 @@ export const handler = async (event) => {
         hometown: data.hometown || null,
         experience: data.experience || null,
         jerseyNumber: Number.isFinite(Number(data.jerseyNumber)) ? Number(data.jerseyNumber) : null,
-        headshot: avatarUrl,
-        headshotIsPlaceholder: !hasHttp,
+        headshot,
+        headshotIsPlaceholder: !headshot,
         /** If set in Firestore, web client can load ESPN CDN headshots. */
-        espnAthleteId: data.espnAthleteId || data.espnId || data.espnPlayerId || null,
+        espnAthleteId: espnId,
         tankPlayerId: data.tankPlayerId || data.tank01Id || null,
       };
     });

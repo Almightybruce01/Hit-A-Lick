@@ -14,8 +14,23 @@ struct HomeScreen: View {
     @AppStorage("hitalick_tier") private var tierRaw: String = UserTier.core.rawValue
     @State private var selectedTab = 2
     @State private var tabSwitchGlow = false
+    @State private var rootAccessState: RootAccessState = .loading
+
+    private enum RootAccessState {
+        case loading
+        case needsSignIn
+        case needsSubscription
+        case unlocked
+    }
 
     private var userTier: UserTier { UserTier(rawValue: tierRaw) ?? .core }
+
+    private var rootOverlayActive: Bool {
+        switch rootAccessState {
+        case .unlocked, .loading: return false
+        case .needsSignIn, .needsSubscription: return true
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -83,6 +98,7 @@ struct HomeScreen: View {
                         .tag(5)
                         .tabItem { Label("Picks", systemImage: "person.3.fill") }
                 }
+                .blur(radius: rootOverlayActive ? 10 : 0)
                 .accentColor(.orange)
                 .overlay(
                     LinearGradient(
@@ -102,6 +118,77 @@ struct HomeScreen: View {
                     }
                 }
             }
+
+            if rootAccessState == .needsSignIn {
+                rootGateShell(
+                    title: "Sign in",
+                    detail: "Create a Hit-A-Lick account from the Account tab if needed. Subscriptions are only on the website — no App Store purchases for membership."
+                ) {
+                    NavigationLink(destination: AccountView()) {
+                        gateCtaLabel("Open Account")
+                    }
+                }
+            } else if rootAccessState == .needsSubscription {
+                rootGateShell(
+                    title: "Subscribe on the website",
+                    detail: "Regular unlocks the app (5 included AI requests/month). Premium adds unlimited AI. Bruce and Giap pick feeds are separate add-ons. Use promo HITALICK25 for 25% off Regular and Premium at checkout."
+                ) {
+                    NavigationLink(destination: InAppBrowserView(urlString: APIConfig.membershipPurchaseURL.absoluteString)) {
+                        gateCtaLabel("Open pricing in Safari")
+                    }
+                }
+            }
+        }
+        .task {
+            await refreshRootWebsiteAccess()
+        }
+    }
+
+    private func gateCtaLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.subheadline.weight(.semibold))
+            .foregroundColor(.black)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 18)
+            .background(Color.cyan)
+            .cornerRadius(12)
+    }
+
+    private func rootGateShell<Content: View>(
+        title: String,
+        detail: String,
+        @ViewBuilder cta: () -> Content
+    ) -> some View {
+        VStack(spacing: 14) {
+            Text(title)
+                .font(.title3.bold())
+                .foregroundColor(.white)
+            Text(detail)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.85))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+            cta()
+        }
+        .padding(24)
+        .background(Color.black.opacity(0.62))
+        .cornerRadius(18)
+        .padding(20)
+    }
+
+    @MainActor
+    private func refreshRootWebsiteAccess() async {
+        rootAccessState = .loading
+        guard let user = Auth.auth().currentUser else {
+            rootAccessState = .needsSignIn
+            return
+        }
+        do {
+            let token = try await user.getIDToken()
+            let ent = try await APIServices.shared.fetchBillingEntitlement(uid: user.uid, token: token)
+            rootAccessState = (ent?.effectiveHasAppAccess == true) ? .unlocked : .needsSubscription
+        } catch {
+            rootAccessState = .needsSubscription
         }
     }
 }
@@ -111,11 +198,13 @@ struct HomeContent: View {
     @AppStorage("hitalick_tier") private var tierRaw: String = UserTier.core.rawValue
     @AppStorage("hitalick_staff_unlock") private var staffVIPUnlock: Bool = false
     @State private var selectedSport: String = "NBA"
+    @State private var websiteHasAppAccess = false
+    @State private var billingLoaded = false
     private let sports = ["NBA", "NFL", "MLB", "WNBA"]
     private var userTier: UserTier { UserTier(rawValue: tierRaw) ?? .core }
 
     private var streamUnlocked: Bool {
-        staffVIPUnlock || hasAccess(tier: userTier, feature: .streamCenter)
+        staffVIPUnlock || websiteHasAppAccess || hasAccess(tier: userTier, feature: .streamCenter)
     }
 
     var body: some View {
@@ -182,7 +271,7 @@ struct HomeContent: View {
                                 .simultaneousGesture(TapGesture().onEnded { EliteHaptics.medium() })
                             }
                             if !streamUnlocked {
-                                Text("Pro tier or Bruce/Giap staff login unlocks Official Streams.")
+                                Text("Subscribe on the Hit-A-Lick website (Regular or Premium) to unlock Official Streams — no in-app purchases.")
                                     .font(.caption2)
                                     .foregroundColor(.yellow.opacity(0.9))
                             }
@@ -249,6 +338,26 @@ struct HomeContent: View {
             }
         }
         .screenEntrance()
+        .task {
+            await refreshWebsiteEntitlement()
+        }
+    }
+
+    @MainActor
+    private func refreshWebsiteEntitlement() async {
+        billingLoaded = false
+        defer { billingLoaded = true }
+        guard let user = Auth.auth().currentUser else {
+            websiteHasAppAccess = false
+            return
+        }
+        do {
+            let token = try await user.getIDToken()
+            let ent = try await APIServices.shared.fetchBillingEntitlement(uid: user.uid, token: token)
+            websiteHasAppAccess = ent?.effectiveHasAppAccess ?? false
+        } catch {
+            websiteHasAppAccess = false
+        }
     }
 
     @MainActor

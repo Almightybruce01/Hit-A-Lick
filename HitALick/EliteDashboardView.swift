@@ -179,6 +179,7 @@ struct EliteDashboardView: View {
     private func tierCopy(_ tier: String) -> String {
         switch tier.lowercased() {
         case "core": return OddsPropTierCopy.core
+        case "elite": return OddsPropTierCopy.elite
         case "full": return OddsPropTierCopy.full
         default: return OddsPropTierCopy.standard
         }

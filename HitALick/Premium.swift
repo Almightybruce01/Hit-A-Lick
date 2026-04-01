@@ -72,27 +72,21 @@ struct Premium: View {
     private var userTier: UserTier { UserTier(rawValue: tierRaw) ?? .core }
 
     private var entitlementUnlocked: Bool {
-        if let e = entitlement, e.active == true {
-            if e.curatorAllAccess == true { return true }
-            if (e.tier ?? "").lowercased() == "premium" { return true }
-            let tierLower = (e.tier ?? "").lowercased()
-            if tierLower.hasPrefix("curator_") { return true }
-            if let ids = e.curatorIds, !ids.isEmpty { return true }
-        }
-        return hasAccess(tier: userTier, feature: .premiumBoards)
+        guard let e = entitlement, e.active == true else { return false }
+        if e.unlocksStaffVIPFeatures { return true }
+        guard e.effectiveHasAppAccess else { return false }
+        if e.curatorAllAccess == true { return true }
+        if let ids = e.curatorIds, !ids.isEmpty { return true }
+        return false
     }
 
     private func canViewCurator(_ slug: String) -> Bool {
-        if let e = entitlement, e.active == true {
-            if e.curatorAllAccess == true { return true }
-            if (e.tier ?? "").lowercased() == "premium" { return true }
-            let s = slug.lowercased()
-            if (e.tier ?? "").lowercased() == "curator_\(s)" { return true }
-            if let ids = e.curatorIds, ids.map({ $0.lowercased() }).contains(s) {
-                return true
-            }
-        }
-        return hasAccess(tier: userTier, feature: .premiumBoards)
+        guard let e = entitlement, e.active == true else { return false }
+        if e.unlocksStaffVIPFeatures { return true }
+        guard e.effectiveHasAppAccess else { return false }
+        let s = slug.lowercased()
+        if let ids = e.curatorIds, ids.map({ $0.lowercased() }).contains(s) { return true }
+        return false
     }
 
     /// User-facing line for when this curator last published picks (server `lastPickPostAt`).
@@ -134,7 +128,7 @@ struct Premium: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
 
-                    Text("Subscribe per curator or all-access on the Hit-A-Lick pricing page — one bundle avoids paying twice for overlapping feeds.")
+                    Text("Bruce and Giap each have a separate subscription on the website. You also need a Regular app plan to view boards in the app — no in-app purchases.")
                         .font(.subheadline)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
@@ -560,7 +554,7 @@ struct Premium: View {
     private func fetchCuratorBoard(slug: String, uid: String, token: String) async throws -> CuratorBoardAPIResponse {
         let url = URL(string: "\(APIConfig.baseURL)/api/curators/\(slug)/board?uid=\(uid)")!
         var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.hitApplySessionHeaders(firebaseIdToken: token)
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw NSError(domain: "Curator", code: -1)

@@ -29,7 +29,11 @@ import * as teamScraperMod from "./sportsdataapi/teamScraper.js";
 import * as playerScraperMod from "./sportsdataapi/playerScraper.js";
 import * as sportSetupMod from "./sportsdataapi/sportSetup.js";
 import * as eliteScheduler from "./eliteScheduler.js";
+import { publishDailyAiPlays } from "./aiPlaysScheduler.js";
 import * as dataRetention from "./dataRetention.js";
+import * as propsDailyPrefetch from "./propsDailyPrefetch.js";
+import { deviceSessionGate } from "./deviceSessions.js";
+import authDevicesRouter from "./authDevices.js";
 import { buildOpsInsightsPayload, answerOpsDashboardGuide } from "./opsInsights.js";
 import {
   assertOpsAuthNotRateLimited,
@@ -360,11 +364,12 @@ app.get("/scrapePlayers", async (req, res) => {
   const result = await playerScraperMod.handler({ queryStringParameters: { sport } });
   res.status(result.statusCode || 500).send(result.body ?? "");
 });
-app.use("/billing", billing.router);
-app.use("/picks", picks.router);
-app.use("/ai", ai.router);
+app.use("/api/auth", authDevicesRouter);
+app.use("/billing", deviceSessionGate, billing.router);
+app.use("/picks", deviceSessionGate, picks.router);
+app.use("/ai", deviceSessionGate, ai.router);
 app.use("/setup", setup.router);
-app.use("/elite", elite.router);
+app.use("/elite", deviceSessionGate, elite.router);
 
 app.all("/api/nba", wrapLambdaHandler(nba));
 app.all("/api/nfl", wrapLambdaHandler(nfl));
@@ -378,12 +383,12 @@ app.all("/api/players", wrapLambdaHandler(players));
 app.all("/api/teams", wrapLambdaHandler(teams));
 app.all("/api/upcomingGames", wrapLambdaHandler(upcomingGames));
 app.all("/api/games", wrapLambdaHandler(gamesMod));
-app.use("/api/billing", billing.router);
-app.use("/api/picks", picks.router);
-app.use("/api/curators", curators.router);
-app.use("/api/ai", ai.router);
+app.use("/api/billing", deviceSessionGate, billing.router);
+app.use("/api/picks", deviceSessionGate, picks.router);
+app.use("/api/curators", deviceSessionGate, curators.router);
+app.use("/api/ai", deviceSessionGate, ai.router);
 app.use("/api/setup", setup.router);
-app.use("/api/elite", elite.router);
+app.use("/api/elite", deviceSessionGate, elite.router);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -394,15 +399,21 @@ app.use((req, res) => {
   });
 });
 
+/**
+ * Secret Manager must have a version for every name listed here or deploy fails.
+ * Hit-A-Lick catalog uses the STRIPE_PRICE_* names below (see scripts/stripe_hit_a_lick_catalog.js).
+ * Legacy aliases (CORE_MONTHLY, BRUCE_PREMIUM_MONTHLY, …) are read from env if you set them
+ * in the Firebase console as non-secret config — they are intentionally omitted here.
+ */
 const stripeSecrets = [
   "STRIPE_SECRET_KEY",
   "STRIPE_WEBHOOK_SECRET",
-  "STRIPE_PRICE_BRUCE_MONTHLY",
-  "STRIPE_PRICE_BRUCE_ANNUAL",
-  "STRIPE_PRICE_BRUCE_ELITE_VIP",
-  "STRIPE_PRICE_CORE_MONTHLY",
+  "STRIPE_PRICE_REGULAR_MONTHLY",
+  "STRIPE_PRICE_PREMIUM_BUNDLE_MONTHLY",
+  "STRIPE_PRICE_PREMIUM_AI_ADDON_MONTHLY",
   "STRIPE_PRICE_BRUCE_PICKS_MONTHLY",
-  "STRIPE_PRICE_BRUCE_PREMIUM_MONTHLY",
+  "STRIPE_PRICE_GIAP_PICKS_MONTHLY",
+  "STRIPE_PRICE_AI_CREDITS_50",
   "ODDS_API_KEY",
   "ODDS_API_BOOKMAKERS",
   "RAPIDAPI_KEY",
@@ -417,7 +428,15 @@ const stripeSecrets = [
   "RAPIDAPI_NBA_SMART_BETS_HOST",
 ];
 
-export const api = onRequest({ secrets: stripeSecrets }, app);
+export const api = onRequest(
+  {
+    secrets: stripeSecrets,
+    memory: "1GiB",
+    /** All-leagues props fan-out can approach 120s on cold paths; keep headroom for games + enrichment. */
+    timeoutSeconds: 180,
+  },
+  app
+);
 
 export const cacheLiveGame = cacheLiveGameMod.cacheLiveGame;
 export const prewarmGames = gamesMod.prewarmGames;
@@ -427,8 +446,10 @@ export const scrapeTeams = teamScraperMod.scrapeTeams;
 export const scrapePlayers = playerScraperMod.scrapePlayers;
 export const setupSports = sportSetupMod.setupSports;
 export const processEliteAlerts = eliteScheduler.processEliteAlerts;
+export { publishDailyAiPlays };
 export const pruneHistoricalData = dataRetention.pruneHistoricalData;
 export const dailyLiveOpsTick = dataRetention.dailyLiveOpsTick;
 export const propExpirySweep = dataRetention.propExpirySweep;
+export const prefetchNextDayProps = propsDailyPrefetch.prefetchNextDayProps;
 
 export const stripeWebhook = onRequest({ secrets: stripeSecrets }, billing.handleStripeWebhook);

@@ -134,7 +134,7 @@ struct CuratorStudioView: View {
 
     @ViewBuilder
     private func dataUrlThumb(_ dataUrl: String?) -> some View {
-        if let dataUrl, let ui = UIImage(dataUrlFromString(dataUrl)) {
+        if let dataUrl, let ui = UIImage(data: dataUrlFromString(dataUrl)) {
             Image(uiImage: ui)
                 .resizable()
                 .scaledToFill()
@@ -263,7 +263,7 @@ struct CuratorStudioView: View {
             let token = try await user.getIDToken()
             let url = URL(string: "\(APIConfig.baseURL)/api/curators/\(curatorSlug)/profile")!
             var req = URLRequest(url: url)
-            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            req.hitApplySessionHeaders(firebaseIdToken: token)
             let (data, _) = try await URLSession.shared.data(for: req)
             let decoded = try JSONDecoder().decode(CuratorProfilePublic.self, from: data)
             displayName = decoded.displayName ?? laneLabel
@@ -298,7 +298,7 @@ struct CuratorStudioView: View {
             var req = URLRequest(url: url)
             req.httpMethod = "POST"
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            req.hitApplySessionHeaders(firebaseIdToken: token)
             let payload: [String: Any] = [
                 "uid": user.uid,
                 "displayName": displayName,

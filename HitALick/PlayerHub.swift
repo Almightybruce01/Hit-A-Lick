@@ -116,17 +116,23 @@ struct PlayerHub: View {
         ElitePanel {
             HStack(alignment: .top, spacing: 10) {
                 if let headshot = player.headshot, let url = URL(string: headshot), UIApplication.shared.canOpenURL(url) {
-                    AsyncImage(url: url) { image in
-                        image.resizable().aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        ProgressView()
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        case .failure, .empty:
+                            EliteGreyMediaSlot(size: 54, cornerFraction: 0.5)
+                        @unknown default:
+                            EliteGreyMediaSlot(size: 54, cornerFraction: 0.5)
+                        }
                     }
                     .frame(width: 54, height: 54)
                     .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.14), lineWidth: 1))
                 } else {
-                    Image(systemName: "person.crop.circle.fill")
-                        .font(.system(size: 52))
-                        .foregroundColor(.white.opacity(0.55))
+                    EliteGreyMediaSlot(size: 54, cornerFraction: 0.5)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white.opacity(0.14), lineWidth: 1))
                 }
 
                 VStack(alignment: .leading, spacing: 6) {

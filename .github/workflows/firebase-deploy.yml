@@ -1,0 +1,44 @@
+# Deploy Firebase Hosting + Cloud Functions on every push to main that touches site, functions, or Firebase config.
+# One-time setup: repo → Settings → Secrets → add FIREBASE_TOKEN from `firebase login:ci` (or use a CI service account).
+# This keeps https://<project>.web.app in sync with git without manual deploys.
+
+name: Deploy Firebase (hosting + functions)
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "site/**"
+      - "functions/**"
+      - "firebase.json"
+      - ".firebaserc"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Functions deps
+        working-directory: functions
+        run: npm ci || npm install
+
+      - name: Verify Functions bundle
+        run: node --input-type=module -e "import('./functions/index.js').then(()=>console.log('OK')).catch(e=>{console.error(e);process.exit(1)})"
+
+      - name: Deploy Hosting + Functions
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          if [ -z "$FIREBASE_TOKEN" ]; then
+            echo "::warning::Add repo secret FIREBASE_TOKEN (from: firebase login:ci) to auto-deploy on push."
+            exit 0
+          fi
+          npx --yes firebase-tools@latest deploy --only hosting,functions --non-interactive --project hit-a-lick-database

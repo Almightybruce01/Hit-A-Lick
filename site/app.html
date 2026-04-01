@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <title>HitALick Web App</title>
+  <meta name="description" content="Hit-A-Lick — prop desk, player trends, AI tools, and membership. Professional betting workflow in the browser." />
+  <meta name="theme-color" content="#050914" />
+  <link rel="dns-prefetch" href="https://api-lifnvql5aa-uc.a.run.app" />
+  <title>Hit-A-Lick | Web App</title>
   <style>
     :root {
       --panel: rgba(13, 18, 36, 0.66);
@@ -1233,12 +1234,57 @@
       max-width: 340px;
       line-height: 1.45;
     }
-    /** Logged-in, no website subscription: blur workspace; keep top nav + upgrade dock usable. */
-    /** Exclude toolbar, quick-actions, and shield from blur — filter breaks hit-testing on tabs/buttons in WebKit. */
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) > :not(.top):not(.toolbar):not(.quick-actions):not(#hlPaywallShield) {
-      filter: blur(9px);
-      user-select: none;
-      transition: filter 0.22s ease;
+    /**
+     * Paywall: blur **panels only**. Never put `filter` on `.hero` / `.command-deck` — Safari/WebKit
+     * can break hit-testing for the sticky toolbar + tab strip below, so Prop/Desk/etc. look “dead”.
+     */
+    /**
+     * Locked preview: no `filter` on .panel — WebKit breaks hit-testing (clicks/paste) on descendants.
+     */
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel {
+      opacity: 0.93;
+      box-shadow: inset 0 0 0 1px rgba(129, 255, 216, 0.1);
+      user-select: text;
+      transition: opacity 0.22s ease;
+    }
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel {
+      pointer-events: auto;
+    }
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel a,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel button,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel input,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel select,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel textarea,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel label,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel [role="button"],
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel .quick-btn,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel .inline-link {
+      pointer-events: auto;
+      position: relative;
+      z-index: 2;
+    }
+    /** Hero + command deck sit outside `.panel`; keep primary actions clickable when paywalled (WebKit stacking quarks). */
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .hero .btn,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .command-deck button,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .toolbar button,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .toolbar select,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .toolbar input {
+      pointer-events: auto;
+      position: relative;
+      z-index: 4;
+    }
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .quick-actions button,
+    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .quick-actions a {
+      pointer-events: auto;
+      position: relative;
+      z-index: 4;
+    }
+    /** Paywall blur must not block typing/paste in inputs (user-select inherits). */
+    .app-main-col input,
+    .app-main-col textarea,
+    .app-main-col select {
+      user-select: text !important;
+      -webkit-user-select: text !important;
     }
     /** Legacy overlay (kept hidden); upgrade path is the bottom dock + pricing links. */
     #hlPaywallShield {
@@ -1271,9 +1317,8 @@
       font-weight: 600;
       line-height: 1.45;
     }
-    .app-main-col.hl-blur-paywall.hl-paywall-account > :not(.top) {
-      filter: none;
-      pointer-events: auto;
+    .app-main-col.hl-blur-paywall.hl-paywall-account .panel {
+      filter: none !important;
       user-select: auto;
     }
     body.hl-dock-open .bottom-nav {
@@ -1316,6 +1361,17 @@
       padding: 10px;
       margin-top: 8px;
       -webkit-overflow-scrolling: touch;
+    }
+    .hl-upgrade-dock[hidden] {
+      display: none !important;
+      pointer-events: none !important;
+    }
+    #hlPaywallShield[hidden] {
+      display: none !important;
+      pointer-events: none !important;
+    }
+    #commandPalette:not(.open) {
+      pointer-events: none !important;
     }
     .hl-upgrade-dock {
       position: fixed;
@@ -1406,9 +1462,11 @@
       z-index: 70;
       background: rgba(2, 8, 19, .56);
       display: none;
+      pointer-events: none;
     }
     .drawer-backdrop.open {
       display: block;
+      pointer-events: auto;
       animation: fadeIn .15s ease;
     }
     .drawer-sheet {
@@ -2621,6 +2679,8 @@
         posts: [],
         nextCursor: null,
         loading: false,
+        refreshBusy: false,
+        refreshQueued: false,
         commentsByPost: {},
         expanded: {},
       },
@@ -2681,6 +2741,7 @@
     const quickPremiumBtn = document.getElementById("quickPremiumBtn");
     const quickAlertsBtn = document.getElementById("quickAlertsBtn");
     const quickUndoBtn = document.getElementById("quickUndoBtn");
+    let searchRenderTimer = null;
     const bottomTabs = document.querySelectorAll(".bottom-tab");
     const globalStatus = document.getElementById("globalStatus");
     const commandDeck = document.getElementById("commandDeck");
@@ -2694,14 +2755,37 @@
     const actionDrawerBackdrop = document.getElementById("actionDrawerBackdrop");
     const actionDrawerTitle = document.getElementById("actionDrawerTitle");
     const actionDrawerActions = document.getElementById("actionDrawerActions");
-    maxCoverageToggle.checked = true;
+    if (maxCoverageToggle) maxCoverageToggle.checked = false;
+
+    function maxCovOn() {
+      return Boolean(maxCoverageToggle && maxCoverageToggle.checked);
+    }
+
+    /** Firebase ID token payload (email) when localStorage email missing/outdated — keeps staff gates working. */
+    function emailFromFirebaseIdToken() {
+      try {
+        const t = localStorage.getItem("hitalick_token");
+        if (!t || typeof t !== "string") return "";
+        const parts = t.split(".");
+        if (parts.length < 2) return "";
+        const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const pad = b64.length % 4 === 0 ? "" : "=".repeat(4 - (b64.length % 4));
+        const json = atob(b64 + pad);
+        const payload = JSON.parse(json);
+        return String(payload.email || "").trim().toLowerCase();
+      } catch {
+        return "";
+      }
+    }
 
     function getSession() {
       const rawTier = (localStorage.getItem("hitalick_tier") || "core").toLowerCase();
       const tier = TIERS.includes(rawTier) ? rawTier : "core";
+      const storedEmail = String(localStorage.getItem("hitalick_email") || "").trim().toLowerCase();
+      const email = storedEmail || emailFromFirebaseIdToken();
       return {
         uid: localStorage.getItem("hitalick_uid") || "",
-        email: localStorage.getItem("hitalick_email") || "",
+        email,
         token: localStorage.getItem("hitalick_token") || "",
         tier,
       };
@@ -2729,7 +2813,12 @@
 
     function isStaffFullAccessSession() {
       const e = String(getSession().email || "").trim().toLowerCase();
-      return Boolean(e && STAFF_FULL_ACCESS_EMAILS.has(e));
+      if (e && STAFF_FULL_ACCESS_EMAILS.has(e)) return true;
+      const ent = state.subscriptionEntitlement;
+      if (ent && String(ent.tier || "").toLowerCase() === "staff") return true;
+      const role = String(ent?.staffRole || "").toLowerCase();
+      if (role === "owner" || role === "giap" || role === "bruce") return true;
+      return false;
     }
 
     /** Ops dashboard links: Bruce + Giap only (matches server curator/staff allowlist). */
@@ -2811,11 +2900,56 @@
       return subscriptionRankFromEntitlement() >= need;
     }
 
+    const ENTITLEMENT_CACHE_KEY = "hitalick_last_entitlement";
+
+    function readCachedEntitlement(uid) {
+      if (!uid) return null;
+      try {
+        const raw = localStorage.getItem(ENTITLEMENT_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || String(parsed.uid || "") !== String(uid)) return null;
+        return parsed.entitlement && typeof parsed.entitlement === "object" ? parsed.entitlement : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function writeCachedEntitlement(uid, entitlement) {
+      if (!uid) return;
+      try {
+        safeLocalStorageSet(
+          ENTITLEMENT_CACHE_KEY,
+          JSON.stringify({ uid, entitlement: entitlement || null, savedAt: Date.now() }),
+        );
+      } catch {
+        // ignore
+      }
+    }
+
+    function clearCachedEntitlement() {
+      try {
+        localStorage.removeItem(ENTITLEMENT_CACHE_KEY);
+      } catch {
+        // ignore
+      }
+    }
+
+    function hydrateEntitlementFromStorage() {
+      const s = getSession();
+      if (!s.uid || !s.token) return;
+      const cached = readCachedEntitlement(s.uid);
+      if (!cached || !clientEntitlementHasAppAccess(cached)) return;
+      state.subscriptionEntitlement = cached;
+      applyEntitlementTierToToolbar();
+    }
+
     async function loadSubscriptionEntitlement() {
       const s = getSession();
       if (!s.uid || !s.token) {
         state.subscriptionEntitlement = null;
         state.deviceSessionBlocked = null;
+        clearCachedEntitlement();
         updateSubscriptionGates();
         return;
       }
@@ -2825,12 +2959,24 @@
         });
         state.subscriptionEntitlement = data.entitlement || null;
         state.deviceSessionBlocked = null;
+        writeCachedEntitlement(s.uid, state.subscriptionEntitlement);
       } catch (e) {
-        state.subscriptionEntitlement = null;
         if (e && (e.code === "DEVICE_LIMIT" || e.code === "DEVICE_ID_REQUIRED")) {
           state.deviceSessionBlocked = { code: e.code, message: e.message || String(e) };
         } else {
           state.deviceSessionBlocked = null;
+        }
+        const st = Number(e?.status || 0);
+        if (st === 401) {
+          state.subscriptionEntitlement = null;
+          clearCachedEntitlement();
+        } else if (!state.deviceSessionBlocked) {
+          const cached = readCachedEntitlement(s.uid);
+          if (cached && clientEntitlementHasAppAccess(cached)) {
+            state.subscriptionEntitlement = cached;
+          } else {
+            state.subscriptionEntitlement = null;
+          }
         }
       }
       applyEntitlementTierToToolbar();
@@ -2877,7 +3023,7 @@
       const tb = col.querySelector("section.toolbar");
       const anchor = qa || tb || col.querySelector("section.top");
       const topPx = anchor ? anchor.offsetTop + anchor.offsetHeight : 140;
-      sh.style.top = `${Math.max(0, topPx)}px";
+      sh.style.top = `${Math.max(0, topPx)}px`;
       const span = Math.max(0, col.scrollHeight - topPx);
       sh.style.height = `${Math.max(200, span)}px`;
     }
@@ -2918,16 +3064,15 @@
         return;
       }
       document.body.classList.remove("hl-device-limit-open");
+      /** Always keep legacy shield fully disabled so it never blocks clicks or text selection. */
       if (sh) {
-        /** Full-height shield overlapped sticky toolbar / tabs on some layouts; blur + dock CTAs are enough. */
         sh.hidden = true;
         sh.onclick = null;
         sh.onkeydown = null;
       }
+      /** Do not blur or filter panels on web — this can break hit-testing (clicks, copy/paste) in some browsers. */
       if (col) {
-        col.classList.toggle("hl-blur-paywall", needSub);
-        const acctOpen = Boolean(document.querySelector(".tab-btn.active")?.getAttribute("data-tab") === "account");
-        col.classList.toggle("hl-paywall-account", needSub && acctOpen);
+        col.classList.remove("hl-blur-paywall", "hl-paywall-account");
       }
       document.body.classList.toggle("hl-dock-open", needSub);
       if (dock) {
@@ -2943,13 +3088,9 @@
           dock.innerHTML = "";
         }
       }
-      const keys = ["home", "dash", "players", "games", "ai", "alerts", "integrity", "posts", "premium"];
-      const extraHosts = [
-        document.querySelector(".hero"),
-        document.querySelector(".command-deck"),
-        document.querySelector(".quick-actions"),
-      ];
-      const hosts = extraHosts.concat(keys.map((k) => panels[k]).filter(Boolean));
+      /** Keep login prompts scoped to truly account-gated areas only; broad overlays can block taps on mobile chrome. */
+      const keys = ["posts", "premium", "account"];
+      const hosts = keys.map((k) => panels[k]).filter(Boolean);
       for (const host of hosts) {
         const gate = mountSubGate(host);
         if (!gate) continue;
@@ -3070,6 +3211,7 @@
       state.lastRefreshAt = lastRefreshRaw || "";
       const bbbRaw = localStorage.getItem("hitalick_bang_for_buck");
       state.bangForBuckFilter = bbbRaw === "1";
+      const maxCovRaw = localStorage.getItem("hitalick_max_coverage");
       try {
         state.deskPinnedLegKeys = deskPinsRaw ? JSON.parse(deskPinsRaw).slice(0, 400) : [];
       } catch {
@@ -3081,28 +3223,49 @@
       themeSelect.value = state.uiTheme;
       reduceMotionToggle.checked = state.reduceMotion;
       if (bangForBuckToggle) bangForBuckToggle.checked = state.bangForBuckFilter;
+      if (maxCoverageToggle) maxCoverageToggle.checked = maxCovRaw === "1";
       document.body.classList.toggle("compact", state.compactUi);
       applyUiPreferences();
       interestInput.value = state.interests.join(",");
     }
 
+    function safeLocalStorageSet(key, value) {
+      try {
+        localStorage.setItem(key, value);
+        return true;
+      } catch (e) {
+        if (e && (e.name === "QuotaExceededError" || e.code === 22 || e.code === 1014)) {
+          try {
+            localStorage.removeItem("hitalick_diagnostics");
+            localStorage.removeItem("hitalick_provider_stats");
+            localStorage.setItem(key, value);
+            return true;
+          } catch {
+            pushDiagnostic({ type: "warn", message: "Browser storage full — cleared diagnostics; some prefs may not save." });
+          }
+        }
+        return false;
+      }
+    }
+
     function persistUserState() {
-      localStorage.setItem("hitalick_presets", JSON.stringify(state.presets.slice(0, 18)));
-      localStorage.setItem("hitalick_boards", JSON.stringify(state.boards.slice(0, 24)));
-      localStorage.setItem("hitalick_collections", JSON.stringify(state.collections.slice(0, 24)));
-      localStorage.setItem("hitalick_interests", JSON.stringify(state.interests.slice(0, 20)));
-      localStorage.setItem("hitalick_strategy_profile", state.strategyProfile);
-      localStorage.setItem("hitalick_tier", state.tier);
-      localStorage.setItem("hitalick_compact_ui", state.compactUi ? "1" : "0");
-      localStorage.setItem("hitalick_alert_seen", JSON.stringify(state.alertSeen.slice(0, 500)));
-      localStorage.setItem("hitalick_theme", state.uiTheme);
-      localStorage.setItem("hitalick_reduce_motion", state.reduceMotion ? "1" : "0");
-      localStorage.setItem("hitalick_diagnostics", JSON.stringify(state.diagnostics.slice(0, 40)));
-      localStorage.setItem("hitalick_publish_checklist", JSON.stringify(state.publishChecklist));
-      localStorage.setItem("hitalick_provider_stats", JSON.stringify(state.providerStats));
-      localStorage.setItem("hitalick_last_refresh", state.lastRefreshAt || "");
-      localStorage.setItem("hitalick_bang_for_buck", state.bangForBuckFilter ? "1" : "0");
-      localStorage.setItem("hitalick_desk_pins", JSON.stringify((state.deskPinnedLegKeys || []).slice(0, 400)));
+      safeLocalStorageSet("hitalick_presets", JSON.stringify(state.presets.slice(0, 18)));
+      safeLocalStorageSet("hitalick_boards", JSON.stringify(state.boards.slice(0, 24)));
+      safeLocalStorageSet("hitalick_collections", JSON.stringify(state.collections.slice(0, 24)));
+      safeLocalStorageSet("hitalick_interests", JSON.stringify(state.interests.slice(0, 20)));
+      safeLocalStorageSet("hitalick_strategy_profile", state.strategyProfile);
+      safeLocalStorageSet("hitalick_tier", state.tier);
+      safeLocalStorageSet("hitalick_compact_ui", state.compactUi ? "1" : "0");
+      safeLocalStorageSet("hitalick_alert_seen", JSON.stringify(state.alertSeen.slice(0, 500)));
+      safeLocalStorageSet("hitalick_theme", state.uiTheme);
+      safeLocalStorageSet("hitalick_reduce_motion", state.reduceMotion ? "1" : "0");
+      safeLocalStorageSet("hitalick_diagnostics", JSON.stringify(state.diagnostics.slice(0, 40)));
+      safeLocalStorageSet("hitalick_publish_checklist", JSON.stringify(state.publishChecklist));
+      safeLocalStorageSet("hitalick_provider_stats", JSON.stringify(state.providerStats));
+      safeLocalStorageSet("hitalick_last_refresh", state.lastRefreshAt || "");
+      safeLocalStorageSet("hitalick_bang_for_buck", state.bangForBuckFilter ? "1" : "0");
+      safeLocalStorageSet("hitalick_max_coverage", maxCoverageToggle && maxCoverageToggle.checked ? "1" : "0");
+      safeLocalStorageSet("hitalick_desk_pins", JSON.stringify((state.deskPinnedLegKeys || []).slice(0, 400)));
     }
 
     function applyUiPreferences() {
@@ -3689,10 +3852,13 @@
     }
 
     function coverageQuery() {
-      const days = Number(windowFilter.value || 3);
-      return maxCoverageToggle.checked
+      const days = Number(windowFilter?.value || 3);
+      const allSports = sportSelect?.value === "all";
+      return maxCovOn()
         ? `&allEventProps=1&includeBooks=0&windowDays=${days}`
-        : `&windowDays=${days}`;
+        : allSports
+          ? `&windowDays=${days}&includeBooks=0&eventPropLimit=28`
+          : `&windowDays=${days}&includeBooks=0&eventPropLimit=36`;
     }
 
     function normalizeSportToken(value, fallback = "nba") {
@@ -4143,7 +4309,7 @@
         book: bookFilter.value,
         odds: oddsFilter.value,
         window: windowFilter.value,
-        coverage: maxCoverageToggle.checked,
+        coverage: maxCovOn(),
         search: searchInput.value || "",
         strategyProfile: state.strategyProfile,
         tier: state.tier,
@@ -4171,7 +4337,7 @@
       bookFilter.value = preset.book || "all";
       oddsFilter.value = preset.odds || "all";
       windowFilter.value = preset.window || "3";
-      maxCoverageToggle.checked = Boolean(preset.coverage);
+      if (maxCoverageToggle) maxCoverageToggle.checked = Boolean(preset.coverage);
       searchInput.value = preset.search || "";
       state.strategyProfile = preset.strategyProfile || "balanced";
       strategyProfileSelect.value = state.strategyProfile;
@@ -4375,7 +4541,7 @@
             <button class="quick-btn" onclick="commandOpenTab('ai')"><b>AI plays of the day</b>Daily top 3 props (6am snapshot)</button>
             <button class="quick-btn" onclick="commandOpenTab('posts')"><b>Bruce &amp; Giap</b>Posts, photos, comments</button>
             <button class="quick-btn" onclick="commandOpenTab('dash')"><b>Open Elite Desk</b>Leg universe + quota economics</button>
-            <button class="quick-btn" onclick="toggleCoverageMode()"><b>Toggle Max Coverage</b>Current: ${maxCoverageToggle.checked ? "ON" : "OFF"}</button>
+            <button class="quick-btn" onclick="toggleCoverageMode()"><b>Toggle Max Coverage</b>Current: ${maxCovOn() ? "ON" : "OFF"}</button>
             <button class="quick-btn" onclick="refreshAll()"><b>Run Full Refresh</b>Reload props, games, players</button>
           </div>
         </article>
@@ -4423,13 +4589,13 @@
     }
 
     function isInDateWindow(dateValue) {
-      if (!dateValue) return false;
+      if (dateValue == null || String(dateValue).trim() === "") return true;
       const now = new Date();
       const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
       const end = new Date(today);
-      end.setUTCDate(end.getUTCDate() + Number(windowFilter.value || 3));
+      end.setUTCDate(end.getUTCDate() + Number(windowFilter?.value || 3));
       const d = new Date(dateValue);
-      if (Number.isNaN(d.getTime())) return false;
+      if (Number.isNaN(d.getTime())) return true;
       const target = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
       return target >= today && target <= end;
     }
@@ -4975,15 +5141,7 @@
       }
       const label = String(leg.playerName || leg.label || "").trim();
       const key = `${sp}:${normalizeToken(label)}`;
-      if (playerIndex.get(key)) return playerIndex.get(key);
-      const token = normalizeToken(label);
-      if (!token) return null;
-      for (const [k, pl] of playerIndex) {
-        if (!k.startsWith(`${sp}:`) || k.includes(":espn:")) continue;
-        const nk = k.slice(sp.length + 1);
-        if (nk && (token.includes(nk) || nk.includes(token))) return pl;
-      }
-      return null;
+      return playerIndex.get(key) || null;
     }
 
     function statEvidenceBoostForLeg(leg, playerIndex, sport) {
@@ -5008,7 +5166,11 @@
     }
 
     function enrichPropsLegMetadata(propsList) {
-      const playerIndex = buildPlayerStatIndex();
+      let legCount = 0;
+      for (const prop of propsList || []) legCount += (prop.playerProps || []).length;
+      /** Above ~480 priced legs, per-leg stat sampling dominates the main thread on laptops/phones. */
+      const skipStatBoost = legCount > 480;
+      const playerIndex = skipStatBoost ? null : buildPlayerStatIndex();
       for (const prop of propsList || []) {
         let maxLeg = Number(prop.confidence || 0);
         const legs = prop.playerProps || [];
@@ -5023,12 +5185,14 @@
           delete leg.statEvidenceBoost;
           if (!leg.synthetic) {
             let conf = computeLegConfidenceForDisplay(leg, prop);
-            const ev = statEvidenceBoostForLeg(leg, playerIndex, prop.sport);
-            if (ev && Number.isFinite(ev.hitRate)) {
-              leg.statHitRatePct = ev.hitRate;
-              leg.statSampleGames = ev.games;
-              leg.statEvidenceBoost = ev.boost;
-              conf = Math.max(33, Math.min(96, conf + ev.boost));
+            if (playerIndex) {
+              const ev = statEvidenceBoostForLeg(leg, playerIndex, prop.sport);
+              if (ev && Number.isFinite(ev.hitRate)) {
+                leg.statHitRatePct = ev.hitRate;
+                leg.statSampleGames = ev.games;
+                leg.statEvidenceBoost = ev.boost;
+                conf = Math.max(33, Math.min(96, conf + ev.boost));
+              }
             }
             leg.confidence = conf;
             maxLeg = Math.max(maxLeg, conf);
@@ -5045,11 +5209,23 @@
 
     function finalizeDerivedBoardState() {
       if (!Array.isArray(state.props) || !state.props.length) return;
-      enrichPropsLegMetadata(state.props);
-      for (const p of state.props) {
-        p.rankScore = computeRankingScore(p);
+      try {
+        enrichPropsLegMetadata(state.props);
+      } catch (e) {
+        pushDiagnostic({ type: "warn", message: `Leg enrich skipped: ${e?.message || e}` });
       }
-      state.props.sort((a, b) => Number(b.rankScore || 0) - Number(a.rankScore || 0));
+      try {
+        for (const p of state.props) {
+          try {
+            p.rankScore = computeRankingScore(p);
+          } catch {
+            p.rankScore = 0;
+          }
+        }
+        state.props.sort((a, b) => Number(b.rankScore || 0) - Number(a.rankScore || 0));
+      } catch (e) {
+        pushDiagnostic({ type: "warn", message: `Rank resort skipped: ${e?.message || e}` });
+      }
     }
 
     function bangForBuckMatch(prop) {
@@ -6560,69 +6736,136 @@
     }
 
     async function loadPropsAndGames() {
+      try {
+        await loadPropsAndGamesCore();
+      } catch (e) {
+        const msg = String(e?.message || e || "unknown error");
+        pushDiagnostic({ type: "error", message: `Props/games: ${msg}` });
+        setStatus(`Props/games error — ${msg.slice(0, 120)}. Tap <strong>Refresh Data</strong>.`, true);
+        if (!Array.isArray(state.props)) state.props = [];
+        if (!Array.isArray(state.games)) state.games = [];
+      }
+    }
+
+    async function loadPropsAndGamesCore() {
       const sports = activeSports();
       const props = [];
       state.quotaPlanningBySport = {};
       let totalPlayerProps = 0;
       const sportFailures = [];
       const sourceMix = {};
-      const propTimeoutMs = 24000;
+      const propTimeoutMs = maxCovOn() ? 22000 : 18000;
       const bustPropsCache = Boolean(state.forcePropsLiveNext);
       state.forcePropsLiveNext = false;
       const propsLiveSuffix = bustPropsCache ? "&forceLive=1" : "";
       const gameSport = sportSelect.value === "all" ? "all" : sportSelect.value;
       const gamesUrl = `/api/games?sport=${gameSport}&windowDays=${encodeURIComponent(String(windowFilter.value || 3))}${bustPropsCache ? "&forceLive=1" : ""}`;
-      const [settled, gameDataRaw] = await Promise.all([
-        Promise.allSettled(
+
+      const ingestPropsPayload = (data, sportFallback) => {
+        if (!data) return;
+        if (data?.budget && typeof data.budget === "object") {
+          state.providerBudgets = { ...state.providerBudgets, ...data.budget };
+        }
+        if (data?.coverage) {
+          state.lastCoverageMeta = data.coverage;
+          const ck = sportFallback === "all" ? "all" : sportFallback;
+          state.coverageBySport[ck] = data.coverage;
+          if (data.coverage.quotaPlanning) {
+            state.quotaPlanningBySport[ck] = data.coverage.quotaPlanning;
+            state.lastQuotaPlanning = data.coverage.quotaPlanning;
+          }
+        }
+        totalPlayerProps += Number(data.totalPlayerProps || 0);
+        for (const prop of (data.props || [])) {
+          const rawSport = String(prop.sport ?? "").trim().toLowerCase();
+          const fb = String(sportFallback ?? "").trim().toLowerCase();
+          const sport =
+            rawSport && rawSport !== "all"
+              ? rawSport
+              : fb && fb !== "all"
+                ? fb
+                : "nba";
+          const eventDate = String(prop.commenceTime || prop.date || "").slice(0, 10) || prop.date;
+          const normalized = {
+            ...prop,
+            sport,
+            date: eventDate,
+            line: toMarketNum(prop.line),
+            spread: toMarketNum(prop.spread) ?? prop.spread,
+            total: toMarketNum(prop.total) ?? prop.total,
+          };
+          try {
+            normalized.rankScore = computeRankingScore(normalized);
+          } catch {
+            normalized.rankScore = 0;
+          }
+          props.push(normalized);
+          const src = String(normalized.source || "unknown");
+          sourceMix[src] = (sourceMix[src] || 0) + 1;
+        }
+      };
+
+      const loadPropsParallelBySport = async () => {
+        setStatusWarn(`Loading props (${sports.map((s) => s.toUpperCase()).join(", ")})…`);
+        const settled = await Promise.allSettled(
           sports.map((sport) =>
-            fetchJson(`/api/props?sport=${sport}${coverageQuery()}${propsLiveSuffix}`, {}, 3, propTimeoutMs).then((data) => ({
+            fetchJson(`/api/props?sport=${sport}${coverageQuery()}${propsLiveSuffix}`, {}, 1, propTimeoutMs).then((data) => ({
               sport,
               data,
             })),
           ),
-        ),
-        fetchJson(gamesUrl, {}, 3, 22000).catch(() => null),
-      ]);
-      for (let i = 0; i < settled.length; i += 1) {
-        const sport = sports[i];
-        const r = settled[i];
-        if (r.status !== "fulfilled") {
-          sportFailures.push(String(sport).toUpperCase());
-          continue;
-        }
-        const { data } = r.value;
-        try {
-          if (data?.budget && typeof data.budget === "object") {
-            state.providerBudgets = { ...state.providerBudgets, ...data.budget };
+        );
+        for (let i = 0; i < settled.length; i += 1) {
+          const sport = sports[i];
+          const r = settled[i];
+          if (r.status !== "fulfilled") {
+            sportFailures.push(String(sport).toUpperCase());
+            continue;
           }
-          if (data?.coverage) {
-            state.coverageBySport[sport] = data.coverage;
-            state.lastCoverageMeta = data.coverage;
-            if (data.coverage.quotaPlanning) {
-              state.quotaPlanningBySport[sport] = data.coverage.quotaPlanning;
-              state.lastQuotaPlanning = data.coverage.quotaPlanning;
+          try {
+            ingestPropsPayload(r.value.data, sport);
+          } catch {
+            sportFailures.push(String(sport).toUpperCase());
+          }
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      };
+
+      /**
+       * All leagues: **parallel per-sport first** (4 smaller responses; most reliable on laptops / flaky networks).
+       * If still empty, one combined `/sport=all` pass as backup (server fan-out).
+       * Keep the combined timeout aggressive so the UI never appears “stuck” on Loading for more than ~45s.
+       */
+      const combinedPropsTimeoutMs = Math.min(45000, Math.max(propTimeoutMs, 25000));
+      const propsPromise = (async () => {
+        if (sportSelect.value === "all") {
+          await loadPropsParallelBySport();
+          if (!props.length) {
+            const combined = await fetchJson(
+              `/api/props?sport=all${coverageQuery()}${propsLiveSuffix}`,
+              {},
+              1,
+              combinedPropsTimeoutMs,
+            ).catch(() => null);
+            const rowCount = combined && Array.isArray(combined.props) ? combined.props.length : 0;
+            if (combined && rowCount > 0) {
+              try {
+                ingestPropsPayload(combined, "all");
+              } catch {
+                sportFailures.push("ALL");
+              }
             }
           }
-          totalPlayerProps += Number(data.totalPlayerProps || 0);
-          for (const prop of (data.props || [])) {
-            const eventDate = String(prop.commenceTime || prop.date || "").slice(0, 10) || prop.date;
-            const normalized = {
-              ...prop,
-              sport,
-              date: eventDate,
-              line: toMarketNum(prop.line),
-              spread: toMarketNum(prop.spread) ?? prop.spread,
-              total: toMarketNum(prop.total) ?? prop.total,
-            };
-            normalized.rankScore = computeRankingScore(normalized);
-            props.push(normalized);
-            const src = String(normalized.source || "unknown");
-            sourceMix[src] = (sourceMix[src] || 0) + 1;
-          }
-        } catch {
-          sportFailures.push(String(sport).toUpperCase());
+        } else {
+          await loadPropsParallelBySport();
         }
-      }
+        if (!props.length) sportFailures.push("PROPS");
+      })();
+
+      const [_, gameDataRaw] = await Promise.all([
+        propsPromise,
+        fetchJson(gamesUrl, {}, 3, 60000).catch(() => null),
+      ]);
       /**
        * Initial sort only — `finalizeDerivedBoardState()` runs after players load so
        * stat-backed confidence / hit rates use full `statHistory` (multi-season).
@@ -6632,11 +6875,13 @@
       state.totalPlayerProps = totalPlayerProps || totalPlayerPropsLoaded();
       const bookSet = new Set();
       for (const p of props) for (const b of (p.availableBooks || [])) bookSet.add(b);
-      const existing = bookFilter.value;
-      const options = ['<option value="all">All Books</option>']
-        .concat(Array.from(bookSet).sort().map((b) => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`));
-      bookFilter.innerHTML = options.join("");
-      if (Array.from(bookSet).includes(existing)) bookFilter.value = existing;
+      if (bookFilter) {
+        const existing = bookFilter.value;
+        const options = ['<option value="all">All Books</option>']
+          .concat(Array.from(bookSet).sort().map((b) => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`));
+        bookFilter.innerHTML = options.join("");
+        if (Array.from(bookSet).includes(existing)) bookFilter.value = existing;
+      }
 
       const map = new Map();
       try {
@@ -6866,27 +7111,30 @@
     async function loadPlayers(opts = {}) {
       const skipRender = Boolean(opts.skipRender);
       const sportFailures = [];
-      const deepHistory = 480;
-      const requests = sportSelect.value === "all"
-        ? [
-            {
-              sport: "all",
-              statsUrl: `/api/playerStats?sport=all&limit=1600&historyLimit=${deepHistory}&season=all`,
-              rosterUrl: "/api/players?sport=all&limit=2000",
-            },
-          ]
-        : activeSports().map((sport) => ({
-            sport,
-            statsUrl: `/api/playerStats?sport=${sport}&historyLimit=${deepHistory}&season=all`,
-            rosterUrl: `/api/players?sport=${sport}`,
-          }));
+      const deepHistory = maxCovOn() ? 320 : 160;
+      const limStats = maxCovOn() ? 520 : 360;
+      const limRoster = maxCovOn() ? 620 : 420;
+      /** Per-sport fetches for "All leagues" — smaller payloads than one `sport=all` call; survives timeouts better. */
+      const requests =
+        sportSelect.value === "all"
+          ? SPORTS.map((sport) => ({
+              sport,
+              statsUrl: `/api/playerStats?sport=${sport}&limit=${limStats}&historyLimit=${deepHistory}&season=all`,
+              rosterUrl: `/api/players?sport=${sport}&limit=${limRoster}`,
+            }))
+          : activeSports().map((sport) => ({
+              sport,
+              statsUrl: `/api/playerStats?sport=${sport}&limit=${limStats}&historyLimit=${deepHistory}&season=all`,
+              rosterUrl: `/api/players?sport=${sport}&limit=${limRoster}`,
+            }));
 
+      const playerFetchTimeout = 52000;
       const chunks = await Promise.all(
         requests.map(async (req) => {
           try {
             const [statsRes, rosterRes] = await Promise.all([
-              fetchJson(req.statsUrl, {}, 2, 22000),
-              fetchJson(req.rosterUrl, {}, 2, 22000),
+              fetchJson(req.statsUrl, {}, 3, playerFetchTimeout),
+              fetchJson(req.rosterUrl, {}, 3, playerFetchTimeout),
             ]);
             const byKey = new Map();
             const playerRows = Array.isArray(statsRes) ? statsRes : (Array.isArray(statsRes.rows) ? statsRes.rows : []);
@@ -6901,9 +7149,9 @@
                 team: row.team || "-",
                 headshot: row.headshot || null,
                 espnAthleteId: row.espnAthleteId || row.espnId || null,
-                avgPts: computeAverage(row.statHistory, "points"),
-                avgAst: computeAverage(row.statHistory, "assists"),
-                avgReb: computeAverage(row.statHistory, "rebounds"),
+                avgPts: computeAverage(row.statHistory, "points") ?? row?.summary?.averages?.points ?? null,
+                avgAst: computeAverage(row.statHistory, "assists") ?? row?.summary?.averages?.assists ?? null,
+                avgReb: computeAverage(row.statHistory, "rebounds") ?? row?.summary?.averages?.rebounds ?? null,
                 avgMin: computeAverage(row.statHistory, "minutes") ?? row?.summary?.averages?.minutes ?? null,
                 trend: (row.statHistory || []).map((s) => Number(s.points)).filter((n) => Number.isFinite(n)).slice(-12),
                 statHistory: Array.isArray(row.statHistory) ? row.statHistory : [],
@@ -7057,6 +7305,7 @@
 
     function renderHome() {
       const el = document.getElementById("homeGrid");
+      if (!el) return;
       const provider = state.apiHealth?.provider || {};
       const booksCovered = new Set(state.props.flatMap((p) => Array.isArray(p.availableBooks) ? p.availableBooks : [])).size;
       const playerPropCount = totalPlayerPropsLoaded();
@@ -7566,7 +7815,8 @@
         return;
       }
       empty.style.display = "none";
-      grid.innerHTML = list.slice(0, 400).map((s) => {
+      const maxCards = maxCovOn() ? 220 : 140;
+      grid.innerHTML = list.slice(0, maxCards).map((s) => {
         const railId = `prop-rail-${normalizeToken(`${s.sport}-${s.team}-${s.name}`)}`;
         const verify = playerPanelVerification(s);
         const series = playerSeriesFromHistory(s, trend.metric, trend.windowN, trend.venue);
@@ -7788,7 +8038,7 @@
       }).join("");
     }
 
-    const PROP_HUB_DISPLAY_CAP = 500;
+    const PROP_HUB_DISPLAY_CAP = 220;
 
     function renderPropsHub() {
       const grid = document.getElementById("propHubGrid");
@@ -9192,9 +9442,75 @@
     }
 
     async function refreshAll() {
-      setStatusWarn("Refreshing data feeds…");
-      renderSkeletons();
+      if (state.refreshBusy) {
+        state.refreshQueued = true;
+        setStatusWarn("Refresh already running. Queuing one more pass…");
+        return;
+      }
+      state.refreshBusy = true;
+      state.refreshQueued = false;
+      const rb = document.getElementById("refreshBtn");
+      if (rb) {
+        rb.disabled = true;
+        rb.textContent = "Refreshing…";
+      }
       const failures = [];
+      const timed = async (label, fn, timeoutMs = 45000) => {
+        let timer;
+        try {
+          await Promise.race([
+            Promise.resolve().then(fn),
+            new Promise((_, reject) => {
+              timer = setTimeout(() => reject(new Error(`timeout after ${Math.round(timeoutMs / 1000)}s`)), timeoutMs);
+            }),
+          ]);
+        } catch (e) {
+          failures.push(`${label}: ${e?.message || e || "failed"}`);
+        } finally {
+          if (timer) clearTimeout(timer);
+        }
+      };
+      try {
+        setStatusWarn("Refreshing data feeds…");
+        renderSkeletons();
+        await Promise.all([
+          (async () => {
+            try {
+              /** Hard cap props/games phase so the UI never feels locked for more than ~40s even if the API is unhealthy. */
+              await Promise.race([
+                loadPropsAndGames(),
+                new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error("props/games timed out after 40s")), 40000),
+                ),
+              ]);
+            } catch (e) {
+              failures.push(`Props/Games: ${e?.message || e || "failed"}`);
+            }
+          })(),
+          timed("Health", () => loadApiHealth(), 20000),
+          timed("Team stats", () => loadTeamStats(), 55000),
+          (async () => {
+            try {
+              await loadPlayers({ skipRender: true });
+            } catch (e) {
+              failures.push(`Players: ${e?.message || e || "failed"}`);
+            }
+          })(),
+        ]);
+      } finally {
+        /** Re-enable immediately after network phase — finalize/render can freeze weak laptops for many seconds. */
+        state.refreshBusy = false;
+        if (rb) {
+          rb.disabled = false;
+          rb.textContent = "Refresh Data";
+        }
+        if (state.refreshQueued) {
+          state.refreshQueued = false;
+          setTimeout(() => {
+            void refreshAll();
+          }, 80);
+        }
+      }
       const guard = async (label, fn) => {
         try {
           await fn();
@@ -9202,41 +9518,62 @@
           failures.push(`${label}: ${e?.message || e || "failed"}`);
         }
       };
-      await Promise.all([
-        guard("Props/Games", () => loadPropsAndGames()),
-        guard("Health", () => loadApiHealth()),
-        guard("Team stats", () => loadTeamStats()),
-        guard("Players", () => loadPlayers({ skipRender: true })),
-      ]);
-      finalizeDerivedBoardState();
-      await Promise.all([
-        guard("Alerts", () => refreshAlertFeedFromCloud()),
-        guard("Premium", () => loadPremium()),
-        guard("Ranking profile", () => refreshRankingProfile()),
-        guard("CLV timelines", () => refreshClvTimelines(topEdgeRows(10))),
-      ]);
-      hydrateLegsFromRoster();
-      rebuildTeamLogoIndex();
-      renderHome();
-      renderGames();
-      renderPropsHub();
-      renderAI();
-      renderAccount();
-      renderIntegrityCenter();
-      renderEliteDashboard();
-      state.lastRefreshAt = new Date().toISOString();
-      if (failures.length) {
-        pushDiagnostic({ type: "warn", message: `Partial refresh: ${failures.join(" | ")}` });
-        setStatus(`Partial load (still usable): ${failures.join(" | ")}`, true);
-      } else {
-        const mode = maxCoverageToggle.checked ? "MAX" : "FAST";
-        setStatus(`[${mode}] Loaded ${state.players.length} players, ${state.games.length} games, ${state.props.length} game markets, ${totalPlayerPropsLoaded()} player props.`);
+      try {
+        finalizeDerivedBoardState();
+        void Promise.all([
+          guard("Alerts", () => refreshAlertFeedFromCloud()),
+          guard("Premium", () => loadPremium()),
+          guard("Ranking profile", () => refreshRankingProfile()),
+          guard("CLV timelines", () => refreshClvTimelines(topEdgeRows(10))),
+        ]).then(() => renderVisiblePanels());
+        hydrateLegsFromRoster();
+        rebuildTeamLogoIndex();
+        renderVisiblePanels();
+        state.lastRefreshAt = new Date().toISOString();
+        if (failures.length) {
+          pushDiagnostic({ type: "warn", message: `Partial refresh: ${failures.join(" | ")}` });
+          setStatus(`Partial load (still usable): ${failures.join(" | ")}`, true);
+        } else {
+          const mode = maxCovOn() ? "MAX" : "FAST";
+          setStatus(`[${mode}] Loaded ${state.players.length} players, ${state.games.length} games, ${state.props.length} game markets, ${totalPlayerPropsLoaded()} player props.`);
+        }
+        renderCommandCenter();
+        persistUserState();
+        saveCloudState();
+        void loadSubscriptionEntitlement();
+      } catch (e) {
+        pushDiagnostic({ type: "error", message: String(e?.message || e || "refresh finalize failed") });
+        setStatus("Board draw failed — tap Refresh Data again.", true);
+      } finally {
+        try {
+          renderVisiblePanels();
+          renderCommandCenter();
+          refreshHeroPills();
+        } catch (e2) {
+          pushDiagnostic({ type: "error", message: String(e2?.message || e2 || "post-refresh render failed") });
+        }
       }
+    }
+
+    function activeTabKey() {
+      return document.querySelector(".tab-btn.active")?.getAttribute("data-tab") || "home";
+    }
+
+    /** Render only active heavy panel to prevent UI freezes. */
+    function renderVisiblePanels() {
+      const key = activeTabKey();
+      if (key === "home") renderHome();
+      else if (key === "players") renderPlayers();
+      else if (key === "games") renderGames();
+      else if (key === "props") renderPropsHub();
+      else if (key === "ai") renderAI();
+      else if (key === "alerts") renderAlerts();
+      else if (key === "account") renderAccount();
+      else if (key === "integrity") renderIntegrityCenter();
+      else if (key === "dash") renderEliteDashboard();
+      else if (key === "posts") renderCuratorPostsPanel();
+      else if (key === "premium") void loadPremium();
       renderCommandCenter();
-      renderPlayers();
-      persistUserState();
-      saveCloudState();
-      void loadSubscriptionEntitlement();
     }
 
     function hydrateSharedSlipFromHash() {
@@ -9266,6 +9603,9 @@
       tabs.forEach((b) => b.classList.toggle("active", b.getAttribute("data-tab") === key));
       bottomTabs.forEach((b) => b.classList.toggle("active", b.getAttribute("data-tab") === key));
       Object.entries(panels).forEach(([panelKey, panel]) => panel.classList.toggle("active", panelKey === key));
+      if (key === "home") renderHome();
+      if (key === "players") renderPlayers();
+      if (key === "games") renderGames();
       if (key === "alerts") renderAlerts();
       if (key === "props") renderPropsHub();
       if (key === "account") renderAccount();
@@ -9275,7 +9615,10 @@
         renderCuratorPostsPanel();
         if (!state.curatorFeed.posts.length && !state.curatorFeed.loading) loadCuratorFeed(false);
       }
-      if (key === "ai") renderAiPlaysOfTheDayBox();
+      if (key === "ai") {
+        renderAiPlaysOfTheDayBox();
+        renderAI();
+      }
       if (key === "premium") {
         void (async () => {
           await loadSubscriptionEntitlement();
@@ -9312,6 +9655,7 @@
     }
 
     function toggleCoverageMode() {
+      if (!maxCoverageToggle) return;
       maxCoverageToggle.checked = !maxCoverageToggle.checked;
       refreshAll();
     }
@@ -9456,7 +9800,12 @@
       });
     }
     windowFilter.addEventListener("change", refreshAll);
-    maxCoverageToggle.addEventListener("change", refreshAll);
+    if (maxCoverageToggle) {
+      maxCoverageToggle.addEventListener("change", () => {
+        persistUserState();
+        refreshAll();
+      });
+    }
     compactUiToggle.addEventListener("change", () => {
       state.compactUi = compactUiToggle.checked;
       document.body.classList.toggle("compact", state.compactUi);
@@ -9536,9 +9885,11 @@
       pushDiagnostic({ type: "error", message: reason });
     });
     searchInput.addEventListener("input", () => {
-      renderPlayers();
-      renderGames();
-      renderPropsHub();
+      if (searchRenderTimer) clearTimeout(searchRenderTimer);
+      searchRenderTimer = setTimeout(() => {
+        searchRenderTimer = null;
+        renderVisiblePanels();
+      }, 120);
     });
     searchInput.addEventListener("keydown", (e) => {
       if (e.key !== "Enter") return;
@@ -9577,6 +9928,8 @@
     });
 
     loadUserState();
+    hydrateEntitlementFromStorage();
+    updateSubscriptionGates();
     if (new URLSearchParams(window.location.search).get("logout") === "1") {
       logoutSession();
       try {
@@ -9584,18 +9937,45 @@
       } catch {}
     }
     setActiveTab("home");
+    try {
+      renderVisiblePanels();
+      renderCommandCenter();
+      refreshHeroPills();
+    } catch {
+      /* first paint before async refresh */
+    }
     if (typeof HitElite !== "undefined" && typeof HitElite.init === "function") {
-      HitElite.init({ setActiveTab, refreshAll });
+      try {
+        HitElite.init({ setActiveTab, refreshAll });
+      } catch (e) {
+        pushDiagnostic({ type: "warn", message: `HitElite.init: ${e?.message || e}` });
+      }
+    }
+    try {
+      closeActionSheet();
+      if (typeof closeCommandPalette === "function") closeCommandPalette();
+    } catch {
+      /* overlay cleanup — never block boot */
     }
     setSessionUI();
     hydrateSharedSlipFromHash();
-    {
-      const bs = getSession();
-      if (bs.uid && bs.token) void refreshAll();
+    function bootRefresh() {
+      void loadSubscriptionEntitlement().catch(() => {});
+      void syncCloudBootstrap().catch(() => {});
+      void refreshAll().catch(() => {});
     }
-    loadSubscriptionEntitlement()
-      .catch(() => {})
-      .finally(() => syncCloudBootstrap().finally(() => refreshAll()));
+    /** Let the shell paint before heavy JSON + enrich runs (avoids “frozen tab” on open). */
+    if (document.readyState === "complete") {
+      requestAnimationFrame(bootRefresh);
+    } else {
+      window.addEventListener(
+        "load",
+        () => {
+          requestAnimationFrame(bootRefresh);
+        },
+        { once: true },
+      );
+    }
 
     setInterval(() => {
       if (document.hidden) return;
@@ -9610,26 +9990,17 @@
       paywallResizeTimer = setTimeout(() => positionPaywallShield(), 140);
     });
 
-    document.addEventListener("pointermove", (event) => {
-      const nx = Math.max(0, Math.min(1, event.clientX / window.innerWidth));
-      const ny = Math.max(0, Math.min(1, event.clientY / window.innerHeight));
-      document.documentElement.style.setProperty("--mx", String(nx));
-      document.documentElement.style.setProperty("--my", String(ny));
-      if (state.compactUi) return;
-      const cards = document.querySelectorAll(".card");
-      const max = 6;
-      for (const card of cards) {
-        const r = card.getBoundingClientRect();
-        const inside = event.clientX >= r.left && event.clientX <= r.right && event.clientY >= r.top && event.clientY <= r.bottom;
-        if (!inside) {
-          card.style.transform = "";
-          continue;
-        }
-        const x = (event.clientX - r.left) / r.width - 0.5;
-        const y = (event.clientY - r.top) / r.height - 0.5;
-        card.style.transform = `perspective(600px) rotateX(${(-y * max).toFixed(2)}deg) rotateY(${(x * max).toFixed(2)}deg) translateY(-2px)`;
-      }
-    });
+    /** Parallax vars only — no per-card transforms (was freezing with large boards). */
+    document.addEventListener(
+      "pointermove",
+      (event) => {
+        const nx = Math.max(0, Math.min(1, event.clientX / window.innerWidth));
+        const ny = Math.max(0, Math.min(1, event.clientY / window.innerHeight));
+        document.documentElement.style.setProperty("--mx", String(nx));
+        document.documentElement.style.setProperty("--my", String(ny));
+      },
+      { passive: true },
+    );
 
     function renderSkeletons() {
       document.getElementById("homeGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
