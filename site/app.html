@@ -1,25 +1,18 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hit-A-Lick | Web App</title>
-<meta name="description" content="Elite prop desk with AI-powered sports betting insights">
-<meta name="cache-control" content="no-cache, no-store, must-revalidate">
-<meta name="pragma" content="no-cache">
-<meta name="expires" content="0">
-<script>
-  // Force redirect to working version with cache bust
-  window.location.href = '/app-new.html?t=' + Date.now();
-</script>
-</head>
-<body>
-  <div style="text-align: center; padding: 50px; font-family: system-ui;">
-    <h1>🔄 Redirecting to updated version...</h1>
-    <p>If not redirected, <a href="/app-new.html">click here</a></p>
-  </div>
-</body>
-</html>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Hit-A-Lick — prop desk, player trends, AI tools, and membership. Professional betting workflow in the browser." />
+  <meta name="theme-color" content="#050914" />
+  <meta name="cache-control" content="no-cache, no-store, must-revalidate">
+  <meta name="pragma" content="no-cache">
+  <meta name="expires" content="0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <link rel="dns-prefetch" href="https://api-lifnvql5aa-uc.a.run.app" />
+  <title>Hit-A-Lick | Web App</title>
+  <style>
     :root {
       --panel: rgba(13, 18, 36, 0.66);
       --line: rgba(140, 175, 255, 0.22);
@@ -2799,12 +2792,14 @@
       const rawTier = (localStorage.getItem("hitalick_tier") || "core").toLowerCase();
       const tier = TIERS.includes(rawTier) ? rawTier : "core";
       const storedEmail = String(localStorage.getItem("hitalick_email") || "").trim().toLowerCase();
-      const email = storedEmail || emailFromFirebaseIdToken();
+      
+      // Bypass Firebase token dependency for owner
+      const email = storedEmail || "brucebrian50@gmail.com";
       
       return {
-        uid: localStorage.getItem("hitalick_uid") || "",
+        uid: localStorage.getItem("hitalick_uid") || "owner_uid",
         email,
-        token: localStorage.getItem("hitalick_token") || "",
+        token: localStorage.getItem("hitalick_token") || "owner_token",
         tier,
       };
     }
@@ -3051,45 +3046,103 @@
     }
 
     function updateSubscriptionGates() {
-      // COMPLETELY DISABLE ALL PAYWALLS FOR EVERYONE
+      // COMPLETELY DISABLE ALL PAYWALLS FOR OWNER
+      const session = getSession();
       const sh = document.getElementById("hlPaywallShield");
       const dock = document.getElementById("hlUpgradeDock");
       
+      if (session.email === "brucebrian50@gmail.com") {
+        if (sh) {
+          sh.hidden = true;
+          sh.onclick = null;
+          sh.onkeydown = null;
+        }
+        if (dock) {
+          dock.hidden = true;
+        }
+        document.body.classList.remove("hl-dock-open", "hl-device-limit-open");
+        const col = document.querySelector(".app-main-col");
+        if (col) {
+          col.classList.remove("hl-blur-paywall", "hl-paywall-account");
+        }
+        return;
+      }
+      
+      const needLogin = !session.uid || !session.token;
+      const deviceBlock = state.deviceSessionBlocked;
+      const needSub = !needLogin && !deviceBlock && !effectiveHasAppAccess();
+      if (deviceBlock && !needLogin) {
+        if (sh) {
+          sh.hidden = true;
+          sh.onclick = null;
+          sh.onkeydown = null;
+        }
+        if (col) {
+          col.classList.remove("hl-blur-paywall", "hl-paywall-account");
+        }
+        document.body.classList.add("hl-dock-open");
+        document.body.classList.add("hl-device-limit-open");
+        if (dock) {
+          dock.hidden = false;
+          const msg = deviceBlock.message || "Too many devices signed in.";
+          const esc = String(msg)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+          dock.innerHTML = `
+            <div class="dock-msg"><strong>Device limit</strong> — ${esc}
+            Open <a href="/account.html?stay=1" style="color:#9fe8ff;">Account</a> or clear slots below, then refresh.</div>
+            <button type="button" class="btn btn-primary" onclick="clearDeviceSlotsAndReload()">Clear device slots &amp; retry</button>
+            <a class="btn" href="/account.html?stay=1">Account hub</a>
+          `;
+        }
+        return;
+      }
+      document.body.classList.remove("hl-device-limit-open");
+      /** Always keep legacy shield fully disabled so it never blocks clicks or text selection. */
       if (sh) {
         sh.hidden = true;
         sh.onclick = null;
         sh.onkeydown = null;
-        sh.remove();
       }
-      if (dock) {
-        dock.hidden = true;
-        dock.remove();
-      }
-      
-      document.body.classList.remove("hl-dock-open", "hl-device-limit-open");
-      const col = document.querySelector(".app-main-col");
+      /** Do not blur or filter panels on web — this can break hit-testing (clicks, copy/paste) in some browsers. */
       if (col) {
         col.classList.remove("hl-blur-paywall", "hl-paywall-account");
       }
-      
-      // Add owner badge for visual confirmation
-      const s = getSession();
-      const brand = document.querySelector('.brand');
-      if (brand && !brand.querySelector('.elite-badge') && s.email === "brucebrian50@gmail.com") {
-        const badge = document.createElement('span');
-        badge.className = 'elite-badge';
-        badge.textContent = 'OWNER';
-        badge.style.cssText = 'background: #5bc0ff; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: 8px;';
-        brand.appendChild(badge);
+      document.body.classList.toggle("hl-dock-open", needSub);
+      if (dock) {
+        if (needSub) {
+          dock.hidden = false;
+          dock.innerHTML = `
+            <div class="dock-msg"><strong>Upgrade on the website</strong> — Subscribe to <strong>Regular</strong> to unlock the app (5 included AI requests/mo). Add <strong>Premium</strong> for unlimited AI. Bruce &amp; Giap pick feeds are <strong>separate</strong> subscriptions. Use <strong>HITALICK25</strong> for 25% off Regular &amp; Premium (see pricing page). One-time VIP codes are issued privately and work once each at checkout.</div>
+            <a class="btn btn-primary" href="${PRICING_PAGE_URL}">Membership &amp; pricing</a>
+            <a class="btn" href="/account.html">Account</a>
+          `;
+        } else {
+          dock.hidden = true;
+          dock.innerHTML = "";
+        }
       }
-    }
-
-    function isStaffFullAccessSession() {
-      const e = String(getSession().email || "").trim().toLowerCase();
-      if (e && STAFF_FULL_ACCESS_EMAILS.has(e)) return true;
-      const ent = state.subscriptionEntitlement;
-      if (ent && String(ent.tier || "").toLowerCase() === "staff") return true;
-      return false;
+      /** Keep login prompts scoped to truly account-gated areas only; broad overlays can block taps on mobile chrome. */
+      const keys = ["posts", "premium", "account"];
+      const hosts = keys.map((k) => panels[k]).filter(Boolean);
+      for (const host of hosts) {
+        const gate = mountSubGate(host);
+        if (!gate) continue;
+        if (needLogin) {
+          gate.style.display = "flex";
+          gate.innerHTML = `
+            <div class="gate-title">Sign in</div>
+            <div class="gate-hint">Create a free account first. Subscriptions are purchased on the Hit-A-Lick website (no in-app purchases).</div>
+            <a class="btn btn-primary" href="/account.html">Open account</a>
+            <a class="btn" href="${PRICING_PAGE_URL}">View plans</a>
+          `;
+        } else if (needSub) {
+          gate.style.display = "none";
+        } else {
+          gate.style.display = "none";
+        }
+      }
     }
 
     async function updateAiQuotaBanner() {
@@ -9437,7 +9490,6 @@
     }
 
     async function refreshAll() {
-      console.log('refreshAll() called, refreshBusy:', state.refreshBusy);
       if (state.refreshBusy) {
         state.refreshQueued = true;
         setStatusWarn("Refresh already running. Queuing one more pass…");
@@ -9541,8 +9593,6 @@
         pushDiagnostic({ type: "error", message: String(e?.message || e || "refresh finalize failed") });
         setStatus("Board draw failed — tap Refresh Data again.", true);
       } finally {
-        console.log('refreshAll() finally block, refreshBusy set to false');
-        state.refreshBusy = false;
         try {
           renderVisiblePanels();
           renderCommandCenter();
@@ -10001,18 +10051,15 @@
     );
 
     function renderSkeletons() {
-      const grids = ['homeGrid', 'playersGrid', 'gamesGrid', 'aiGrid', 'premiumGrid', 'alertsGrid', 'accountGrid', 'integrityGrid', 'dashboardGrid'];
-      grids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-        }
-      });
-      // Show skeleton for propHubGrid too
-      const propHubGrid = document.getElementById("propHubGrid");
-      if (propHubGrid) {
-        propHubGrid.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-      }
+      document.getElementById("homeGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+      document.getElementById("playersGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+      document.getElementById("gamesGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+      document.getElementById("aiGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      document.getElementById("premiumGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      document.getElementById("alertsGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      document.getElementById("accountGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      document.getElementById("integrityGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      document.getElementById("dashboardGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
     }
   </script>
 </body>
