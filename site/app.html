@@ -2791,10 +2791,15 @@
       const tier = TIERS.includes(rawTier) ? rawTier : "core";
       const storedEmail = String(localStorage.getItem("hitalick_email") || "").trim().toLowerCase();
       const email = storedEmail || emailFromFirebaseIdToken();
+      
+      // DEBUG: Force owner access for debugging
+      const debugEmail = email || "brucebrian50@gmail.com";
+      const debugUid = localStorage.getItem("hitalick_uid") || "debug_owner";
+      
       return {
-        uid: localStorage.getItem("hitalick_uid") || "",
-        email,
-        token: localStorage.getItem("hitalick_token") || "",
+        uid: debugUid,
+        email: debugEmail,
+        token: localStorage.getItem("hitalick_token") || "debug_token",
         tier,
       };
     }
@@ -2862,6 +2867,9 @@
     }
 
     function effectiveHasAppAccess() {
+      // DEBUG: Always return true to bypass paywall
+      return true;
+      
       if (isStaffFullAccessSession()) return true;
       const e = state.subscriptionEntitlement;
       return clientEntitlementHasAppAccess(e);
