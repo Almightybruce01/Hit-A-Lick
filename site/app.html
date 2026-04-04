@@ -9460,6 +9460,7 @@
     }
 
     async function refreshAll() {
+      console.log('refreshAll() called, refreshBusy:', state.refreshBusy);
       if (state.refreshBusy) {
         state.refreshQueued = true;
         setStatusWarn("Refresh already running. Queuing one more pass…");
@@ -9563,6 +9564,8 @@
         pushDiagnostic({ type: "error", message: String(e?.message || e || "refresh finalize failed") });
         setStatus("Board draw failed — tap Refresh Data again.", true);
       } finally {
+        console.log('refreshAll() finally block, refreshBusy set to false');
+        state.refreshBusy = false;
         try {
           renderVisiblePanels();
           renderCommandCenter();
@@ -10021,15 +10024,18 @@
     );
 
     function renderSkeletons() {
-      document.getElementById("homeGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-      document.getElementById("playersGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-      document.getElementById("gamesGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-      document.getElementById("aiGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
-      document.getElementById("premiumGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
-      document.getElementById("alertsGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
-      document.getElementById("accountGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
-      document.getElementById("integrityGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
-      document.getElementById("dashboardGrid").innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+      const grids = ['homeGrid', 'playersGrid', 'gamesGrid', 'aiGrid', 'premiumGrid', 'alertsGrid', 'accountGrid', 'integrityGrid', 'dashboardGrid'];
+      grids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+        }
+      });
+      // Show skeleton for propHubGrid too
+      const propHubGrid = document.getElementById("propHubGrid");
+      if (propHubGrid) {
+        propHubGrid.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+      }
     }
   </script>
 </body>
