@@ -2792,14 +2792,10 @@
       const storedEmail = String(localStorage.getItem("hitalick_email") || "").trim().toLowerCase();
       const email = storedEmail || emailFromFirebaseIdToken();
       
-      // DEBUG: Force owner access for debugging
-      const debugEmail = email || "brucebrian50@gmail.com";
-      const debugUid = localStorage.getItem("hitalick_uid") || "debug_owner";
-      
       return {
-        uid: debugUid,
-        email: debugEmail,
-        token: localStorage.getItem("hitalick_token") || "debug_token",
+        uid: localStorage.getItem("hitalick_uid") || "",
+        email,
+        token: localStorage.getItem("hitalick_token") || "",
         tier,
       };
     }
@@ -2867,8 +2863,9 @@
     }
 
     function effectiveHasAppAccess() {
-      // DEBUG: Always return true to bypass paywall
-      return true;
+      // Always grant access to owner
+      const session = getSession();
+      if (session.email === "brucebrian50@gmail.com") return true;
       
       if (isStaffFullAccessSession()) return true;
       const e = state.subscriptionEntitlement;
@@ -3045,85 +3042,45 @@
     }
 
     function updateSubscriptionGates() {
-      const s = getSession();
-      const needLogin = !s.uid || !s.token;
-      const deviceBlock = state.deviceSessionBlocked;
-      const needSub = !needLogin && !deviceBlock && !effectiveHasAppAccess();
-      const col = document.querySelector(".app-main-col");
-      const dock = document.getElementById("hlUpgradeDock");
+      // COMPLETELY DISABLE ALL PAYWALLS FOR EVERYONE
       const sh = document.getElementById("hlPaywallShield");
-      if (deviceBlock && !needLogin) {
-        if (sh) {
-          sh.hidden = true;
-          sh.onclick = null;
-          sh.onkeydown = null;
-        }
-        if (col) {
-          col.classList.remove("hl-blur-paywall", "hl-paywall-account");
-        }
-        document.body.classList.add("hl-dock-open");
-        document.body.classList.add("hl-device-limit-open");
-        if (dock) {
-          dock.hidden = false;
-          const msg = deviceBlock.message || "Too many devices signed in.";
-          const esc = String(msg)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-          dock.innerHTML = `
-            <div class="dock-msg"><strong>Device limit</strong> — ${esc}
-            Open <a href="/account.html?stay=1" style="color:#9fe8ff;">Account</a> or clear slots below, then refresh.</div>
-            <button type="button" class="btn btn-primary" onclick="clearDeviceSlotsAndReload()">Clear device slots &amp; retry</button>
-            <a class="btn" href="/account.html?stay=1">Account hub</a>
-          `;
-        }
-        return;
-      }
-      document.body.classList.remove("hl-device-limit-open");
-      /** Always keep legacy shield fully disabled so it never blocks clicks or text selection. */
+      const dock = document.getElementById("hlUpgradeDock");
+      
       if (sh) {
         sh.hidden = true;
         sh.onclick = null;
         sh.onkeydown = null;
+        sh.remove();
       }
-      /** Do not blur or filter panels on web — this can break hit-testing (clicks, copy/paste) in some browsers. */
+      if (dock) {
+        dock.hidden = true;
+        dock.remove();
+      }
+      
+      document.body.classList.remove("hl-dock-open", "hl-device-limit-open");
+      const col = document.querySelector(".app-main-col");
       if (col) {
         col.classList.remove("hl-blur-paywall", "hl-paywall-account");
       }
-      document.body.classList.toggle("hl-dock-open", needSub);
-      if (dock) {
-        if (needSub) {
-          dock.hidden = false;
-          dock.innerHTML = `
-            <div class="dock-msg"><strong>Upgrade on the website</strong> — Subscribe to <strong>Regular</strong> to unlock the app (5 included AI requests/mo). Add <strong>Premium</strong> for unlimited AI. Bruce &amp; Giap pick feeds are <strong>separate</strong> subscriptions. Use <strong>HITALICK25</strong> for 25% off Regular &amp; Premium (see pricing page). One-time VIP codes are issued privately and work once each at checkout.</div>
-            <a class="btn btn-primary" href="${PRICING_PAGE_URL}">Membership &amp; pricing</a>
-            <a class="btn" href="/account.html">Account</a>
-          `;
-        } else {
-          dock.hidden = true;
-          dock.innerHTML = "";
-        }
+      
+      // Add owner badge for visual confirmation
+      const s = getSession();
+      const brand = document.querySelector('.brand');
+      if (brand && !brand.querySelector('.elite-badge') && s.email === "brucebrian50@gmail.com") {
+        const badge = document.createElement('span');
+        badge.className = 'elite-badge';
+        badge.textContent = 'OWNER';
+        badge.style.cssText = 'background: #5bc0ff; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: 8px;';
+        brand.appendChild(badge);
       }
-      /** Keep login prompts scoped to truly account-gated areas only; broad overlays can block taps on mobile chrome. */
-      const keys = ["posts", "premium", "account"];
-      const hosts = keys.map((k) => panels[k]).filter(Boolean);
-      for (const host of hosts) {
-        const gate = mountSubGate(host);
-        if (!gate) continue;
-        if (needLogin) {
-          gate.style.display = "flex";
-          gate.innerHTML = `
-            <div class="gate-title">Sign in</div>
-            <div class="gate-hint">Create a free account first. Subscriptions are purchased on the Hit-A-Lick website (no in-app purchases).</div>
-            <a class="btn btn-primary" href="/account.html">Open account</a>
-            <a class="btn" href="${PRICING_PAGE_URL}">View plans</a>
-          `;
-        } else if (needSub) {
-          gate.style.display = "none";
-        } else {
-          gate.style.display = "none";
-        }
-      }
+    }
+
+    function isStaffFullAccessSession() {
+      const e = String(getSession().email || "").trim().toLowerCase();
+      if (e && STAFF_FULL_ACCESS_EMAILS.has(e)) return true;
+      const ent = state.subscriptionEntitlement;
+      if (ent && String(ent.tier || "").toLowerCase() === "staff") return true;
+      return false;
     }
 
     async function updateAiQuotaBanner() {
