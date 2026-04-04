@@ -8043,11 +8043,14 @@
     const PROP_HUB_DISPLAY_CAP = 220;
 
     function renderPropsHub() {
-      const grid = document.getElementById("propHubGrid");
-      const empty = document.getElementById("propHubEmpty");
-      const countEl = document.getElementById("propHubCount");
-      if (!grid || !empty) return;
-      let rows = collectPropHubLegRows();
+      try {
+        console.log('renderPropsHub called, state.props:', state.props?.length || 0);
+        const grid = document.getElementById("propHubGrid");
+        const empty = document.getElementById("propHubEmpty");
+        const countEl = document.getElementById("propHubCount");
+        if (!grid || !empty) return;
+        let rows = collectPropHubLegRows();
+        console.log('Props rows collected:', rows?.length || 0);
       const tokens = propHubSearchTokens();
       if (tokens.length) {
         rows = rows.filter((row) => {
@@ -8146,6 +8149,16 @@
           `;
         })
         .join("");
+      } catch (error) {
+        console.error('renderPropsHub error:', error);
+        const grid = document.getElementById("propHubGrid");
+        const empty = document.getElementById("propHubEmpty");
+        if (grid) grid.innerHTML = '';
+        if (empty) {
+          empty.style.display = 'block';
+          empty.innerHTML = '<div class="card"><h3>Error loading props</h3><p>Try refreshing the page.</p></div>';
+        }
+      }
     }
 
     function aiConfig() {
