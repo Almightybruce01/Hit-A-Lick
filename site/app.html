@@ -11,2119 +11,72 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <link rel="dns-prefetch" href="https://api-lifnvql5aa-uc.a.run.app" />
+  <link rel="preload" href="/css/app-shell.css?v=202604074" as="style" />
+  <link rel="preload" href="/js/app-elite.js?v=202604074" as="script" />
   <title>Hit-A-Lick | Web App</title>
-  <style>
-    :root {
-      --panel: rgba(13, 18, 36, 0.66);
-      --line: rgba(140, 175, 255, 0.22);
-      --ink: #eef5ff;
-      --muted: #9cb2de;
-      --brand: #5bc0ff;
-      --accent: #81ffd8;
-      --violet: #a495ff;
-      --good: #72ffd6;
-      --warn: #ffd49c;
-      --bad: #ff9f9f;
-      --shadow: 0 18px 60px rgba(2, 8, 22, 0.52);
-      --radius: 16px;
-      --radius-sm: 12px;
-      --gap: 10px;
-      --mx: 0.5;
-      --my: 0.5;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      color: var(--ink);
-      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #050914;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    body::before,
-    body::after { display: none; }
-    @keyframes drift {
-      from { transform: translateY(-10px) scale(1); }
-      to { transform: translateY(10px) scale(1.04); }
-    }
-    .bg-scene {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-      background: radial-gradient(circle at 50% -20%, #173b76 0%, #081227 34%, #050914 74%);
-    }
-    .bg-base,
-    .bg-orb,
-    .bg-grid,
-    .bg-noise {
-      position: absolute;
-      inset: -10%;
-    }
-    .bg-base {
-      background:
-        radial-gradient(1100px 700px at 12% 24%, rgba(93, 189, 255, 0.28), transparent 65%),
-        radial-gradient(900px 640px at 86% 12%, rgba(160, 135, 255, 0.21), transparent 66%),
-        radial-gradient(920px 620px at 52% 84%, rgba(94, 255, 222, 0.11), transparent 68%);
-      filter: saturate(112%);
-      transform: translate3d(calc((var(--mx) - 0.5) * -18px), calc((var(--my) - 0.5) * -14px), 0);
-      transition: transform .5s ease-out;
-    }
-    .bg-orb {
-      border-radius: 50%;
-      mix-blend-mode: screen;
-      filter: blur(28px);
-      opacity: .78;
-      animation: orbFloat 18s ease-in-out infinite alternate;
-    }
-    .bg-orb.a {
-      width: 52vw;
-      height: 52vw;
-      left: -6vw;
-      top: 8vh;
-      background: radial-gradient(circle at 30% 30%, rgba(99, 189, 255, .58), rgba(43, 88, 180, .06) 70%);
-    }
-    .bg-orb.b {
-      width: 42vw;
-      height: 42vw;
-      right: -8vw;
-      top: -5vh;
-      animation-duration: 24s;
-      animation-delay: -4s;
-      background: radial-gradient(circle at 60% 40%, rgba(171, 138, 255, .46), rgba(47, 33, 105, .02) 72%);
-    }
-    .bg-orb.c {
-      width: 40vw;
-      height: 40vw;
-      left: 24vw;
-      bottom: -22vh;
-      animation-duration: 21s;
-      animation-delay: -10s;
-      background: radial-gradient(circle at 50% 40%, rgba(80, 255, 211, .28), rgba(25, 89, 76, .02) 74%);
-    }
-    .bg-grid {
-      inset: 0;
-      opacity: .18;
-      background:
-        linear-gradient(to right, rgba(157,190,255,.08) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(157,190,255,.06) 1px, transparent 1px);
-      background-size: 64px 64px;
-      mask-image: radial-gradient(circle at center, black 20%, transparent 80%);
-      transform: perspective(780px) rotateX(66deg) translateY(26%) scale(1.26);
-    }
-    .bg-noise {
-      inset: 0;
-      opacity: .14;
-      background-image: radial-gradient(rgba(255,255,255,.2) 0.7px, transparent 0.9px);
-      background-size: 3px 3px;
-      mix-blend-mode: soft-light;
-      animation: noisePulse 7s steps(8, end) infinite;
-    }
-    @keyframes orbFloat {
-      from { transform: translate3d(-18px, -12px, 0) scale(1); }
-      to { transform: translate3d(28px, 20px, 0) scale(1.08); }
-    }
-    @keyframes noisePulse {
-      0%, 100% { opacity: .1; }
-      50% { opacity: .2; }
-    }
-    .wrap { position: relative; z-index: 2; max-width: 1240px; margin: 0 auto; padding: 20px; }
-    .top, .hero, .toolbar, .panel {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--panel);
-      backdrop-filter: blur(8px);
-      box-shadow: var(--shadow);
-    }
-    .top {
-      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-      padding: 10px 12px; margin-bottom: 12px;
-    }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); font-size: 12px; }
-    .brand img { width: 36px; height: 36px; border-radius: 8px; border: 1px solid rgba(133,173,240,.5); }
-    .nav { display: flex; gap: 8px; flex-wrap: wrap; }
-    .nav a, .btn {
-      text-decoration: none; color: var(--ink); border: 1px solid rgba(143,178,234,.4); background: rgba(11,20,43,.68);
-      border-radius: 999px; padding: 8px 12px; font-size: 12px; cursor: pointer;
-      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
-    }
-    .btn:hover, .nav a:hover {
-      transform: translateY(-1px);
-      border-color: rgba(138,255,212,.55);
-      box-shadow: 0 8px 20px rgba(0,0,0,.25);
-    }
-    .btn-primary { background: linear-gradient(135deg, var(--brand), var(--accent)); color: #041626; border: 0; font-weight: 700; }
-    .logout-link-red {
-      color: #ff7d92 !important;
-      border-color: rgba(255, 125, 146, 0.55) !important;
-      background: rgba(45, 11, 25, 0.55) !important;
-      font-weight: 700;
-      text-shadow: 0 0 10px rgba(255, 125, 146, 0.35);
-    }
-    .logout-link-red:hover {
-      border-color: rgba(255, 166, 179, 0.75) !important;
-      box-shadow: 0 0 16px rgba(255, 125, 146, 0.28);
-    }
-    .hero {
-      position: relative;
-      padding: 14px;
-      margin-bottom: 12px;
-      overflow: hidden;
-      border-color: rgba(129, 255, 216, 0.28);
-      background: linear-gradient(145deg, rgba(7, 16, 40, 0.9), rgba(10, 22, 56, 0.82));
-    }
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: -30% auto auto -10%;
-      width: 52%;
-      height: 180%;
-      background: radial-gradient(circle at 50% 50%, rgba(124, 233, 255, 0.25), transparent 64%);
-      pointer-events: none;
-      filter: blur(8px);
-      animation: heroGlowFloat 10s ease-in-out infinite alternate;
-    }
-    .hero h1 {
-      margin: 0 0 6px;
-      font-size: clamp(24px, 3.6vw, 40px);
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-      line-height: 1.06;
-      background: linear-gradient(135deg, #ffffff 12%, #bdeeff 45%, #7effd6 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 24px rgba(126, 249, 213, 0.16);
-    }
-    @keyframes heroGlowFloat {
-      from { transform: translate3d(0, 0, 0) scale(1); }
-      to { transform: translate3d(20px, 6px, 0) scale(1.06); }
-    }
-    .meta { color: var(--muted); font-size: 13px; margin: 0; }
-    .status { margin-top: 8px; min-height: 20px; font-size: 13px; color: var(--accent); }
-    .status.error { color: var(--bad); }
-    .status.warn { color: var(--warn); }
-    .status.ok { color: var(--good); }
-    .command-deck {
-      position: relative;
-      margin-bottom: 12px;
-      border: 1px solid rgba(124,162,229,.35);
-      min-height: 200px;
-      overflow-y: auto;
-      max-height: 400px;
-      border-radius: 14px;
-      background: linear-gradient(180deg, rgba(10,18,40,.86), rgba(8,14,31,.78));
-      padding: 12px;
-      box-shadow: var(--shadow);
-    }
-    .flow-strip {
-      margin: 10px 0 0;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-    }
-    .flow-step {
-      border: 1px solid rgba(125, 163, 232, 0.35);
-      border-radius: 10px;
-      background: rgba(7, 16, 34, 0.6);
-      padding: 8px;
-      font-size: 11px;
-      line-height: 1.35;
-      color: #d5e8ff;
-    }
-    .flow-step b {
-      display: block;
-      color: #86ffd9;
-      letter-spacing: 0.03em;
-      margin-bottom: 2px;
-      text-transform: uppercase;
-      font-size: 10px;
-    }
-    .deck-title {
-      margin: 0 0 8px;
-      font-size: 13px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: #9fc8f4;
-    }
-    .deck-grid {
-      display: grid;
-      gap: 10px;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .deck-panel {
-      border: 1px solid rgba(128,164,229,.28);
-      border-radius: 12px;
-      padding: 10px;
-      background: rgba(11,19,40,.72);
-    }
-    .tile-row {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-    }
-    .league-tile, .heat-tile, .quick-btn {
-      border: 1px solid rgba(133,171,236,.35);
-      border-radius: 10px;
-      padding: 8px;
-      background: rgba(8,15,34,.7);
-      color: var(--ink);
-      cursor: pointer;
-      transition: all .2s ease;
-    }
-    .league-tile:hover, .heat-tile:hover, .quick-btn:hover {
-      transform: translateY(-1px);
-      border-color: rgba(138,255,212,.55);
-      box-shadow: 0 10px 20px rgba(0,0,0,.28);
-    }
-    .league-name {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .05em;
-      text-transform: uppercase;
-      color: #b5d5ff;
-    }
-    .league-kpi {
-      margin-top: 4px;
-      font-size: 10px;
-      color: #cfe1ff;
-      line-height: 1.35;
-    }
-    .quick-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-    .quick-btn {
-      font-size: 11px;
-      font-weight: 600;
-      text-align: left;
-    }
-    .quick-btn b {
-      display: block;
-      font-size: 11px;
-      color: #dffff3;
-      margin-bottom: 2px;
-    }
-    .heat-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
-    }
-    .heat-label {
-      font-size: 10px;
-      color: #a9c8ef;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-    .heat-value {
-      margin-top: 4px;
-      font-size: 14px;
-      font-weight: 800;
-      color: #d7fff2;
-    }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .toolbar {
-      display: flex; flex-direction: column; gap: 10px;
-      padding: 10px; margin-bottom: 12px;
-    }
-    .hl-toolbar-primary {
-      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-    }
-    .hl-toolbar-advanced {
-      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-      padding-top: 8px;
-      border-top: 1px solid rgba(120, 160, 230, 0.18);
-    }
-    .hl-toolbar-advanced[hidden] { display: none !important; }
-    .hl-filter-toggle {
-      font-weight: 700;
-      border-color: rgba(129, 255, 216, 0.45) !important;
-    }
-    .toolbar label { font-size: 11px; }
-    select, input {
-      background: #0a1227; color: var(--ink); border: 1px solid rgba(122,161,227,.45); border-radius: 10px; padding: 9px 10px;
-    }
-    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-    .tab-btn { border: 1px solid rgba(134,171,234,.42); color: var(--ink); background: rgba(10,18,40,.72); border-radius: 999px; padding: 8px 12px; cursor: pointer; transition: all .2s ease; }
-    .tab-btn.active { border-color: var(--accent); color: var(--accent); }
-    .tab-btn:hover { transform: translateY(-1px); border-color: rgba(138,255,212,.55); }
-    .quick-actions {
-      position: sticky;
-      bottom: 12px;
-      z-index: 5;
-      isolation: isolate;
-      margin: 8px 0 12px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 8px;
-      border: 1px solid rgba(155, 191, 255, .22);
-      border-radius: 14px;
-      background: rgba(8, 14, 31, .72);
-      backdrop-filter: blur(12px);
-    }
-    .quick-actions .btn { padding: 7px 10px; font-size: 11px; }
-    .bottom-nav {
-      display: none;
-      position: fixed;
-      left: 10px;
-      right: 10px;
-      bottom: max(10px, env(safe-area-inset-bottom, 0px));
-      z-index: 20;
-      border: 1px solid rgba(155, 191, 255, .24);
-      border-radius: 16px;
-      background: rgba(8, 14, 31, .86);
-      backdrop-filter: blur(14px);
-      padding: 6px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, .35);
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 6px;
-    }
-    .bottom-tab {
-      border: 1px solid rgba(155, 191, 255, .22);
-      border-radius: 10px;
-      background: rgba(14, 22, 44, .66);
-      color: #dcecff;
-      font-size: 11px;
-      padding: 7px 4px;
-      cursor: pointer;
-    }
-    .bottom-tab.active {
-      border-color: rgba(129, 255, 216, .58);
-      color: #a8ffe4;
-      box-shadow: 0 0 0 1px rgba(129,255,216,.28), 0 0 20px rgba(129,255,216,.16);
-    }
-    .story-row {
-      display: grid;
-      grid-auto-flow: column;
-      grid-auto-columns: minmax(180px, 1fr);
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-    .curator-feed-scroll {
-      max-height: min(72vh, 640px);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 4px 2px 12px 0;
-    }
-    .feed-post-card {
-      border: 1px solid rgba(155, 191, 255, .22);
-      border-radius: 14px;
-      padding: 12px 14px;
-      background: rgba(10, 18, 40, .55);
-    }
-    .feed-post-card .feed-post-meta {
-      font-size: 11px;
-      color: rgba(200, 220, 255, .72);
-      margin-bottom: 6px;
-    }
-    .feed-post-card img.feed-post-img {
-      max-width: 100%;
-      max-height: 320px;
-      object-fit: contain;
-      border-radius: 10px;
-      margin-top: 8px;
-      display: block;
-      border: 1px solid rgba(120, 160, 230, .2);
-    }
-    .feed-comments-block {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(120, 160, 230, .18);
-    }
-    .feed-comment-line {
-      font-size: 12px;
-      margin: 4px 0;
-      color: rgba(220, 235, 255, .88);
-    }
-    .ai-plays-of-day-wrap {
-      max-width: 560px;
-      margin: 0 auto 14px;
-    }
-    .ai-plays-of-day {
-      border: 1px solid rgba(129, 255, 216, .35);
-      border-radius: 14px;
-      padding: 12px 14px;
-      margin-bottom: 0;
-      background: linear-gradient(135deg, rgba(16, 40, 52, .75), rgba(12, 22, 48, .72));
-      box-shadow: 0 8px 28px rgba(0, 0, 0, .25);
-    }
-    .ai-plays-of-day h3 {
-      margin: 0 0 8px;
-      font-size: 15px;
-      letter-spacing: 0.02em;
-    }
-    .ai-play-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px 12px;
-      align-items: baseline;
-      padding: 8px 0;
-      border-top: 1px solid rgba(120, 160, 230, .15);
-      font-size: 13px;
-    }
-    .ai-play-row:first-of-type {
-      border-top: none;
-      padding-top: 0;
-    }
-    .ai-play-row-v2 {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      align-items: start;
-    }
-    @media (min-width: 640px) {
-      .ai-play-row-v2 {
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
-        align-items: center;
+  <link rel="stylesheet" href="/css/app-shell.css?v=202604074" />
+  <link rel="stylesheet" href="/css/app-elite.css?v=202604074" />
+  <script>
+    (function () {
+      function hitalickUnblockUiEarly() {
+        try {
+          document.documentElement.classList.remove("hl-boot-blocked");
+        } catch (_) {}
       }
-    }
-    .ai-play-prop-line {
-      font-size: 14px;
-      line-height: 1.35;
-      color: #eaf3ff;
-    }
-    .ai-play-books {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-    .ai-play-book-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px 4px 6px;
-      border-radius: 999px;
-      background: rgba(8, 16, 40, 0.75);
-      border: 1px solid rgba(130, 180, 255, 0.28);
-      font-size: 12px;
-    }
-    .ai-play-book-pill .book-chip {
-      margin: 0;
-    }
-    .ai-play-odds-num {
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
-      color: #b8f5e0;
-    }
-    .ai-play-book-pill.ai-play-odds-warn {
-      border-color: rgba(255, 200, 120, 0.35);
-      opacity: 0.92;
-    }
-    .ai-play-book-pill.ai-play-odds-warn .ai-play-odds-num {
-      color: #ffd49c;
-    }
-    .ai-play-conf-col {
-      justify-self: end;
-    }
-    .story-card {
-      border: 1px solid rgba(129, 255, 216, .25);
-      border-radius: 12px;
-      padding: 8px;
-      background: linear-gradient(180deg, rgba(16, 28, 55, .8), rgba(10, 18, 35, .66));
-      animation: fadeIn .3s ease;
-    }
-    .story-title {
-      font-size: 11px;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      color: #9ce8ff;
-      margin-bottom: 3px;
-    }
-    .creator-lane {
-      display: grid;
-      gap: 8px;
-      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-      margin-top: 6px;
-    }
-    .creator-card {
-      border: 1px solid rgba(155, 191, 255, .22);
-      border-radius: 12px;
-      padding: 8px;
-      background: rgba(9, 16, 33, .72);
-    }
-    .inbox-list {
-      display: grid;
-      gap: 8px;
-    }
-    .inbox-item {
-      border: 1px solid rgba(155, 191, 255, .22);
-      border-radius: 12px;
-      padding: 8px;
-      background: rgba(10, 18, 36, .7);
-    }
-    .inbox-item.unread {
-      border-color: rgba(129, 255, 216, .58);
-      box-shadow: 0 0 0 1px rgba(129, 255, 216, .2) inset;
-    }
-    .panel { display: none; padding: 12px 12px 20px; }
-    .panel.active { display: block; animation: fadeIn .2s ease; }
-    .board-table .board-prop-market {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: #7dffd0;
-      margin-right: 6px;
-      vertical-align: middle;
-    }
-    .board-table .top-prop-name { font-weight: 700; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-    .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-    .card {
-      border: 1px solid rgba(126,162,228,.35);
-      border-radius: 12px;
-      background: linear-gradient(180deg, rgba(10, 18, 40, .92), rgba(7, 13, 31, .72));
-      padding: 10px;
-      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
-      transform-style: preserve-3d;
-      will-change: transform;
-    }
-    .card:hover { transform: translateY(-2px) scale(1.01); border-color: rgba(138,255,212,.45); box-shadow: 0 16px 32px rgba(0,0,0,.35); }
-    .card h3 { margin: 0 0 6px; font-size: 15px; }
-    body.compact .wrap { max-width: 1160px; padding: 14px; }
-    body.compact .hero { padding: 10px; margin-bottom: 10px; }
-    body.compact .hero h1 { font-size: clamp(20px, 2.8vw, 29px); }
-    body.compact .toolbar { gap: 6px; padding: 8px; }
-    body.compact .toolbar label { font-size: 10px; }
-    body.compact select,
-    body.compact input { padding: 7px 8px; border-radius: 8px; font-size: 12px; }
-    body.compact .panel { padding: 10px; }
-    body.compact .grid { gap: 8px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
-    body.compact .card { padding: 8px; border-radius: 10px; }
-    body.compact .card h3 { font-size: 13px; margin-bottom: 4px; }
-    body.compact .kpi { font-size: 11px; margin-top: 2px; }
-    body.compact .mini-panel { padding: 7px; min-height: 82px; }
-    body.compact .mini-title { font-size: 10px; }
-    body.compact .mini-value { font-size: 11px; }
-    body.compact .prop-rail-card { padding: 7px; }
-    .chip { display:inline-block; font-size: 11px; border-radius: 999px; padding: 4px 8px; background: rgba(138,255,212,.18); color: #b6ffea; border: 1px solid rgba(138,255,212,.35); }
-    .book-chip {
-      display: inline-block;
-      font-size: 10px;
-      border-radius: 999px;
-      padding: 2px 7px;
-      margin: 2px 4px 0 0;
-      border: 1px solid rgba(145,183,243,.34);
-      background: rgba(12,21,43,.72);
-      color: #d5e6ff;
-      letter-spacing: .02em;
-    }
-    .book-chip.fanduel {
-      border-color: rgba(130,255,216,.55);
-      background: rgba(29,58,74,.45);
-      color: #9fffe6;
-      font-weight: 700;
-    }
-    .confidence-orb {
-      width: 44px;
-      height: 44px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .02em;
-      border: 1px solid rgba(255,255,255,.25);
-      box-shadow: inset 0 0 20px rgba(255,255,255,.08), 0 8px 14px rgba(0,0,0,.32);
-    }
-    .confidence-orb.green {
-      color: #081f13;
-      background: radial-gradient(circle at 30% 28%, #b6ffe6, #3ed7a3 58%, #1e8a68 100%);
-    }
-    .confidence-orb.yellow {
-      color: #2a2300;
-      background: radial-gradient(circle at 30% 28%, #fff2c1, #ffc95a 58%, #b28328 100%);
-    }
-    .confidence-orb.red {
-      color: #2d0606;
-      background: radial-gradient(circle at 30% 28%, #ffd0d0, #ff8f8f 58%, #cf4f4f 100%);
-    }
-    .muted { color: var(--muted); font-size: 12px; }
-    .kpi { font-size: 12px; color: #d8e6ff; margin-top: 4px; }
-    .empty { color: var(--muted); font-size: 14px; padding: 12px; }
-    .empty-card { border: 1px dashed rgba(141,178,236,.38); border-radius: 12px; padding: 16px; background: rgba(9,15,33,.55); color: var(--muted); }
-    .panel-grid { display: grid; gap: 8px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 8px; }
-    .mini-panel { border: 1px solid rgba(120,161,231,.35); border-radius: 10px; background: rgba(10, 17, 36, .75); padding: 8px; min-height: 92px; }
-    .mini-title { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #99bee5; margin-bottom: 4px; }
-    .mini-value { font-size: 12px; line-height: 1.35; color: #edf4ff; }
-    .player-head {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 1px solid rgba(160,193,248,.38);
-      object-fit: cover;
-      background: rgba(8,14,29,.8);
-      flex-shrink: 0;
-    }
-    .media-ph,
-    .team-logo-ph {
-      position: relative;
-      flex-shrink: 0;
-      background: rgba(36, 40, 50, 0.98);
-      border: 1px solid rgba(160, 193, 248, 0.28);
-      box-sizing: border-box;
-      overflow: hidden;
-    }
-    .team-logo-ph .team-logo-bg {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: linear-gradient(155deg, rgba(48, 54, 68, 0.98) 0%, rgba(28, 31, 40, 0.99) 100%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .team-logo-ph .team-logo-fill {
-      position: relative;
-      z-index: 1;
-    }
-    .media-ph { border-radius: 50%; }
-    .team-logo-ph { border-radius: 10px; }
-    .avatar-slot {
-      position: relative;
-      overflow: hidden;
-      background: rgba(36, 40, 50, 0.98);
-      border: 1px solid rgba(160, 193, 248, 0.28);
-      flex-shrink: 0;
-      box-sizing: border-box;
-    }
-    .avatar-slot-bg {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: linear-gradient(155deg, rgba(48, 54, 68, 0.98) 0%, rgba(28, 31, 40, 0.99) 100%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .avatar-slot .leg-headshot-fill,
-    .avatar-slot .player-head-fill {
-      position: relative;
-      z-index: 1;
-    }
-    .avatar-slot.leg-headshot-slot {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-    }
-    .avatar-slot.player-head-slot {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-    }
-    .leg-headshot-fill,
-    .player-head-fill,
-    .team-logo-fill {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .leg-headshot-fill.img-broken,
-    .player-head-fill.img-broken,
-    .team-logo-fill.img-broken {
-      display: none !important;
-    }
-    .leg-headshot {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      object-fit: cover;
-      border: 1px solid rgba(160,193,248,.32);
-      flex-shrink: 0;
-    }
-    .leg-avatar-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .leg-avatar-row .media-ph.leg-headshot { border-radius: 12px; }
-    .hidden { display: none !important; }
-    .game-matchup-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .team-logo-ph {
-      width: 36px;
-      height: 36px;
-      min-width: 36px;
-      min-height: 36px;
-    }
-    .team-logo-slot.team-logo-ph {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .link-chip {
-      display: inline-block;
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      padding: 2px 6px;
-      border-radius: 6px;
-      margin-right: 4px;
-      margin-top: 2px;
-      border: 1px solid rgba(140, 175, 255, 0.35);
-      color: #c8dcff;
-      background: rgba(12, 20, 42, 0.75);
-    }
-    .link-chip.id { border-color: rgba(126, 249, 213, 0.45); color: #9fffe0; }
-    .link-chip.roster { border-color: rgba(180, 160, 255, 0.45); color: #dcd0ff; }
-    .link-chip.photo { border-color: rgba(255, 200, 120, 0.4); color: #ffe0b8; }
-    .link-chip.team { border-color: rgba(120, 200, 255, 0.5); color: #b8ddff; }
-    .link-chip.namematch { border-color: rgba(255, 190, 140, 0.42); color: #ffd6b8; }
-    .metric-grid {
-      margin-top: 6px;
-      display: grid;
-      gap: 6px;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .metric-pill {
-      border: 1px solid rgba(145,183,243,.28);
-      border-radius: 8px;
-      padding: 5px 7px;
-      background: rgba(14,24,45,.66);
-      font-size: 11px;
-      color: #d4e5ff;
-    }
-    .chart-deck {
-      margin-top: 8px;
-      border: 1px solid rgba(126,162,228,.32);
-      border-radius: 12px;
-      background: rgba(7,13,30,.56);
-      padding: 8px;
-    }
-    .chart-deck-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .chart-deck-title {
-      font-size: 12px;
-      color: #d5e8ff;
-      font-weight: 700;
-    }
-    .chart-nav {
-      display: flex;
-      gap: 6px;
-    }
-    .chart-nav button {
-      border: 1px solid rgba(126,162,228,.38);
-      border-radius: 8px;
-      background: rgba(15,25,49,.72);
-      color: #d8e8ff;
-      padding: 5px 8px;
-      cursor: pointer;
-      font-size: 11px;
-      line-height: 1;
-    }
-    .chart-nav button:hover {
-      border-color: rgba(138,255,212,.55);
-      color: #9fffe6;
-    }
-    .chart-hint {
-      margin-top: 6px;
-      font-size: 10px;
-      color: #9fb9e2;
-    }
-    .prop-rail-shell {
-      margin-top: 6px;
-    }
-    .prop-rail-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      gap: 8px;
-    }
-    .prop-rail {
-      display: grid;
-      grid-auto-flow: column;
-      grid-auto-columns: minmax(220px, 1fr);
-      gap: 8px;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scroll-behavior: smooth;
-      scrollbar-width: thin;
-      padding-bottom: 4px;
-      mask-image: linear-gradient(to right, transparent 0, black 4%, black 96%, transparent 100%);
-    }
-    .prop-rail-card {
-      scroll-snap-align: start;
-      border: 1px solid rgba(120,161,231,.32);
-      border-radius: 10px;
-      background: rgba(11,19,40,.7);
-      padding: 8px;
-      min-height: 96px;
-      transform: translateZ(0);
-      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
-      animation: cardEnter .35s ease both;
-    }
-    .prop-rail-card:nth-child(2n) { animation-delay: .04s; }
-    .prop-rail-card:nth-child(3n) { animation-delay: .08s; }
-    .prop-rail-card:hover {
-      transform: translateY(-2px) scale(1.01);
-      border-color: rgba(129,255,216,.45);
-      box-shadow: 0 10px 24px rgba(0,0,0,.28), 0 0 20px rgba(129,255,216,.15);
-    }
-    @keyframes cardEnter {
-      from { opacity: 0; transform: translateY(8px) scale(.985); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .rail-nav button {
-      border: 1px solid rgba(126,162,228,.38);
-      border-radius: 8px;
-      background: rgba(15,25,49,.72);
-      color: #d8e8ff;
-      padding: 4px 8px;
-      cursor: pointer;
-      font-size: 11px;
-    }
-    .line-chart {
-      margin-top: 8px;
-      width: 100%;
-      height: 84px;
-      border-radius: 10px;
-      border: 1px solid rgba(136,178,241,.24);
-      background: rgba(6, 13, 29, .6);
-    }
-    .line-path {
-      fill: none;
-      stroke: #7ef9d5;
-      stroke-width: 2;
-      stroke-linejoin: round;
-      stroke-linecap: round;
-      filter: drop-shadow(0 0 5px rgba(126,249,213,.25));
-    }
-    .line-dot { fill: #9fd5ff; }
-    .line-area {
-      fill: url(#lineFade);
-      opacity: .35;
-    }
-    .insight-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
-    .insight-chip { font-size: 10px; border-radius: 999px; padding: 3px 7px; border: 1px solid rgba(164,196,245,.3); color: #cfe2ff; background: rgba(20,34,63,.6); }
-    .insight-chip.good { border-color: rgba(138,255,212,.45); color: #a5ffe3; }
-    .insight-chip.warn { border-color: rgba(255,212,156,.45); color: #ffe0b8; }
-    .insight-chip.bad { border-color: rgba(255,159,159,.48); color: #ffc4c4; }
-    .mini-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 6px;
-      font-size: 11px;
-    }
-    .mini-table th,
-    .mini-table td {
-      padding: 5px 6px;
-      border-bottom: 1px solid rgba(123,160,229,.2);
-      text-align: left;
-      vertical-align: top;
-    }
-    .mini-table th {
-      color: #b8d5ff;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      font-size: 10px;
-    }
-    .tab-transition { animation: tabShift .25s ease both; }
-    @keyframes tabShift { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    .board-wrap { margin-top: 10px; border: 1px solid rgba(126,162,228,.3); border-radius: 12px; overflow: auto; background: rgba(6,11,24,.72); }
-    .board-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-    .board-table thead th {
-      position: sticky;
-      top: 0;
-      background: rgba(11, 19, 40, .95);
-      color: #b3cdf6;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      z-index: 1;
-    }
-    .board-table th, .board-table td { padding: 8px 10px; border-bottom: 1px solid rgba(123,160,229,.16); text-align: left; font-size: 12px; }
-    .board-table tr:hover td { background: rgba(19,31,58,.48); }
-    .board-table .prop-cell { min-width: 220px; max-width: 420px; vertical-align: top; }
-    details.hl-api-discipline { border-radius: 10px; }
-    details.hl-api-discipline > summary {
-      cursor: pointer;
-      list-style: none;
-      font-size: 14px;
-      font-weight: 700;
-      color: #d7fff2;
-      padding: 4px 0 8px;
-    }
-    details.hl-api-discipline > summary::-webkit-details-marker { display: none; }
-    details.hl-api-discipline[open] > summary { margin-bottom: 8px; }
-    .board-prop-line { font-size: 11px; line-height: 1.38; margin: 5px 0; padding-bottom: 5px; border-bottom: 1px solid rgba(90,120,180,.14); }
-    .board-prop-line-with-ava { display: flex; gap: 8px; align-items: flex-start; }
-    .board-prop-line-with-ava .avatar-slot.leg-headshot-slot { margin-top: 1px; }
-    .board-prop-text { flex: 1; min-width: 0; }
-    .stack-top .board-prop-line { margin-top: 0; padding-top: 0; }
-    .board-prop-line:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
-    .board-prop-market {
-      display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .04em;
-      color: #8affd4; background: rgba(138,255,212,.11); border-radius: 6px; padding: 2px 6px; margin-right: 6px; vertical-align: middle;
-    }
-    .board-prop-more { font-size: 10px; margin-top: 5px; opacity: 0.82; }
-    .mini-spark { display: inline-flex; align-items: flex-end; gap: 2px; min-height: 18px; }
-    .spark-bar { width: 3px; border-radius: 3px; background: linear-gradient(180deg, #1effb8 0%, #3a68ff 100%); opacity: .95; }
-    .odds-pos { color: #6dffc6; font-weight: 700; }
-    .odds-neg { color: #ffd497; font-weight: 700; }
-    .skeleton {
-      position: relative;
-      overflow: hidden;
-      min-height: 110px;
-      border-radius: 12px;
-      border: 1px solid rgba(126,162,228,.35);
-      background: rgba(7, 13, 31, .72);
-    }
-    .chart {
-      margin-top: 8px;
-      height: 88px;
-      display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      gap: 5px;
-      align-items: end;
-    }
-    .chart.compare {
-      height: 96px;
-      margin-top: 10px;
-      grid-template-columns: repeat(14, minmax(0, 1fr));
-      padding: 8px 8px 4px;
-      border-radius: 10px;
-      border: 1px solid rgba(136,178,241,.24);
-      background: rgba(6, 13, 29, .6);
-    }
-    .chart.compare .bar {
-      background: linear-gradient(180deg, rgba(154,145,255,.95), rgba(87,183,255,.82));
-    }
-    .dual-row {
-      display: grid;
-      gap: 10px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      margin-top: 8px;
-    }
-    .ring-wrap {
-      position: relative;
-      width: 98px;
-      height: 98px;
-      margin-top: 6px;
-    }
-    .ring-wrap svg {
-      width: 98px;
-      height: 98px;
-      transform: rotate(-90deg);
-    }
-    .ring-bg {
-      stroke: rgba(160,193,248,.18);
-      fill: transparent;
-      stroke-width: 10;
-    }
-    .ring-fg {
-      stroke: var(--good);
-      fill: transparent;
-      stroke-width: 10;
-      stroke-linecap: round;
-      filter: drop-shadow(0 0 8px rgba(114,255,214,.28));
-      transition: stroke-dashoffset .35s ease;
-    }
-    .ring-label {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 800;
-      color: #cffff0;
-    }
-    .chart .bar {
-      border-radius: 6px 6px 3px 3px;
-      background: linear-gradient(180deg, rgba(138,255,212,.95), rgba(87,183,255,.8));
-      border: 1px solid rgba(167,212,255,.3);
-      min-height: 8px;
-      animation: rise .45s ease both;
-    }
-    .chart.ou {
-      height: 108px;
-      grid-template-columns: repeat(20, minmax(0, 1fr));
-      padding: 8px 8px 4px;
-      border-radius: 10px;
-      border: 1px solid rgba(136,178,241,.24);
-      background: rgba(6, 13, 29, .6);
-    }
-    .chart.ou .bar.over {
-      background: linear-gradient(180deg, rgba(129,255,216,.96), rgba(72,201,176,.88));
-      border-color: rgba(129,255,216,.55);
-    }
-    .chart.ou .bar.under {
-      background: linear-gradient(180deg, rgba(255,156,156,.96), rgba(226,88,117,.86));
-      border-color: rgba(255,168,168,.55);
-    }
-    .chart.ou .bar.push {
-      background: linear-gradient(180deg, rgba(255,230,153,.92), rgba(225,192,96,.84));
-      border-color: rgba(255,230,153,.5);
-    }
-    .chart-stack {
-      position: relative;
-      margin-top: 8px;
-    }
-    .chart-stack .chart.ou {
-      margin-top: 0;
-    }
-    .chart-stack .chart-trend-svg {
-      position: absolute;
-      left: 8px;
-      right: 8px;
-      bottom: 5px;
-      height: 88px;
-      width: calc(100% - 16px);
-      pointer-events: none;
-      overflow: visible;
-    }
-    .chart-stack .line-path-trend {
-      fill: none;
-      stroke: rgba(255, 255, 255, .88);
-      stroke-width: 1.35;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      filter: drop-shadow(0 0 4px rgba(126, 249, 213, .35));
-    }
-    @keyframes rise {
-      from { transform: scaleY(.35); opacity: .35; }
-      to { transform: scaleY(1); opacity: 1; }
-    }
-    .skeleton::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
-      transform: translateX(-100%);
-      animation: shimmer 1.2s infinite;
-    }
-    @keyframes shimmer {
-      100% { transform: translateX(100%); }
-    }
-    .top, .hero, .toolbar, .panel, .command-deck {
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(13, 20, 42, .72), rgba(8, 14, 32, .58));
-      backdrop-filter: blur(16px) saturate(120%);
-      box-shadow: var(--shadow);
-    }
-    .card {
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(152, 185, 248, .2);
-      background: linear-gradient(180deg, rgba(13, 20, 42, .8), rgba(8, 14, 31, .62));
-      box-shadow: 0 10px 34px rgba(0, 0, 0, .32);
-    }
-    .btn,
-    .nav a,
-    .tab-btn {
-      border: 1px solid rgba(155, 191, 255, .28);
-      background: linear-gradient(180deg, rgba(20, 32, 60, .76), rgba(14, 22, 44, .66));
-      color: #eaf4ff;
-      font-weight: 600;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #77c8ff 0%, #80ffd9 100%);
-      color: #042033;
-      box-shadow: 0 8px 20px rgba(129, 255, 217, .28);
-    }
-    .btn:active,
-    .tab-btn:active,
-    .bottom-tab:active {
-      transform: translateY(1px) scale(.985);
-      filter: saturate(1.08);
-    }
-    .btn:focus-visible,
-    .tab-btn:focus-visible,
-    .bottom-tab:focus-visible,
-    a:focus-visible,
-    select:focus-visible,
-    input:focus-visible {
-      outline: 2px solid rgba(129, 255, 216, .85);
-      outline-offset: 2px;
-    }
-    .action-strip {
-      margin-top: 8px;
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .section-tone-social {
-      border-left: 3px solid rgba(129, 255, 216, .62);
-      padding-left: 8px;
-    }
-    .section-tone-pro {
-      border-left: 3px solid rgba(140, 175, 255, .62);
-      padding-left: 8px;
-    }
-    .inline-link {
-      background: transparent;
-      border: 0;
-      color: #9ce8ff;
-      text-decoration: underline;
-      cursor: pointer;
-      padding: 0;
-      font-size: 12px;
-    }
-    .inline-edit {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 4px;
-    }
-    .inline-edit input {
-      min-width: 180px;
-      max-width: 280px;
-      padding: 6px 8px;
-      font-size: 12px;
-    }
-    .premium-lock {
-      margin-top: 8px;
-      border: 1px solid rgba(255, 212, 156, .44);
-      border-radius: 12px;
-      background: linear-gradient(180deg, rgba(56, 34, 12, .55), rgba(34, 18, 8, .42));
-      padding: 8px;
-    }
-    .premium-lock .kpi {
-      color: #ffe0b8;
-    }
-    .premium-lock .lock-title {
-      color: #ffd49c;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      margin-bottom: 2px;
-      font-weight: 700;
-    }
-    .hl-sub-gate {
-      display: none;
-      position: absolute;
-      inset: 0;
-      z-index: 40;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 12px;
-      padding: 20px;
-      text-align: center;
-      background: rgba(4, 10, 24, 0.72);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: inherit;
-    }
-    .panel {
-      position: relative;
-    }
-    .hl-sub-gate .gate-title {
-      font-size: 1rem;
-      font-weight: 800;
-      color: #e8f1ff;
-      max-width: 320px;
-    }
-    .hl-sub-gate .gate-hint {
-      font-size: 13px;
-      color: rgba(200, 220, 255, 0.85);
-      max-width: 340px;
-      line-height: 1.45;
-    }
-    /**
-     * Paywall: blur **panels only**. Never put `filter` on `.hero` / `.command-deck` — Safari/WebKit
-     * can break hit-testing for the sticky toolbar + tab strip below, so Prop/Desk/etc. look “dead”.
-     */
-    /**
-     * Locked preview: no `filter` on .panel — WebKit breaks hit-testing (clicks/paste) on descendants.
-     */
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel {
-      opacity: 0.93;
-      box-shadow: inset 0 0 0 1px rgba(129, 255, 216, 0.1);
-      user-select: text;
-      transition: opacity 0.22s ease;
-    }
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel {
-      pointer-events: auto;
-    }
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel a,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel button,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel input,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel select,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel textarea,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel label,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel [role="button"],
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel .quick-btn,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .panel .inline-link {
-      pointer-events: auto;
-      position: relative;
-      z-index: 2;
-    }
-    /** Hero + command deck sit outside `.panel`; keep primary actions clickable when paywalled (WebKit stacking quarks). */
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .hero .btn,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .command-deck button,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .toolbar button,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .toolbar select,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .toolbar input {
-      pointer-events: auto;
-      position: relative;
-      z-index: 4;
-    }
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .quick-actions button,
-    .app-main-col.hl-blur-paywall:not(.hl-paywall-account) .quick-actions a {
-      pointer-events: auto;
-      position: relative;
-      z-index: 4;
-    }
-    /** Paywall blur must not block typing/paste in inputs (user-select inherits). */
-    .app-main-col input,
-    .app-main-col textarea,
-    .app-main-col select {
-      user-select: text !important;
-      -webkit-user-select: text !important;
-    }
-    /** Legacy overlay — always hard-disabled on web so it can never block clicks, even if JS fails. */
-    #hlPaywallShield {
-      display: none !important;
-      pointer-events: none !important;
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 56;
-      cursor: default;
-      background: rgba(2, 8, 20, 0.08);
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
-      box-sizing: border-box;
-    }
-    #hlPaywallShield:not([hidden]) {
-      display: none !important;
-    }
-    #hlPaywallShield .hl-paywall-shield-msg {
-      pointer-events: none;
-      text-align: center;
-      max-width: 420px;
-      padding: 14px 18px;
-      border-radius: 14px;
-      border: 1px solid rgba(129, 255, 216, 0.35);
-      background: rgba(6, 18, 40, 0.82);
-      color: rgba(230, 242, 255, 0.95);
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.45;
-    }
-    .app-main-col.hl-blur-paywall.hl-paywall-account .panel {
-      filter: none !important;
-      user-select: auto;
-    }
-    body.hl-dock-open .bottom-nav {
-      bottom: calc(86px + env(safe-area-inset-bottom, 0px));
-    }
-    body.hl-dock-open .wrap {
-      padding-bottom: max(220px, calc(180px + env(safe-area-inset-bottom, 0px)));
-    }
-    .panel-ai-toolbar {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .ai-copilot-box {
-      border: 1px solid rgba(129, 255, 216, 0.28);
-      border-radius: 12px;
-      padding: 10px 12px;
-      margin-bottom: 12px;
-      background: rgba(8, 22, 36, 0.55);
-    }
-    .ai-copilot-box textarea {
-      width: 100%;
-      min-height: 64px;
-      resize: vertical;
-      margin-top: 6px;
-    }
-    .curator-prop-desk-filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .curator-prop-desk-list {
-      max-height: min(52vh, 420px);
-      overflow: auto;
-      border: 1px solid rgba(123, 160, 229, 0.22);
-      border-radius: 10px;
-      padding: 10px;
-      margin-top: 8px;
-      -webkit-overflow-scrolling: touch;
-    }
-    .hl-upgrade-dock[hidden] {
-      display: none !important;
-      pointer-events: none !important;
-    }
-    #hlPaywallShield[hidden] {
-      display: none !important;
-      pointer-events: none !important;
-    }
-    #commandPalette:not(.open) {
-      pointer-events: none !important;
-    }
-    .hl-upgrade-dock {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 950;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
-      background: linear-gradient(180deg, rgba(8, 26, 52, 0.94), rgba(4, 10, 22, 0.98));
-      border-top: 1px solid rgba(129, 255, 216, 0.3);
-      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
-    }
-    .hl-upgrade-dock .dock-msg {
-      flex: 1 1 200px;
-      max-width: 560px;
-      font-size: 13px;
-      color: rgba(220, 235, 255, 0.92);
-      line-height: 1.45;
-      text-align: center;
-    }
-    .hl-upgrade-dock .btn-primary {
-      box-shadow: 0 4px 24px rgba(46, 230, 198, 0.35);
-      animation: hlDockPulse 2.4s ease-in-out infinite;
-    }
-    @keyframes hlDockPulse {
-      0%, 100% { box-shadow: 0 4px 24px rgba(46, 230, 198, 0.35), 0 0 0 0 rgba(129, 255, 216, 0.28); filter: brightness(1); }
-      50% { box-shadow: 0 6px 28px rgba(46, 230, 198, 0.45), 0 0 20px 2px rgba(94, 192, 255, 0.38); filter: brightness(1.06); }
-    }
-    body.hl-device-limit-open .hl-upgrade-dock {
-      border-top-color: rgba(255, 186, 120, 0.75);
-      box-shadow: 0 -14px 44px rgba(255, 140, 70, 0.22), 0 -10px 40px rgba(0, 0, 0, 0.55);
-    }
-    #aiQuotaBanner {
-      font-size: 12px;
-      color: rgba(140, 255, 216, 0.95);
-      margin-bottom: 8px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid rgba(120, 220, 200, 0.35);
-      background: rgba(8, 32, 40, 0.55);
-    }
-    .filter-row {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 6px;
-    }
-    .filter-chip {
-      border: 1px solid rgba(140, 175, 255, .32);
-      border-radius: 999px;
-      padding: 4px 9px;
-      background: rgba(10, 18, 36, .72);
-      color: #d9eaff;
-      font-size: 11px;
-      cursor: pointer;
-    }
-    .filter-chip.active {
-      border-color: rgba(129, 255, 216, .7);
-      color: #aaffe6;
-    }
-    .check-grid {
-      display: grid;
-      gap: 6px;
-      margin-top: 8px;
-    }
-    .check-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid rgba(140, 175, 255, .25);
-      border-radius: 10px;
-      padding: 6px 8px;
-      background: rgba(9, 16, 33, .66);
-    }
-    .check-item input {
-      width: 14px;
-      height: 14px;
-    }
-    .drawer-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 70;
-      background: rgba(2, 8, 19, .56);
-      display: none;
-      pointer-events: none;
-    }
-    .drawer-backdrop.open {
-      display: block;
-      pointer-events: auto;
-      animation: fadeIn .15s ease;
-    }
-    .drawer-sheet {
-      position: fixed;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      z-index: 71;
-      border: 1px solid rgba(155, 191, 255, .28);
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(13, 21, 43, .96), rgba(8, 13, 28, .95));
-      box-shadow: 0 18px 40px rgba(0, 0, 0, .42);
-      padding: 10px;
-      display: none;
-    }
-    .drawer-sheet.open {
-      display: block;
-      animation: sheetIn .2s ease;
-    }
-    @keyframes sheetIn {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .drawer-head {
-      font-size: 12px;
-      color: #c8ddff;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-    }
-    .drawer-actions {
-      display: grid;
-      gap: 6px;
-    }
-    .drawer-actions button {
-      width: 100%;
-      text-align: left;
-    }
-    body.reduce-motion *,
-    body.reduce-motion *::before,
-    body.reduce-motion *::after {
-      animation: none !important;
-      transition: none !important;
-      transform: none !important;
-    }
-    body.light {
-      --panel: rgba(255, 255, 255, 0.88);
-      --line: rgba(28, 67, 130, 0.18);
-      --ink: #0f1e39;
-      --muted: #3d5278;
-      --shadow: 0 14px 34px rgba(12, 28, 56, 0.18);
-      background: #e9f1ff;
-      color: var(--ink);
-    }
-    body.light .bg-scene {
-      background: radial-gradient(circle at 50% -20%, #d6e7ff 0%, #eef5ff 46%, #dfeaff 100%);
-    }
-    body.light .bg-grid { opacity: .12; }
-    body.light .top,
-    body.light .hero,
-    body.light .toolbar,
-    body.light .panel,
-    body.light .command-deck,
-    body.light .card {
-      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(243,249,255,.9));
-      border-color: rgba(70, 110, 180, .24);
-      color: #0f1e39;
-    }
-    body.light .kpi,
-    body.light .mini-value,
-    body.light .mini-title,
-    body.light .muted,
-    body.light .meta {
-      color: #16305d;
-    }
-    body.light .btn,
-    body.light .tab-btn,
-    body.light .bottom-tab,
-    body.light .nav a {
-      color: #12305f;
-      background: linear-gradient(180deg, rgba(244,250,255,.98), rgba(232,242,255,.95));
-      border-color: rgba(82, 122, 190, .28);
-    }
-    body.light select,
-    body.light input {
-      background: rgba(250, 253, 255, .98);
-      color: #0f264e;
-      border-color: rgba(82, 122, 190, .28);
-    }
-    body.light .chip {
-      background: rgba(26, 165, 123, .12);
-      color: #045943;
-      border-color: rgba(26, 165, 123, .36);
-    }
-    body.light .story-card,
-    body.light .creator-card,
-    body.light .inbox-item,
-    body.light .prop-rail-card,
-    body.light .mini-panel {
-      background: rgba(250, 253, 255, .96);
-      border-color: rgba(70, 110, 180, .24);
-    }
-    select, input {
-      border: 1px solid rgba(156, 192, 255, .25);
-      background: rgba(10, 18, 36, .74);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
-      outline: none;
-    }
-    select:focus, input:focus {
-      border-color: rgba(133, 255, 214, .72);
-      box-shadow: 0 0 0 3px rgba(129, 255, 216, .12);
-    }
-    .hero h1 {
-      letter-spacing: -0.02em;
-      text-shadow: 0 6px 24px rgba(89, 165, 255, .25);
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .bg-orb, .bg-noise { animation: none !important; }
-      * { scroll-behavior: auto !important; }
-    }
-    .app-layout {
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-      max-width: 1400px;
-    }
-    .side-rail {
-      position: sticky;
-      top: 14px;
-      width: 196px;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 3;
-    }
-    .rail-head {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: #8ab4ea;
-      margin-bottom: 2px;
-    }
-    .rail-link {
-      display: block;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(130, 170, 240, 0.28);
-      background: rgba(8, 14, 32, 0.82);
-      color: var(--ink);
-      text-decoration: none;
-      font-size: 12px;
-      font-weight: 650;
-      cursor: pointer;
-      text-align: left;
-      font-family: inherit;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .rail-link:hover {
-      border-color: rgba(138, 255, 212, 0.55);
-      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
-    }
-    .rail-link .rail-hint {
-      display: block;
-      font-size: 10px;
-      font-weight: 500;
-      color: #9cb6df;
-      margin-top: 2px;
-    }
-    .app-main-col { flex: 1; min-width: 0; position: relative; }
-    .dash-hero {
-      grid-column: 1 / -1;
-      padding: 18px;
-      background: linear-gradient(135deg, rgba(25, 48, 110, 0.42), rgba(8, 14, 32, 0.9));
-      border: 1px solid rgba(110, 160, 255, 0.28);
-      border-radius: var(--radius);
-    }
-    .dash-kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .dash-kpi {
-      padding: 12px;
-      border-radius: 12px;
-      background: rgba(5, 10, 24, 0.72);
-      border: 1px solid rgba(120, 160, 230, 0.2);
-    }
-    .dash-kpi .num {
-      font-size: 21px;
-      font-weight: 800;
-      color: #7dffd0;
-      letter-spacing: -0.02em;
-    }
-    .dash-kpi .lbl { font-size: 10px; color: #9eb8e8; text-transform: uppercase; letter-spacing: .06em; }
-    .leg-panel-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(252px, 1fr));
-      gap: 10px;
-    }
-    .leg-panel {
-      border: 1px solid rgba(130, 170, 240, 0.26);
-      border-radius: 12px;
-      padding: 10px 12px;
-      background: rgba(7, 12, 28, 0.82);
-      transition: transform .15s ease, border-color .15s;
-    }
-    .leg-panel:hover {
-      transform: translateY(-2px);
-      border-color: rgba(138, 255, 212, 0.42);
-    }
-    .leg-panel .pk {
-      font-size: 9px;
-      color: #7a9fd4;
-      word-break: break-all;
-      margin-bottom: 4px;
-    }
-    .leg-panel .leg-title { font-weight: 700; font-size: 13px; color: #eaf3ff; }
-    .leg-panel-head {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
-    .leg-panel-head-main {
-      flex: 1;
-      min-width: 0;
-    }
-    .budget-meter {
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      overflow: hidden;
-      margin-top: 6px;
-    }
-    .budget-meter > i {
-      display: block;
-      height: 100%;
-      background: linear-gradient(90deg, #4db8ff, #7dffd0);
-      border-radius: inherit;
-    }
-    .dashboard-shell {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      grid-column: 1 / -1;
-    }
-    .desk-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(120, 160, 230, 0.28);
-      background: rgba(6, 10, 24, 0.72);
-    }
-    .desk-toolbar label { font-size: 11px; color: #9eb8e8; margin-right: 4px; }
-    .desk-select {
-      background: #0a1227;
-      color: var(--ink);
-      border: 1px solid rgba(122, 161, 227, 0.45);
-      border-radius: 8px;
-      padding: 6px 8px;
-      font-size: 12px;
-    }
-    .desk-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      border: 1px solid rgba(130, 170, 240, 0.35);
-      background: rgba(12, 20, 44, 0.85);
-      color: #cfe6ff;
-    }
-    .desk-pill.live { border-color: rgba(129, 255, 216, 0.55); color: #a8ffe4; }
-    .desk-pill.pre { border-color: rgba(255, 196, 120, 0.45); color: #ffd49c; }
-    .desk-pill.post { border-color: rgba(255, 140, 140, 0.35); color: #ffb0b0; }
-    .quota-table-wrap {
-      overflow-x: auto;
-      border-radius: 12px;
-      border: 1px solid rgba(120, 160, 230, 0.22);
-      margin-top: 8px;
-    }
-    .quota-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    .quota-table th,
-    .quota-table td {
-      padding: 8px 10px;
-      border-bottom: 1px solid rgba(120, 160, 230, 0.12);
-      text-align: left;
-    }
-    .quota-table th {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #8eb4e8;
-      background: rgba(8, 14, 30, 0.9);
-    }
-    .playbook-list {
-      margin: 8px 0 0;
-      padding-left: 18px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.45;
-    }
-    .dash-bento {
-      display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.85fr);
-      gap: 12px;
-      align-items: start;
-    }
-    @media (max-width: 900px) {
-      .dash-bento { grid-template-columns: 1fr; }
-    }
-    .dash-side-card {
-      border-radius: 14px;
-      border: 1px solid rgba(120, 160, 230, 0.28);
-      background: linear-gradient(200deg, rgba(16, 32, 72, 0.5), rgba(6, 10, 22, 0.92));
-      padding: 12px;
-    }
-    .dash-side-card h4 {
-      margin: 0 0 8px;
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #9ecfff;
-    }
-    .burn-bar {
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      overflow: hidden;
-      margin: 6px 0;
-    }
-    .burn-bar > i {
-      display: block;
-      height: 100%;
-      background: linear-gradient(90deg, #3d8cff, #5dffc9);
-      border-radius: inherit;
-    }
-    .prop-micro-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .prop-micro-card {
-      position: relative;
-      display: grid;
-      grid-template-columns: 44px 1fr;
-      gap: 8px;
-      align-items: start;
-      border-radius: 12px;
-      border: 1px solid rgba(130, 170, 240, 0.32);
-      background: rgba(5, 10, 24, 0.88);
-      padding: 10px 10px 8px;
-      transition: transform .15s ease, border-color .15s;
-    }
-    .prop-micro-card .pm-body {
-      min-width: 0;
-      position: relative;
-      padding-right: 52px;
-    }
-    .pm-media { margin-top: 2px; }
-    .prop-micro-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(129, 255, 216, 0.45);
-    }
-    .prop-micro-card.synthetic {
-      border-style: dashed;
-      opacity: 0.92;
-    }
-    .prop-micro-card .pm-title {
-      font-weight: 800;
-      font-size: 12px;
-      color: #eaf3ff;
-      line-height: 1.25;
-      margin-bottom: 4px;
-    }
-    .prop-micro-card .pm-meta {
-      font-size: 10px;
-      color: #9cb6df;
-      line-height: 1.35;
-    }
-    .prop-micro-card .pm-ribbon {
-      position: absolute;
-      top: 0;
-      right: 0;
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 3px 8px;
-      border-radius: 0 10px 0 10px;
-      background: rgba(255, 180, 100, 0.2);
-      color: #ffd49c;
-      border: 1px solid rgba(255, 200, 120, 0.35);
-    }
-    .prop-micro-card.live-ribbon .pm-ribbon {
-      background: rgba(80, 220, 170, 0.18);
-      color: #a8ffe4;
-      border-color: rgba(129, 255, 216, 0.4);
-    }
-    .leg-panel .leg-ref {
-      font-size: 10px;
-      font-family: ui-monospace, monospace;
-      color: #6a8fd0;
-      letter-spacing: 0.04em;
-      margin-bottom: 6px;
-    }
-    .leg-panel.synthetic-strip {
-      border-style: dashed;
-      opacity: 0.92;
-    }
-    .leg-panel.pinned {
-      box-shadow: 0 0 0 1px rgba(129, 255, 216, 0.35);
-    }
-    .leg-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-    .leg-actions .btn { padding: 4px 8px; font-size: 10px; }
-    .player-head {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      object-fit: cover;
-      border: 1px solid rgba(130, 170, 240, 0.35);
-      background: rgba(8, 12, 26, 0.9);
-    }
-    .game-card-v2 .mini-panel {
-      border-radius: 12px;
-    }
-    .prop-leg-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-    .prop-leg-chip {
-      font-size: 10px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(130, 170, 240, 0.28);
-      background: rgba(6, 12, 28, 0.85);
-      color: #d5e8ff;
-      max-width: 100%;
-    }
-    .prop-leg-chip.live { border-color: rgba(129, 255, 216, 0.4); }
-    .prop-leg-chip.syn { border-style: dashed; color: #9cb2de; }
-    .desk-stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .desk-stat {
-      padding: 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(120, 160, 230, 0.2);
-      background: rgba(5, 10, 22, 0.75);
-    }
-    .desk-stat .big {
-      font-size: 22px;
-      font-weight: 800;
-      color: #7dffd0;
-      letter-spacing: -0.02em;
-    }
-    .desk-stat .sub { font-size: 10px; color: #8fa8d4; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
-    body.light .leg-panel,
-    body.light .desk-toolbar,
-    body.light .desk-stat {
-      background: rgba(255, 255, 255, 0.06);
-    }
-    .cmd-palette {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      background: rgba(2, 6, 18, 0.78);
-      display: none;
-      align-items: flex-start;
-      justify-content: center;
-      padding-top: 10vh;
-    }
-    .cmd-palette.open { display: flex; }
-    .cmd-modal {
-      width: min(520px, 94vw);
-      border-radius: 14px;
-      border: 1px solid rgba(130, 170, 240, 0.38);
-      background: rgba(10, 16, 36, 0.97);
-      padding: 14px;
-      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
-    }
-    .cmd-modal .cmd-hint { font-size: 11px; color: #9cb6df; margin-bottom: 6px; }
-    .cmd-modal input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      margin-top: 4px;
-      font-size: 15px;
-    }
-    .cmd-item {
-      padding: 9px 8px;
-      cursor: pointer;
-      border-radius: 8px;
-      font-size: 13px;
-      border: 0;
-      background: transparent;
-      color: var(--ink);
-      width: 100%;
-      text-align: left;
-      font-family: inherit;
-    }
-    .cmd-item:hover, .cmd-item:focus-visible {
-      background: rgba(80, 140, 255, 0.16);
-      outline: none;
-    }
-    .kbd {
-      font-size: 10px;
-      border: 1px solid rgba(140, 175, 255, 0.35);
-      padding: 2px 6px;
-      border-radius: 6px;
-      color: #b6d0ff;
-    }
-    .hero-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      margin-top: 10px;
-    }
-    .pill-stat {
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(12, 22, 48, 0.85);
-      border: 1px solid rgba(120, 160, 230, 0.25);
-      font-size: 12px;
-      font-weight: 600;
-    }
-    /** High-signal actions — less hunt-and-peck for stressed users */
-    .btn-primary,
-    .hl-cta-pop {
-      box-shadow: 0 4px 22px rgba(46, 230, 198, 0.28), 0 2px 8px rgba(0, 0, 0, 0.35);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .btn-primary:hover,
-    .hl-cta-pop:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 28px rgba(46, 230, 198, 0.38), 0 4px 14px rgba(0, 0, 0, 0.4);
-    }
-    .hl-focus-ring {
-      outline: 2px solid rgba(129, 255, 216, 0.55);
-      outline-offset: 2px;
-    }
-    @media (max-width: 980px) {
-      .panel-grid { grid-template-columns: 1fr; }
-      .dual-row { grid-template-columns: 1fr; }
-      .deck-grid { grid-template-columns: 1fr; }
-      .tile-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .heat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .panel { padding-bottom: 28px; }
-      /* Keep top tabs visible on phone — horizontal scroll so Prop is never missing from the strip. */
-      .tabs {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
-        gap: 8px;
-        padding: 4px 2px 10px;
-        margin: 0 -4px 8px;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
+      window.__hitalickResetUi = function () {
+        try {
+          hitalickUnblockUiEarly();
+        } catch (_) {}
+      };
+      window.addEventListener(
+        "pageshow",
+        function (ev) {
+          if (ev.persisted) {
+            try {
+              hitalickUnblockUiEarly();
+            } catch (_) {}
+          }
+        },
+        false,
+      );
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hitalickUnblockUiEarly, { once: true });
+      } else {
+        hitalickUnblockUiEarly();
       }
-      .tabs .tab-btn {
-        flex: 0 0 auto;
+      function hitalickShowRuntimeError(msg) {
+        try {
+          var el = document.getElementById("hitalick-runtime-error");
+          if (!el) return;
+          el.hidden = false;
+          el.textContent = String(msg || "Something went wrong. Hard-refresh (Ctrl+Shift+R) or try Chrome/Safari.");
+          hitalickUnblockUiEarly();
+        } catch (_) {}
       }
-      .bottom-nav {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
-        grid-template-columns: unset;
-        gap: 6px;
-        -webkit-overflow-scrolling: touch;
-        max-height: 52px;
-        align-items: center;
-      }
-      .bottom-tab {
-        flex: 0 0 auto;
-        min-width: 72px;
-        max-width: 120px;
-      }
-      .wrap {
-        /* Bottom nav + upgrade dock + safe area — extra headroom so last rows aren’t under fixed chrome */
-        padding-bottom: max(340px, calc(280px + env(safe-area-inset-bottom, 0px)));
-      }
-      body.hl-dock-open .wrap {
-        padding-bottom: max(400px, calc(340px + env(safe-area-inset-bottom, 0px)));
-      }
-      .app-main-col {
-        padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
-      }
-      .quick-actions {
-        /* Sticky bar was covering panels on phone — keep it in normal flow on small screens */
-        position: static;
-        bottom: auto;
-        z-index: 1;
-        margin-bottom: 14px;
-      }
-      .quick-actions .btn {
-        padding: 6px 8px;
-        font-size: 10px;
-      }
-      .panel {
-        scroll-margin-bottom: 24px;
-      }
-      .flow-strip {
-        grid-template-columns: 1fr;
-      }
-      .curator-prop-desk-list {
-        max-height: min(62vh, 560px);
-      }
-      .app-layout { flex-direction: column; }
-      .side-rail {
-        position: relative;
-        top: 0;
-        width: 100%;
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-      .rail-link { flex: 1 1 42%; }
-    }
-  </style>
-  <link rel="stylesheet" href="/css/app-elite.css" />
+      window.addEventListener(
+        "error",
+        function (ev) {
+          if (!ev || ev.defaultPrevented) return;
+          var m = ev.message || String(ev.error || "");
+          if (m) hitalickShowRuntimeError("Script: " + m);
+        },
+        true,
+      );
+      window.addEventListener("unhandledrejection", function (ev) {
+        var r = ev && ev.reason;
+        var m = r && r.message ? r.message : String(r || "");
+        if (m && m.length < 500) hitalickShowRuntimeError("Async: " + m);
+      });
+    })();
+  </script>
 </head>
 <body>
+  <div
+    id="hitalick-runtime-error"
+    role="alert"
+    hidden
+    style="position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px 14px;background:rgba(74,21,32,.96);color:#ffe8ec;font-size:13px;text-align:center;border-bottom:1px solid rgba(255,120,140,.4);"
+  ></div>
   <a class="elite-skip" href="#app-workspace">Skip to workspace</a>
   <div class="bg-scene" aria-hidden="true">
     <div class="bg-base"></div>
@@ -2531,8 +484,25 @@
     </div>
   </div>
 
-  <script src="/js/app-elite.js?v=20260401"></script>
+  <script src="/js/app-elite.js?v=202604074"></script>
   <script>
+    if (typeof Promise !== "undefined" && !Promise.allSettled) {
+      Promise.allSettled = function (iterable) {
+        return Promise.all(
+          Array.from(iterable).map(function (p) {
+            return Promise.resolve(p).then(
+              function (v) {
+                return { status: "fulfilled", value: v };
+              },
+              function (e) {
+                return { status: "rejected", reason: e };
+              },
+            );
+          }),
+        );
+      };
+    }
+
     const SPORTS = ["nba", "nfl", "mlb", "wnba"];
 
     /** Mirrors functions/sportsdataapi/coverageTuning.js for offline / pre-refresh UI. */
@@ -2584,14 +554,34 @@
       },
     };
     const HITALICK_CLOUD_RUN_API = "https://api-lifnvql5aa-uc.a.run.app";
-    /** Always hit Cloud Run directly for app APIs; the static host just serves HTML/JS/CSS. */
-    const API_BASES = [HITALICK_CLOUD_RUN_API];
-    /** GitHub Pages has no `/api` rewrite — billing must hit Cloud Run directly. */
+    /**
+     * JSON fetches: on production Firebase Hosting + hitalick.org use same-origin `/api/...` (one connection,
+     * fewer cross-origin preflights; Hosting rewrites `/api/**` → `api`). Localhost / unknown hosts → Cloud Run.
+     */
+    function useSameOriginApiFetch() {
+      const h = (location.hostname || "").toLowerCase();
+      return (
+        h.endsWith(".web.app") ||
+        h.endsWith(".firebaseapp.com") ||
+        h === "hitalick.org" ||
+        h === "www.hitalick.org"
+      );
+    }
+    function apiJsonFetchBases() {
+      if (useSameOriginApiFetch()) return [""];
+      return [HITALICK_CLOUD_RUN_API];
+    }
+    /** Firebase Hosting (web.app / custom domain) rewrites `/api` → Cloud Functions. Static hosts (GitHub Pages, Vercel, etc.) must call Cloud Run for same-origin `/api` paths (e.g. billing POST). */
+    function apiPathUsesSameOriginProxy() {
+      const h = (location.hostname || "").toLowerCase();
+      if (!h || h === "localhost" || h === "127.0.0.1") return true;
+      if (h.endsWith(".web.app") || h.endsWith(".firebaseapp.com")) return true;
+      if (h === "hitalick.org" || h === "www.hitalick.org") return true;
+      return false;
+    }
     function hitBillingApiUrl(path) {
-      if ((location.hostname || "").toLowerCase().indexOf("github.io") >= 0) {
-        return HITALICK_CLOUD_RUN_API + path;
-      }
-      return path;
+      if (apiPathUsesSameOriginProxy()) return path;
+      return HITALICK_CLOUD_RUN_API + path;
     }
     const TIERS = ["core", "pro", "elite"];
     const FEATURE_TIER = {
@@ -2771,10 +761,30 @@
       return Boolean(maxCoverageToggle && maxCoverageToggle.checked);
     }
 
+    const AUTH_KEYS_SESSION = ["hitalick_email", "hitalick_uid", "hitalick_token"];
+    (function syncLegacySessionStorageAuthToLocal() {
+      try {
+        if (sessionStorage.getItem("hitalick_token") && !localStorage.getItem("hitalick_token")) {
+          for (const k of AUTH_KEYS_SESSION) {
+            const v = sessionStorage.getItem(k);
+            if (v) localStorage.setItem(k, v);
+          }
+        }
+      } catch (_) {}
+    })();
+
+    function readAuthStorageKey(key) {
+      try {
+        return localStorage.getItem(key) || sessionStorage.getItem(key) || "";
+      } catch {
+        return "";
+      }
+    }
+
     /** Firebase ID token payload (email) when localStorage email missing/outdated — keeps staff gates working. */
     function emailFromFirebaseIdToken() {
       try {
-        const t = localStorage.getItem("hitalick_token");
+        const t = readAuthStorageKey("hitalick_token");
         if (!t || typeof t !== "string") return "";
         const parts = t.split(".");
         if (parts.length < 2) return "";
@@ -2791,32 +801,51 @@
     function getSession() {
       const rawTier = (localStorage.getItem("hitalick_tier") || "core").toLowerCase();
       const tier = TIERS.includes(rawTier) ? rawTier : "core";
-      const storedEmail = String(localStorage.getItem("hitalick_email") || "").trim().toLowerCase();
-      
-      // Bypass Firebase token dependency for owner
-      const email = storedEmail || "brucebrian50@gmail.com";
-      
+      let uid = readAuthStorageKey("hitalick_uid");
+      let token = readAuthStorageKey("hitalick_token");
+      let storedEmail = String(readAuthStorageKey("hitalick_email") || "").trim().toLowerCase();
+      if (!storedEmail && token) storedEmail = emailFromFirebaseIdToken();
       return {
-        uid: localStorage.getItem("hitalick_uid") || "owner_uid",
-        email,
-        token: localStorage.getItem("hitalick_token") || "owner_token",
+        uid,
+        email: storedEmail,
+        token,
         tier,
       };
     }
 
+    /** In-memory fallback when both storages fail — must NOT change every request (would spam device slots → DEVICE_LIMIT). */
+    let __hitDeviceIdMem = "";
+
     function getHitDeviceId() {
+      const gen = () =>
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `h-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
       try {
         let id = localStorage.getItem("hitalick_device_id");
+        if (!id || id.length < 8) id = sessionStorage.getItem("hitalick_device_id");
         if (!id || id.length < 8) {
-          id =
-            typeof crypto !== "undefined" && crypto.randomUUID
-              ? crypto.randomUUID()
-              : `h-${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
-          localStorage.setItem("hitalick_device_id", id);
+          id = gen();
+          try {
+            localStorage.setItem("hitalick_device_id", id);
+          } catch {
+            try {
+              sessionStorage.setItem("hitalick_device_id", id);
+            } catch {
+              __hitDeviceIdMem = id;
+            }
+          }
         }
         return id;
       } catch {
-        return `fallback-${Date.now()}`;
+        if (__hitDeviceIdMem && __hitDeviceIdMem.length >= 8) return __hitDeviceIdMem;
+        __hitDeviceIdMem = gen();
+        try {
+          sessionStorage.setItem("hitalick_device_id", __hitDeviceIdMem);
+        } catch {
+          /* tab-only mem */
+        }
+        return __hitDeviceIdMem;
       }
     }
 
@@ -2867,10 +896,7 @@
     }
 
     function effectiveHasAppAccess() {
-      // Always grant access to owner
-      const session = getSession();
-      if (session.email === "brucebrian50@gmail.com") return true;
-      
+      /** Bruce + Giap emails (STAFF_FULL_ACCESS_EMAILS) — full app + paywall off; no Stripe required. */
       if (isStaffFullAccessSession()) return true;
       const e = state.subscriptionEntitlement;
       return clientEntitlementHasAppAccess(e);
@@ -3046,12 +1072,11 @@
     }
 
     function updateSubscriptionGates() {
-      // COMPLETELY DISABLE ALL PAYWALLS FOR OWNER
       const session = getSession();
       const sh = document.getElementById("hlPaywallShield");
       const dock = document.getElementById("hlUpgradeDock");
-      
-      if (session.email === "brucebrian50@gmail.com") {
+      /** Owner + Giap: no upgrade dock / blur (still need valid Firebase session). */
+      if (isStaffFullAccessSession() && session.token) {
         if (sh) {
           sh.hidden = true;
           sh.onclick = null;
@@ -3067,7 +1092,9 @@
         }
         return;
       }
-      
+
+      const col = document.querySelector(".app-main-col");
+
       const needLogin = !session.uid || !session.token;
       const deviceBlock = state.deviceSessionBlocked;
       const needSub = !needLogin && !deviceBlock && !effectiveHasAppAccess();
@@ -4568,16 +2595,16 @@
         <article class="deck-panel">
           <div class="mini-title">Quick Actions</div>
           <div class="quick-grid">
-            <button class="quick-btn" onclick="commandOpenTab('home')"><b>Open Home Board</b>View macro KPIs and prop board</button>
-            <button class="quick-btn" onclick="commandOpenTab('players')"><b>Open Player Lab</b>Scan player trends and team props</button>
-            <button class="quick-btn" onclick="commandOpenTab('games')"><b>Open Game Matrix</b>See all game cards and line context</button>
-            <button class="quick-btn" onclick="commandOpenTab('props')"><b>Prop hub</b>All priced legs, search &amp; filters</button>
-            <button class="quick-btn" onclick="commandOpenTab('ai')"><b>Open AI Engine</b>Generate ranked picks instantly</button>
-            <button class="quick-btn" onclick="commandOpenTab('ai')"><b>AI plays of the day</b>Daily top 3 props (6am snapshot)</button>
-            <button class="quick-btn" onclick="commandOpenTab('posts')"><b>Bruce &amp; Giap</b>Posts, photos, comments</button>
-            <button class="quick-btn" onclick="commandOpenTab('dash')"><b>Open Elite Desk</b>Leg universe + quota economics</button>
-            <button class="quick-btn" onclick="toggleCoverageMode()"><b>Toggle Max Coverage</b>Current: ${maxCovOn() ? "ON" : "OFF"}</button>
-            <button class="quick-btn" onclick="refreshAll()"><b>Run Full Refresh</b>Reload props, games, players</button>
+            <button type="button" class="quick-btn" data-tab-jump="home" onclick="commandOpenTab('home')"><b>Open Home Board</b>View macro KPIs and prop board</button>
+            <button type="button" class="quick-btn" data-tab-jump="players" onclick="commandOpenTab('players')"><b>Open Player Lab</b>Scan player trends and team props</button>
+            <button type="button" class="quick-btn" data-tab-jump="games" onclick="commandOpenTab('games')"><b>Open Game Matrix</b>See all game cards and line context</button>
+            <button type="button" class="quick-btn" data-tab-jump="props" onclick="commandOpenTab('props')"><b>Prop hub</b>All priced legs, search &amp; filters</button>
+            <button type="button" class="quick-btn" data-tab-jump="ai" onclick="commandOpenTab('ai')"><b>Open AI Engine</b>Generate ranked picks instantly</button>
+            <button type="button" class="quick-btn" data-tab-jump="ai" onclick="commandOpenTab('ai')"><b>AI plays of the day</b>Daily top 3 props (6am snapshot)</button>
+            <button type="button" class="quick-btn" data-tab-jump="posts" onclick="commandOpenTab('posts')"><b>Bruce &amp; Giap</b>Posts, photos, comments</button>
+            <button type="button" class="quick-btn" data-tab-jump="dash" onclick="commandOpenTab('dash')"><b>Open Elite Desk</b>Leg universe + quota economics</button>
+            <button type="button" class="quick-btn" data-action="toggle-coverage" onclick="toggleCoverageMode()"><b>Toggle Max Coverage</b>Current: ${maxCovOn() ? "ON" : "OFF"}</button>
+            <button type="button" class="quick-btn" data-action="refresh-all" onclick="refreshAll()"><b>Run Full Refresh</b>Reload props, games, players</button>
           </div>
         </article>
         <article class="deck-panel">
@@ -4625,14 +2652,24 @@
 
     function isInDateWindow(dateValue) {
       if (dateValue == null || String(dateValue).trim() === "") return true;
+      const raw = String(dateValue).trim();
+      const windowDays = Math.max(0, Number(windowFilter?.value ?? 3));
       const now = new Date();
-      const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-      const end = new Date(today);
-      end.setUTCDate(end.getUTCDate() + Number(windowFilter?.value || 3));
-      const d = new Date(dateValue);
-      if (Number.isNaN(d.getTime())) return true;
-      const target = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-      return target >= today && target <= end;
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const end = new Date(startOfToday);
+      end.setDate(end.getDate() + windowDays);
+      let targetDay;
+      const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+      if (ymd) {
+        /** Slate date from API — interpret as local calendar day (not UTC midnight). */
+        targetDay = new Date(Number(ymd[1]), Number(ymd[2]) - 1, Number(ymd[3]));
+      } else {
+        const d = new Date(raw);
+        if (Number.isNaN(d.getTime())) return true;
+        targetDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      }
+      if (Number.isNaN(targetDay.getTime())) return true;
+      return targetDay >= startOfToday && targetDay <= end;
     }
 
     function upcomingGamesWindow() {
@@ -6585,8 +4622,8 @@
         hdrs["X-Hit-Device-Id"] = getHitDeviceId();
       }
       const opts = { ...options, headers: hdrs };
-      for (const base of API_BASES) {
-        const url = `${base}${path}`;
+      for (const base of apiJsonFetchBases()) {
+        const url = base ? `${base}${path}` : path;
         for (let i = 0; i < attempts; i += 1) {
           try {
             const res = await fetchWithTimeout(url, opts, timeoutMs);
@@ -6626,10 +4663,11 @@
       for (const k of keys) {
         try {
           localStorage.removeItem(k);
+          sessionStorage.removeItem(k);
         } catch {}
       }
       state.subscriptionEntitlement = null;
-      state.subscriptionEntitlementBlockedByDevice = false;
+      state.deviceSessionBlocked = null;
       setStatus("Signed out. Log in from Account to restore paid access.", false);
       renderAccount();
       renderCuratorPostsPanel();
@@ -6779,6 +4817,9 @@
         setStatus(`Props/games error — ${msg.slice(0, 120)}. Tap <strong>Refresh Data</strong>.`, true);
         if (!Array.isArray(state.props)) state.props = [];
         if (!Array.isArray(state.games)) state.games = [];
+        try {
+          renderVisiblePanels();
+        } catch (_) {}
       }
     }
 
@@ -7007,6 +5048,11 @@
       }
       state.games = Array.from(map.values());
       refreshHeroPills();
+      try {
+        renderVisiblePanels();
+      } catch (_) {
+        /* props tab may render before refreshAll finalize — safe no-op */
+      }
       if (sportFailures.length) {
         setStatus(`Some feeds delayed: ${sportFailures.join(", ")}. Retrying on next refresh.`, true);
       }
@@ -7736,6 +5782,32 @@
             <button class="btn logout-link-red" onclick="logoutSession()">Log out</button>
           </div>
         </article>
+        <article class="card section-tone-pro">
+          <h3>Connection &amp; access check</h3>
+          <p class="mini-value muted" style="margin:0 0 10px;line-height:1.5;">
+            <strong>Props &amp; games</strong> load from the API without a paid plan. <strong>Premium, AI, and billing</strong> need a valid sign-in and (for paid features) an active website subscription. If this device hits a <strong>device limit</strong>, paid APIs will fail until you reset slots below.
+          </p>
+          ${
+            state.deviceSessionBlocked
+              ? `<div class="kpi" style="border:1px solid rgba(255,159,159,0.45);border-radius:10px;padding:10px;background:rgba(60,20,28,0.35);">
+            <strong>Device session:</strong> ${escapeHtml(String(state.deviceSessionBlocked.code || "blocked"))}<br/>
+            <span class="mini-value">${escapeHtml(state.deviceSessionBlocked.message || "Too many devices or missing device id.")}</span>
+            <div class="action-strip" style="margin-top:10px;">
+              <button type="button" class="btn btn-primary" onclick="clearDeviceSlotsAndReload()">Reset device slots</button>
+              <a class="btn" href="/account.html?stay=1">Account hub</a>
+            </div>
+          </div>`
+              : `<div class="kpi">Device session: <strong>OK</strong> (or not required for board data).</div>`
+          }
+          <div class="kpi">Website access (paid areas): <strong>${hasAppSub ? "Granted" : "Not granted"}</strong>${isStaffFullAccessSession() ? " — staff / curator full access" : ""}</div>
+          <div class="kpi">Last refresh: ${escapeHtml((state.lastRefreshAt || "—").replace("T", " ").slice(0, 19) || "—")}</div>
+          <div class="kpi">Loaded now — games: <strong>${state.games.length}</strong> • game markets: <strong>${state.props.length}</strong> • player props legs: <strong>${totalPlayerPropsLoaded()}</strong></div>
+          <div class="mini-value muted">If games/markets stay at 0 after <strong>Refresh Data</strong>, try another network, disable strict blockers for this site, or Safari instead of in-app browsers. Your account alone does not block the public props feed.</div>
+          <div class="action-strip" style="margin-top:10px;">
+            <button type="button" class="btn btn-primary" onclick="refreshAll()">Refresh Data</button>
+            <button type="button" class="btn" onclick="loadSubscriptionEntitlement().then(() => { updateSubscriptionGates(); renderAccount(); })">Reload membership status</button>
+          </div>
+        </article>
         ${
           curatorWebAccountRole(s.email)
             ? `<article class="card section-tone-social"><h3>Curator workbench</h3><p class="muted mini-value">Searchable <strong>prop desk</strong> (odds, singles or parlay math), universal pool, and <strong>post to subscriber board</strong> are at the top of the <strong>Bruce &amp; Giap</strong> tab — best on phone.</p><div class="action-strip"><button type="button" class="btn btn-primary" onclick="setActiveTab('posts')">Open Bruce &amp; Giap</button></div></article>`
@@ -8077,13 +6149,11 @@
 
     function renderPropsHub() {
       try {
-        console.log('renderPropsHub called, state.props:', state.props?.length || 0);
         const grid = document.getElementById("propHubGrid");
         const empty = document.getElementById("propHubEmpty");
         const countEl = document.getElementById("propHubCount");
         if (!grid || !empty) return;
         let rows = collectPropHubLegRows();
-        console.log('Props rows collected:', rows?.length || 0);
       const tokens = propHubSearchTokens();
       if (tokens.length) {
         rows = rows.filter((row) => {
@@ -9987,10 +8057,14 @@
     setActiveTab("home");
     try {
       renderVisiblePanels();
+    } catch {
+      /* first paint before async refresh */
+    }
+    try {
       renderCommandCenter();
       refreshHeroPills();
     } catch {
-      /* first paint before async refresh */
+      /* command deck must still paint if a panel renderer threw */
     }
     if (typeof HitElite !== "undefined" && typeof HitElite.init === "function") {
       try {
@@ -10027,7 +8101,9 @@
 
     setInterval(() => {
       if (document.hidden) return;
-      const ageMs = Date.now() - Number(state.lastRefreshAt || 0);
+      const raw = state.lastRefreshAt;
+      const lastMs = raw ? Date.parse(String(raw)) : 0;
+      const ageMs = Number.isFinite(lastMs) && lastMs > 0 ? Date.now() - lastMs : Infinity;
       if (ageMs < 9 * 60 * 1000) return;
       void refreshAll();
     }, 60 * 1000);
@@ -10064,4 +8140,3 @@
   </script>
 </body>
 </html>
-Cache bust: Sat Apr  4 19:24:27 CDT 2026

@@ -488,9 +488,10 @@
         if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) return;
         const tab = TAB_DIGIT_MAP[e.key];
         if (!tab) return;
-        if (typeof HitElite._api?.setActiveTab === "function") {
+        const api = HitElite._api;
+        if (api && typeof api.setActiveTab === "function") {
           e.preventDefault();
-          HitElite._api.setActiveTab(tab);
+          api.setActiveTab(tab);
           HitElite.announce(`Tab ${e.key}: ${tab}`);
         }
       },
