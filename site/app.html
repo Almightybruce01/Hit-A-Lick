@@ -11,11 +11,11 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <link rel="dns-prefetch" href="https://api-lifnvql5aa-uc.a.run.app" />
-  <link rel="preload" href="/css/app-shell.css?v=202604090" as="style" />
-  <link rel="preload" href="/js/app-elite.js?v=202604090" as="script" />
+  <link rel="preload" href="/css/app-shell.css?v=202604091" as="style" />
+  <link rel="preload" href="/js/app-elite.js?v=202604091" as="script" />
   <title>Hit-A-Lick | Web App</title>
-  <link rel="stylesheet" href="/css/app-shell.css?v=202604090" />
-  <link rel="stylesheet" href="/css/app-elite.css?v=202604090" />
+  <link rel="stylesheet" href="/css/app-shell.css?v=202604091" />
+  <link rel="stylesheet" href="/css/app-elite.css?v=202604091" />
   <script>
     (function () {
       function hitalickUnblockUiEarly() {
@@ -129,11 +129,11 @@
         <span>HitALick Web App</span>
       </div>
       <div class="nav">
-        <a href="/">Home</a>
-        <a href="/account.html">Account</a>
-        <a href="/pricing.html">Membership</a>
-        <a href="/setup.html">Setup</a>
-        <a class="hl-staff-only" hidden href="/ops-dashboard.html" target="_blank" rel="noopener noreferrer">Ops</a>
+        <a href="index.html">Home</a>
+        <a href="account.html">Account</a>
+        <a href="pricing.html">Membership</a>
+        <a href="setup.html">Setup</a>
+        <a class="hl-staff-only" hidden href="ops-dashboard.html" target="_blank" rel="noopener noreferrer">Ops</a>
         <button type="button" class="btn logout-link-red" style="padding:6px 10px;" onclick="logoutSession()">Log out</button>
       </div>
     </section>
@@ -275,6 +275,7 @@
       </div>
     </div>
     <section class="quick-actions">
+      <a class="btn btn-primary" href="pricing.html" style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;">Membership</a>
       <button class="btn btn-primary" id="quickAddBtn">Quick Add Top Pick</button>
       <button class="btn" type="button" onclick="setActiveTab('props')">Prop hub</button>
       <button class="btn" id="quickClearStudioBtn">Clear Studio</button>
@@ -466,6 +467,7 @@
     <button class="bottom-tab" data-tab="premium">Premium</button>
     <button class="bottom-tab" data-tab="alerts">Alerts</button>
     <button class="bottom-tab" data-tab="account">Account</button>
+    <a class="bottom-tab bottom-tab-membership" href="pricing.html">Join</a>
     <button class="bottom-tab" data-tab="integrity">Integrity</button>
   </nav>
   <div class="cmd-palette" id="commandPalette" aria-hidden="true">
@@ -484,7 +486,7 @@
     </div>
   </div>
 
-  <script src="/js/app-elite.js?v=202604090"></script>
+  <script src="/js/app-elite.js?v=202604091"></script>
   <script>
     if (typeof Promise !== "undefined" && !Promise.allSettled) {
       Promise.allSettled = function (iterable) {
@@ -739,7 +741,7 @@
     const quickAlertsBtn = document.getElementById("quickAlertsBtn");
     const quickUndoBtn = document.getElementById("quickUndoBtn");
     let searchRenderTimer = null;
-    const bottomTabs = document.querySelectorAll(".bottom-tab");
+    const bottomTabs = document.querySelectorAll(".bottom-tab[data-tab]");
     const globalStatus = document.getElementById("globalStatus");
     const commandDeck = document.getElementById("commandDeck");
     const alertsGrid = document.getElementById("alertsGrid");
@@ -866,7 +868,14 @@
       document.querySelectorAll(".hl-staff-only").forEach((el) => el.toggleAttribute("hidden", !show));
     }
 
-    const PRICING_PAGE_URL = "/pricing.html";
+    function siteRel(name) {
+      const p = location.pathname || "/";
+      const i = p.lastIndexOf("/");
+      const base = i <= 0 ? "/" : p.slice(0, i + 1);
+      return base + String(name || "").replace(/^\//, "");
+    }
+    const PRICING_PAGE_URL = siteRel("pricing.html");
+    const ACCOUNT_PAGE_URL = siteRel("account.html");
 
     /** Mirrors `hydrateEntitlementForApi` / iOS `effectiveHasAppAccess` (legacy rows may omit `hasAppAccess`). */
     function clientEntitlementHasAppAccess(e) {
@@ -1030,7 +1039,7 @@
     async function clearDeviceSlotsAndReload() {
       const s = getSession();
       if (!s.token) {
-        window.location.href = "/account.html?stay=1";
+        window.location.href = `${ACCOUNT_PAGE_URL}?stay=1`;
         return;
       }
       try {
@@ -1122,9 +1131,9 @@
             .replace(/>/g, "&gt;");
           dock.innerHTML = `
             <div class="dock-msg"><strong>Device limit</strong> — ${esc}
-            Open <a href="/account.html?stay=1" style="color:#9fe8ff;">Account</a> or clear slots below, then refresh.</div>
+            Open <a href="${ACCOUNT_PAGE_URL}?stay=1" style="color:#9fe8ff;">Account</a> or clear slots below, then refresh.</div>
             <button type="button" class="btn btn-primary" onclick="clearDeviceSlotsAndReload()">Clear device slots &amp; retry</button>
-            <a class="btn" href="/account.html?stay=1">Account hub</a>
+            <a class="btn" href="${ACCOUNT_PAGE_URL}?stay=1">Account hub</a>
           `;
         }
         return;
@@ -1147,7 +1156,7 @@
           dock.innerHTML = `
             <div class="dock-msg"><strong>Upgrade on the website</strong> — Subscribe to <strong>Regular</strong> to unlock the app (5 included AI requests/mo). Add <strong>Premium</strong> for unlimited AI. Bruce &amp; Giap pick feeds are <strong>separate</strong> subscriptions. Use <strong>HITALICK25</strong> for 25% off Regular &amp; Premium (see pricing page). One-time VIP codes are issued privately and work once each at checkout.</div>
             <a class="btn btn-primary" href="${PRICING_PAGE_URL}">Membership &amp; pricing</a>
-            <a class="btn" href="/account.html">Account</a>
+            <a class="btn" href="${ACCOUNT_PAGE_URL}">Account</a>
           `;
         } else {
           dock.hidden = true;
@@ -1165,7 +1174,7 @@
           gate.innerHTML = `
             <div class="gate-title">Sign in</div>
             <div class="gate-hint">Create a free account first. Subscriptions are purchased on the Hit-A-Lick website (no in-app purchases).</div>
-            <a class="btn btn-primary" href="/account.html">Open account</a>
+            <a class="btn btn-primary" href="${ACCOUNT_PAGE_URL}">Open account</a>
             <a class="btn" href="${PRICING_PAGE_URL}">View plans</a>
           `;
         } else if (needSub) {
@@ -5799,7 +5808,7 @@
             <span class="mini-value">${escapeHtml(state.deviceSessionBlocked.message || "Too many devices or missing device id.")}</span>
             <div class="action-strip" style="margin-top:10px;">
               <button type="button" class="btn btn-primary" onclick="clearDeviceSlotsAndReload()">Reset device slots</button>
-              <a class="btn" href="/account.html?stay=1">Account hub</a>
+              <a class="btn" href="${ACCOUNT_PAGE_URL}?stay=1">Account hub</a>
             </div>
           </div>`
               : `<div class="kpi">Device session: <strong>OK</strong> (or not required for board data).</div>`
