@@ -175,7 +175,10 @@
         <span class="brand-chip">Account Hub</span>
       </div>
       <h1>HitALick Account Hub</h1>
-      <p class="hint">Secure web-first access gateway. Create account, activate membership, and enter the elite analytics workspace instantly.</p>
+      <p id="checkoutSuccessBanner" class="hint" style="display:none;border:1px solid rgba(138,255,212,0.45);border-radius:12px;padding:12px;background:rgba(19,40,28,0.55);margin-bottom:12px;">
+        <strong>Payment received.</strong> You were on Stripe’s secure checkout. Your plan usually activates within a few seconds — open the <a href="/app.html" style="color:#8affd4;">web app</a> and tap <strong>Refresh Data</strong> on Home if your access doesn’t update right away.
+      </p>
+      <p class="hint">Secure web-first access. After you sign in, complete membership on <a href="/pricing.html" style="color:#8affd4;">Pricing</a> (Stripe) if you need a paid tier. <strong>Owner/curator accounts</strong> configured in the app (e.g. <code>brucebrian50@gmail.com</code>) get the full web desk and staff tools <strong>without</strong> paying Stripe — use your existing Firebase login; no need to delete or remake the account. <strong>Apple App Store:</strong> no in-app purchases — subscribe in Safari on this site when you need a consumer plan, then open the app.</p>
     </section>
 
     <section class="grid">
@@ -184,7 +187,7 @@
         <input id="signupEmail" type="email" placeholder="Email" />
         <input id="signupPassword" type="password" placeholder="Password (min 6 chars)" />
         <button id="signupBtn">Create Account</button>
-        <p class="hint">Account is created in Firebase Auth and becomes your app login identity.</p>
+        <p class="hint">Accounts use <strong>Firebase Authentication</strong>. Billing and the live board are tied to your UID after you subscribe on <a href="/pricing.html" style="color:#8affd4;">Pricing</a>.</p>
       </article>
 
       <article class="card">
@@ -192,6 +195,8 @@
         <input id="loginEmail" type="email" placeholder="Email" />
         <input id="loginPassword" type="password" placeholder="Password" />
         <button id="loginBtn">Log In</button>
+        <p class="hint" style="margin-top:10px;margin-bottom:6px;">Forgot your password? Enter your email and request a reset — Firebase emails you a secure link (check spam).</p>
+        <button type="button" id="resetPasswordBtn" class="btn-secondary" style="width:100%;">Email me a password reset link</button>
         <div style="margin-top: 12px; display:flex; gap:8px; flex-wrap:wrap;">
           <button id="logoutBtn" class="logout-link-red">Log Out</button>
         </div>
@@ -218,6 +223,14 @@
       </div>
       <p class="hint">Account identity details are hidden in this UI for privacy. Login state only is shown.</p>
       <p class="status" id="status"></p>
+      <div id="signedInCta" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
+        <p class="hint" style="margin-top:0;">You’re signed in. Stay on this page to manage account, billing links, or device reset. <strong>Odds API “free/paid” in the app desk</strong> is server data coverage — not your Stripe membership.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;align-items:center;">
+          <a class="link-btn" href="/app.html">Open web app</a>
+          <button type="button" id="refreshBillingBtn" class="btn-secondary">Refresh membership from server</button>
+        </div>
+        <p class="hint" id="billingEntStatus" style="margin-top:10px;min-height:1.2em;"></p>
+      </div>
       <a class="link-btn" href="/pricing.html">Continue to Membership Plans</a>
       <a class="link-btn logout-link-red" href="/app.html?logout=1" style="margin-left:8px;">Force Sign Out In App</a>
       <p class="hint" style="margin-top:14px;">
@@ -229,15 +242,21 @@
 
   <script>
     const HITALICK_CLOUD_API = "https://api-lifnvql5aa-uc.a.run.app";
-    function hitApiPath(path) {
+    function apiPathUsesSameOriginProxy() {
       const h = (location.hostname || "").toLowerCase();
-      if (h.indexOf("github.io") >= 0) return HITALICK_CLOUD_API + path;
-      return path;
+      if (!h || h === "localhost" || h === "127.0.0.1") return true;
+      if (h.endsWith(".web.app") || h.endsWith(".firebaseapp.com")) return true;
+      return false;
+    }
+    function hitApiPath(path) {
+      if (apiPathUsesSameOriginProxy()) return path;
+      return HITALICK_CLOUD_API + path;
     }
 
     const API_KEY = "AIzaSyAUF7Oz6ZQMBTuMw2cyPUzjEg7RwUP1ngA";
     const signUpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`;
     const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`;
+    const sendOobUrl = `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`;
 
     const statusEl = document.getElementById("status");
     const sessionCardEl = document.getElementById("sessionCard");
@@ -265,33 +284,158 @@
       }
     }
 
+    const AUTH_KEYS = ["hitalick_email", "hitalick_uid", "hitalick_token"];
+    /** Older account hub used sessionStorage only; app.html reads localStorage. Keep both in sync. */
+    function migrateSessionTokenToLocalIfNeeded() {
+      try {
+        if (sessionStorage.getItem("hitalick_token") && !localStorage.getItem("hitalick_token")) {
+          for (const k of AUTH_KEYS) {
+            const v = sessionStorage.getItem(k);
+            if (v) localStorage.setItem(k, v);
+          }
+        }
+      } catch (_) {}
+    }
+
     function persistSession(email, uid, idToken) {
-      localStorage.setItem("hitalick_email", email);
-      localStorage.setItem("hitalick_uid", uid);
-      localStorage.setItem("hitalick_token", idToken);
+      const normEmail = String(email || "")
+        .trim()
+        .toLowerCase();
+      try {
+        localStorage.setItem("hitalick_email", normEmail);
+        localStorage.setItem("hitalick_uid", uid);
+        localStorage.setItem("hitalick_token", idToken);
+        for (const k of AUTH_KEYS) {
+          try {
+            sessionStorage.setItem(k, localStorage.getItem(k));
+          } catch (_) {}
+        }
+      } catch (_) {}
       ensureHitDeviceId();
       renderSession();
     }
 
     function clearSession() {
-      localStorage.removeItem("hitalick_email");
-      localStorage.removeItem("hitalick_uid");
-      localStorage.removeItem("hitalick_token");
-      localStorage.removeItem("hitalick_subscription_snapshot");
-      localStorage.removeItem("hitalick_last_entitlement");
+      for (const k of AUTH_KEYS) {
+        try {
+          sessionStorage.removeItem(k);
+          localStorage.removeItem(k);
+        } catch (_) {}
+      }
+      try {
+        localStorage.removeItem("hitalick_subscription_snapshot");
+        localStorage.removeItem("hitalick_last_entitlement");
+      } catch (_) {}
       renderSession();
     }
 
     function renderSession() {
+      migrateSessionTokenToLocalIfNeeded();
       ensureHitDeviceId();
-      const email = localStorage.getItem("hitalick_email");
-      const uid = localStorage.getItem("hitalick_uid");
-      const token = localStorage.getItem("hitalick_token");
+      const email = localStorage.getItem("hitalick_email") || sessionStorage.getItem("hitalick_email");
+      const uid = localStorage.getItem("hitalick_uid") || sessionStorage.getItem("hitalick_uid");
+      const token = localStorage.getItem("hitalick_token") || sessionStorage.getItem("hitalick_token");
       const active = Boolean(email && uid && token);
       sessionStateEl.textContent = active ? "Connected" : "Offline";
       sessionStateEl.classList.toggle("on", active);
-      const keepOnAccountPage = new URLSearchParams(window.location.search).get("stay") === "1";
-      if (active && !keepOnAccountPage) routeToWebApp(40);
+      const signedInCta = document.getElementById("signedInCta");
+      if (signedInCta) signedInCta.style.display = active ? "block" : "none";
+      const billingEntEl = document.getElementById("billingEntStatus");
+      if (!active) {
+        if (billingEntEl) billingEntEl.textContent = "";
+      } else {
+        setStatus("Signed in — open the web app when you’re ready, or refresh membership below.");
+        void refreshBillingEntitlementQuiet();
+      }
+    }
+
+    async function refreshBillingEntitlementQuiet() {
+      const uid = localStorage.getItem("hitalick_uid") || sessionStorage.getItem("hitalick_uid");
+      const token = localStorage.getItem("hitalick_token") || sessionStorage.getItem("hitalick_token");
+      const el = document.getElementById("billingEntStatus");
+      if (!uid || !token) return;
+      ensureHitDeviceId();
+      try {
+        const res = await fetch(hitApiPath(`/api/billing/entitlements/${encodeURIComponent(uid)}`), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "X-Hit-Device-Id": localStorage.getItem("hitalick_device_id") || "",
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+        const ent = data.entitlement || {};
+        try {
+          localStorage.setItem(
+            "hitalick_last_entitlement",
+            JSON.stringify({ uid, at: Date.now(), entitlement: ent }),
+          );
+        } catch (_) {}
+        const bits = [];
+        if (ent.hasAppAccess === true) bits.push("App access: yes");
+        if (ent.hasRegular === true) bits.push("Regular: yes");
+        if (ent.hasPremium === true) bits.push("Premium: yes");
+        if (!bits.length) bits.push("No active membership flags from billing (subscribe on Pricing or check Stripe customer email matches this login).");
+        if (el) el.textContent = bits.join(" · ");
+      } catch (e) {
+        if (el) el.textContent = "";
+      }
+    }
+
+    async function refreshBillingEntitlement() {
+      const uid = localStorage.getItem("hitalick_uid") || sessionStorage.getItem("hitalick_uid");
+      const token = localStorage.getItem("hitalick_token") || sessionStorage.getItem("hitalick_token");
+      const el = document.getElementById("billingEntStatus");
+      if (!uid || !token) {
+        setStatus("Log in first.", true);
+        return;
+      }
+      ensureHitDeviceId();
+      try {
+        const res = await fetch(hitApiPath(`/api/billing/entitlements/${encodeURIComponent(uid)}`), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "X-Hit-Device-Id": localStorage.getItem("hitalick_device_id") || "",
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+        const ent = data.entitlement || {};
+        try {
+          localStorage.setItem(
+            "hitalick_last_entitlement",
+            JSON.stringify({ uid, at: Date.now(), entitlement: ent }),
+          );
+        } catch (_) {}
+        const bits = [];
+        if (ent.hasAppAccess === true) bits.push("App access: yes");
+        if (ent.hasRegular === true) bits.push("Regular: yes");
+        if (ent.hasPremium === true) bits.push("Premium: yes");
+        if (!bits.length) bits.push("No active membership flags from billing (subscribe on Pricing or check Stripe customer email matches this login).");
+        if (el) el.textContent = bits.join(" · ");
+        setStatus("Membership refreshed. Open the web app — use Refresh Data on Home if gates look stale.", false);
+      } catch (e) {
+        if (el) el.textContent = "";
+        setStatus(e.message || "Could not load billing.", true);
+      }
+    }
+
+    function friendlyFirebaseError(raw) {
+      const m = String(raw || "");
+      if (m.includes("EMAIL_NOT_FOUND")) return "No account for that email — create one above or check spelling.";
+      if (m.includes("INVALID_PASSWORD")) return "Wrong password — use “Email me a password reset link” below, or reset from the link in your email.";
+      if (m.includes("USER_DISABLED")) return "This account is disabled in Firebase. Contact support.";
+      if (m.includes("EMAIL_EXISTS")) return "That email already has an account — use Log In.";
+      if (m.includes("WEAK_PASSWORD")) return "Password must be at least 6 characters.";
+      if (m.includes("TOO_MANY_ATTEMPTS")) return "Too many attempts — wait a few minutes, then try again.";
+      if (m.includes("EMAIL_NOT_VERIFIED")) {
+        return "Email not verified. In Firebase Console → Authentication, open your user and send/confirm verification, or disable “email verified only” for testing.";
+      }
+      if (m.includes("INVALID_EMAIL")) return "That email address looks invalid.";
+      if (m.includes("OPERATION_NOT_ALLOWED")) {
+        return "Email/password sign-in is off or misconfigured — Firebase Console → Authentication → Sign-in method.";
+      }
+      return m || "Auth request failed.";
     }
 
     async function authRequest(url, email, password) {
@@ -301,7 +445,7 @@
         body: JSON.stringify({ email, password, returnSecureToken: true })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || "Auth request failed");
+      if (!res.ok) throw new Error(friendlyFirebaseError(data.error?.message));
       return data;
     }
 
@@ -333,13 +477,40 @@
       }
     });
 
+    document.getElementById("resetPasswordBtn").addEventListener("click", async () => {
+      const email = document.getElementById("loginEmail").value.trim();
+      if (!email) {
+        setStatus("Enter the email you used to register (in the Log In fields above).", true);
+        return;
+      }
+      try {
+        const res = await fetch(sendOobUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requestType: "PASSWORD_RESET", email }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(friendlyFirebaseError(data.error?.message));
+        setStatus(
+          "If that email is registered, we sent a reset link — check inbox and spam, then return here to log in.",
+          false,
+        );
+      } catch (e) {
+        setStatus(e.message, true);
+      }
+    });
+
     document.getElementById("logoutBtn").addEventListener("click", () => {
       clearSession();
       setStatus("Logged out.");
     });
 
+    const refreshBillingBtn = document.getElementById("refreshBillingBtn");
+    if (refreshBillingBtn) refreshBillingBtn.addEventListener("click", () => void refreshBillingEntitlement());
+
     document.getElementById("clearDeviceSlotsBtn").addEventListener("click", async () => {
-      const token = localStorage.getItem("hitalick_token");
+      migrateSessionTokenToLocalIfNeeded();
+      const token = localStorage.getItem("hitalick_token") || sessionStorage.getItem("hitalick_token");
       if (!token) {
         setStatus("Log in first.", true);
         return;
@@ -361,6 +532,15 @@
         setStatus(e.message || "Failed", true);
       }
     });
+
+    (function checkoutSuccessBanner() {
+      try {
+        if (new URLSearchParams(window.location.search).get("checkout") === "success") {
+          const el = document.getElementById("checkoutSuccessBanner");
+          if (el) el.style.display = "block";
+        }
+      } catch (_) {}
+    })();
 
     renderSession();
   </script>

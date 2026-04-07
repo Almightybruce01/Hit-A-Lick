@@ -555,28 +555,23 @@
     };
     const HITALICK_CLOUD_RUN_API = "https://api-lifnvql5aa-uc.a.run.app";
     /**
-     * JSON fetches: on production Firebase Hosting + hitalick.org use same-origin `/api/...` (one connection,
-     * fewer cross-origin preflights; Hosting rewrites `/api/**` → `api`). Localhost / unknown hosts → Cloud Run.
+     * JSON fetches: Firebase Hosting (`*.web.app`, `*.firebaseapp.com`) uses same-origin `/api/...` (Hosting rewrites).
+     * Custom domains on static hosts and localhost fall through to Cloud Run.
      */
     function useSameOriginApiFetch() {
       const h = (location.hostname || "").toLowerCase();
-      return (
-        h.endsWith(".web.app") ||
-        h.endsWith(".firebaseapp.com") ||
-        h === "hitalick.org" ||
-        h === "www.hitalick.org"
-      );
+      // Custom domains on static hosts (e.g. GitHub Pages) have no /api rewrite — use Cloud Run (apiJsonFetchBases).
+      return h.endsWith(".web.app") || h.endsWith(".firebaseapp.com");
     }
     function apiJsonFetchBases() {
       if (useSameOriginApiFetch()) return [""];
       return [HITALICK_CLOUD_RUN_API];
     }
-    /** Firebase Hosting (web.app / custom domain) rewrites `/api` → Cloud Functions. Static hosts (GitHub Pages, Vercel, etc.) must call Cloud Run for same-origin `/api` paths (e.g. billing POST). */
+    /** True when this origin’s `/api` is proxied (Firebase Hosting or local dev). Otherwise billing POSTs use Cloud Run. */
     function apiPathUsesSameOriginProxy() {
       const h = (location.hostname || "").toLowerCase();
       if (!h || h === "localhost" || h === "127.0.0.1") return true;
       if (h.endsWith(".web.app") || h.endsWith(".firebaseapp.com")) return true;
-      if (h === "hitalick.org" || h === "www.hitalick.org") return true;
       return false;
     }
     function hitBillingApiUrl(path) {
@@ -2615,7 +2610,7 @@
           <div class="mini-title">Ops / Quota (no extra API calls)</div>
           <div class="tile-row" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
             <div class="league-tile" style="cursor:default;">
-              <div class="league-name">Plan</div>
+              <div class="league-name">Odds API tier</div>
               <div class="league-kpi">${escapeHtml(String(qp?.planMode || "free"))}</div>
             </div>
             <div class="league-tile" style="cursor:default;">
@@ -4138,7 +4133,7 @@
               <div class="mini-value">Calls today: <strong>${escapeHtml(String(calls))}</strong> / soft ${escapeHtml(String(soft))}</div>
               <div class="burn-bar" title="Soft-limit progress"><i style="width:${burnPct}%;"></i></div>
               <div class="mini-value muted" style="font-size:11px;">~${escapeHtml(String(burnPct))}% of soft guard • ${escapeHtml(String(budget?.reason || "ok"))}</div>
-              <div class="mini-value" style="margin-top:10px;"><strong>Plan:</strong> ${escapeHtml(String(qp?.planMode || "free"))} • <strong>Mo. pulls:</strong> ${escapeHtml(String(qp?.realisticMonthlyWithLiveCache ?? "—"))}</div>
+              <div class="mini-value" style="margin-top:10px;"><strong>Odds API data plan:</strong> ${escapeHtml(String(qp?.planMode || "free"))} • <strong>Mo. pulls:</strong> ${escapeHtml(String(qp?.realisticMonthlyWithLiveCache ?? "—"))}</div>
               <div class="action-strip" style="margin-top:12px;">
                 <button type="button" class="btn btn-primary" onclick="refreshAll()">Refresh all</button>
                 <button type="button" class="btn" onclick="setActiveTab('account')">Account</button>
@@ -5463,7 +5458,7 @@
               Turn on <strong>Max Coverage</strong> for full slates; paid keys default to deeper market tiers.
             </p>
             <div class="mini-value" style="margin-bottom:8px;">
-              <strong>Plan:</strong> ${escapeHtml(String(qpHome?.planMode || "free"))}
+              <strong>Odds API data plan</strong> (not Stripe membership): ${escapeHtml(String(qpHome?.planMode || "free"))}
               • <strong>Cache TTL model:</strong> ${escapeHtml(String(qpHome?.cacheTtlSeconds ?? DESK_TUNING.DEFAULT_CACHE_TTL))}s
               • <strong>Pulls/sport/day (est.):</strong> ${escapeHtml(String(qpHome?.pullsPerSportPerDay ?? DESK_TUNING.estimatePullsPerDay()))}
               • <strong>All-sports pulls/day:</strong> ${escapeHtml(String(qpHome?.totalPullsAllSportsPerDay ?? "—"))}
