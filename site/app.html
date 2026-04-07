@@ -683,6 +683,8 @@
       forcePropsLiveNext: false,
       /** Server `/api/billing/entitlements/:uid` (after Bearer merge). */
       subscriptionEntitlement: null,
+      /** After first entitlement fetch (or explicit logged-out resolution). Prevents upgrade dock flashing before `/api/billing/entitlements` returns. */
+      entitlementCheckComplete: false,
       /** Set when API returns DEVICE_LIMIT / DEVICE_ID_REQUIRED so UI is not mistaken for “no subscription”. */
       deviceSessionBlocked: null,
       /** Value plays: model confidence vs implied probability (after leg enrichment). */
@@ -987,6 +989,7 @@
       if (!s.uid || !s.token) {
         state.subscriptionEntitlement = null;
         state.deviceSessionBlocked = null;
+        state.entitlementCheckComplete = true;
         clearCachedEntitlement();
         updateSubscriptionGates();
         return;
@@ -1016,6 +1019,8 @@
             state.subscriptionEntitlement = null;
           }
         }
+      } finally {
+        state.entitlementCheckComplete = true;
       }
       applyEntitlementTierToToolbar();
       updateSubscriptionGates();
@@ -1092,7 +1097,11 @@
 
       const needLogin = !session.uid || !session.token;
       const deviceBlock = state.deviceSessionBlocked;
-      const needSub = !needLogin && !deviceBlock && !effectiveHasAppAccess();
+      const needSub =
+        !needLogin &&
+        !deviceBlock &&
+        state.entitlementCheckComplete &&
+        !effectiveHasAppAccess();
       if (deviceBlock && !needLogin) {
         if (sh) {
           sh.hidden = true;
@@ -4663,11 +4672,12 @@
       }
       state.subscriptionEntitlement = null;
       state.deviceSessionBlocked = null;
+      state.entitlementCheckComplete = true;
       setStatus("Signed out. Log in from Account to restore paid access.", false);
       renderAccount();
       renderCuratorPostsPanel();
       renderAiPlaysOfTheDayBox();
-      updateUpgradeDock();
+      updateSubscriptionGates();
       positionPaywallShield();
       updateStaffOnlyChrome();
     }
@@ -8041,14 +8051,16 @@
     });
 
     loadUserState();
-    hydrateEntitlementFromStorage();
-    updateSubscriptionGates();
-    if (new URLSearchParams(window.location.search).get("logout") === "1") {
+    const bootLogout = new URLSearchParams(window.location.search).get("logout") === "1";
+    if (bootLogout) {
       logoutSession();
       try {
         history.replaceState({}, "", "/app.html");
       } catch {}
+    } else {
+      hydrateEntitlementFromStorage();
     }
+    updateSubscriptionGates();
     setActiveTab("home");
     try {
       renderVisiblePanels();
