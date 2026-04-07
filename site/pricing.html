@@ -74,10 +74,11 @@
     <section class="hero">
       <h1 style="margin:0 0 8px;">Website subscriptions only</h1>
       <p class="hint"><strong>Apple App Store:</strong> the iOS app has <strong>no in-app purchases</strong>. Create an account in the app, then subscribe here in Safari. All charges go through Stripe on this site.</p>
-      <p class="hint"><a href="/account.html" style="color:#8affd4;">Create / log in</a> first so checkout attaches to your Firebase user.</p>
+      <p class="hint"><strong>Pay in 3 steps:</strong> (1) <a href="/account.html" style="color:#8affd4;">Account hub</a> — create account and <strong>Log In</strong> (you need a green “Connected” state). (2) Open this <strong>Pricing</strong> page in the <strong>same browser</strong> — you should see <strong>“Account connected”</strong> at the bottom. (3) Tap <strong>Subscribe</strong> — you’ll go to Stripe’s secure page. Use Safari or Chrome (avoid Instagram/Facebook in-app browsers; they often block checkout).</p>
+      <p class="hint"><a href="/account.html" style="color:#8affd4;">Create / log in</a> first so checkout attaches to your Firebase user. When you subscribe, the site sends you to <strong>Stripe Checkout</strong> (hosted by Stripe) to pay — then you return here or to the app with access.</p>
       <p class="hint"><strong>Promo:</strong> at checkout use <code style="background:rgba(0,0,0,.35);padding:2px 8px;border-radius:6px;">HITALICK25</code> for <strong>25% off</strong> — valid only on <strong>Regular</strong> and <strong>Premium</strong> (app subscription lines), not Bruce/Giap picks or AI credit packs. <strong>One-time VIP codes</strong> (25% off the first invoice, monthly or yearly) are created in Stripe and shared privately — each code redeems once.</p>
       <p class="hint"><a href="/app.html" style="color:#8affd4;">Open web app</a></p>
-      <p class="hint"><strong>Stripe:</strong> checkout uses your backend <code>STRIPE_PRICE_*</code> secrets only. Point them at the <strong>Hit-A-Lick</strong> catalog (products with metadata <code>app=hit_a_lick</code> from <code>scripts/stripe_hit_a_lick_catalog.js</code>). Do not use old “core” or unnamed legacy prices from the same Stripe account.</p>
+      <p class="hint" id="stripeSetupHint"><strong>Stripe:</strong> prices below load from your live Stripe account. If something shows “—”, run <code>node scripts/stripe_hit_a_lick_catalog.js</code> with your secret key, then set the printed <code>STRIPE_PRICE_*</code> values in <strong>Firebase → Functions → Secrets</strong> and redeploy. Never use placeholder IDs like <code>price_19_99_regular</code>.</p>
     </section>
 
     <div class="section-title">App access (required for props, desk, games, alerts)</div>
@@ -85,7 +86,7 @@
       <article class="card">
         <span class="badge">Regular</span>
         <h2>Regular membership</h2>
-        <div class="price">—<span class="unit">/mo</span></div>
+        <div class="price" id="wrapPriceRegular"><span class="price-amt" id="priceRegular">—</span><span class="unit">/mo</span></div>
         <div class="feature">Full analytics boards, props, games, Elite Desk, alerts</div>
         <div class="feature">AI engine: <strong>5 included requests / month</strong> (counter in app) — upgrade to Premium for unlimited</div>
         <div class="feature">Bruce / Giap pick <strong>feeds are not included</strong> (separate below)</div>
@@ -94,7 +95,8 @@
       <article class="card">
         <span class="badge">Premium AI</span>
         <h2>Premium + unlimited AI</h2>
-        <div class="price">—<span class="unit">/mo</span></div>
+        <div class="price" id="wrapPricePremium"><span class="price-amt" id="pricePremium">—</span><span class="unit">/mo</span></div>
+        <p class="hint" style="margin:0 0 8px;font-size:12px;">Standalone: <span id="lblPremiumBundle">bundle</span> · Add-on (if you already have Regular): <span id="lblPremiumAddon">add-on</span></p>
         <div class="feature"><strong>New here?</strong> This checkout is the <strong>all-in-one</strong> plan (app + unlimited AI).</div>
         <div class="feature"><strong>Already on Regular?</strong> The same button starts the <strong>AI add-on</strong> subscription (second line item) — no duplicate base fee when your Stripe prices are set up that way.</div>
         <div class="feature"><strong>Unlimited</strong> AI picks, Copilot, parlay math</div>
@@ -108,7 +110,7 @@
       <article class="card">
         <span class="badge">Bruce</span>
         <h2>Bruce picks add-on</h2>
-        <div class="price">—<span class="unit">/mo</span></div>
+        <div class="price"><span class="price-amt" id="priceBruce">—</span><span class="unit">/mo</span></div>
         <div class="feature">Unlocks Bruce daily + Bruce premium boards in the app</div>
         <div class="feature">Requires Regular or Premium app plan to view in product</div>
         <button onclick="startCheckout('bruce')">Subscribe Bruce picks</button>
@@ -116,7 +118,7 @@
       <article class="card">
         <span class="badge">Giap</span>
         <h2>Giap picks add-on</h2>
-        <div class="price">—<span class="unit">/mo</span></div>
+        <div class="price"><span class="price-amt" id="priceGiap">—</span><span class="unit">/mo</span></div>
         <div class="feature">Separate from Bruce — own pick feed</div>
         <div class="feature">Requires Regular or Premium app plan</div>
         <button onclick="startCheckout('giap')">Subscribe Giap picks</button>
@@ -128,20 +130,26 @@
       <article class="card">
         <span class="badge">Credits</span>
         <h2>+50 AI requests</h2>
+        <div class="price" style="font-size:22px;margin:6px 0;"><span class="price-amt" id="priceAiCredits">—</span><span class="unit"> one-time</span></div>
         <p class="hint" style="margin-top:0;">One-time pack for Regular members who hit the monthly cap (webhook must be enabled for <code>checkout.session.completed</code>).</p>
         <button class="secondary" onclick="startAiCredits()">Buy +50 AI requests</button>
       </article>
     </section>
 
-    <p class="hint" id="sessionHint"></p>
+    <p class="hint" id="sessionHint" style="border:1px solid rgba(137,255,215,0.35);border-radius:12px;padding:12px 14px;background:rgba(8,22,40,0.55);"></p>
   </main>
 
   <script>
     const HITALICK_CLOUD_API = "https://api-lifnvql5aa-uc.a.run.app";
-    function hitApiPath(path) {
+    function apiPathUsesSameOriginProxy() {
       const h = (location.hostname || "").toLowerCase();
-      if (h.indexOf("github.io") >= 0) return HITALICK_CLOUD_API + path;
-      return path;
+      if (!h || h === "localhost" || h === "127.0.0.1") return true;
+      if (h.endsWith(".web.app") || h.endsWith(".firebaseapp.com")) return true;
+      return false;
+    }
+    function hitApiPath(path) {
+      if (apiPathUsesSameOriginProxy()) return path;
+      return HITALICK_CLOUD_API + path;
     }
 
     const sessionHint = document.getElementById("sessionHint");
@@ -155,11 +163,19 @@
 
     function renderSessionHint() {
       const { uid, email } = readSession();
+      const token = localStorage.getItem("hitalick_token") || "";
       if (!uid || !email) {
-        sessionHint.innerHTML = 'No active account session. <a href="/account.html" style="color:#8affd4;">Open account hub</a>.';
+        sessionHint.innerHTML =
+          '<strong>Not signed in yet.</strong> Open <a href="/account.html" style="color:#8affd4;">Account hub</a>, create an account or log in, then <strong>come back to this Pricing page</strong> — paying won’t work until you see <strong>Account connected</strong> below.';
         return;
       }
-      sessionHint.innerHTML = 'Account connected. <a href="/app.html" style="color:#8affd4;">Open Web App</a>.';
+      if (!token) {
+        sessionHint.innerHTML =
+          '<strong>Email saved but session incomplete.</strong> Open <a href="/account.html" style="color:#8affd4;">Account hub</a> and sign in again (password), then return here.';
+        return;
+      }
+      sessionHint.innerHTML =
+        '<strong style="color:#89ffd7;">Account connected</strong> — you can subscribe below. Then open the <a href="/app.html" style="color:#8affd4;">web app</a> and use <strong>Refresh Data</strong> if access is slow to appear.';
     }
 
     function hitDeviceId() {
@@ -186,18 +202,38 @@
         return;
       }
 
-      const res = await fetch(hitApiPath("/api/billing/create-checkout-session"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-Hit-Device-Id": hitDeviceId(),
-        },
-        body: JSON.stringify({ uid, email, tier }),
-      });
-      const data = await res.json();
+      let res;
+      try {
+        res = await fetch(hitApiPath("/api/billing/create-checkout-session"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "X-Hit-Device-Id": hitDeviceId(),
+          },
+          body: JSON.stringify({ uid, email, tier }),
+        });
+      } catch (e) {
+        alert(
+          "Could not reach the payment server. Use https://hitalick.org in Safari or Chrome (not an in-app browser). If you’re on Wi‑Fi/VPN, try another network.\n\n" +
+            (e && e.message ? e.message : ""),
+        );
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(data.error || "Checkout failed");
+        const code = data.code ? ` (${data.code})` : "";
+        const hint =
+          data.code === "DEVICE_LIMIT"
+            ? " Too many devices: open Account hub → Reset device slots, then try again."
+            : data.code === "DEVICE_ID_REQUIRED"
+              ? " Refresh this page and sign in again from Account hub."
+              : "";
+        alert((data.error || "Checkout failed") + code + hint);
+        return;
+      }
+      if (!data.url) {
+        alert(data.error || "Checkout did not return a payment link. Check Stripe price configuration on the server.");
         return;
       }
       window.location.href = data.url;
@@ -214,24 +250,79 @@
         alert("Sign in on account.html first (token required for credits checkout).");
         return;
       }
-      const res = await fetch(hitApiPath("/api/billing/create-ai-credits-session"), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-Hit-Device-Id": hitDeviceId(),
-        },
-        body: JSON.stringify({ uid, email }),
-      });
-      const data = await res.json();
+      let res;
+      try {
+        res = await fetch(hitApiPath("/api/billing/create-ai-credits-session"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "X-Hit-Device-Id": hitDeviceId(),
+          },
+          body: JSON.stringify({ uid, email }),
+        });
+      } catch (e) {
+        alert(
+          "Could not reach the payment server. Use Safari or Chrome on https://hitalick.org.\n\n" + (e && e.message ? e.message : ""),
+        );
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.url) {
-        alert(data.error || "Credits checkout not configured.");
+        const code = data.code ? ` (${data.code})` : "";
+        alert((data.error || "Credits checkout not configured.") + code);
         return;
       }
       window.location.href = data.url;
     }
 
+    function formatMoney(n) {
+      if (n == null || !Number.isFinite(Number(n))) return "—";
+      return "$" + Number(n).toFixed(2);
+    }
+
+    async function loadCatalogPrices() {
+      try {
+        const res = await fetch(hitApiPath("/api/billing/catalog-prices"));
+        const data = await res.json();
+        if (!data.ok || !data.prices) return;
+        const p = data.prices;
+        const setAmt = (id, row) => {
+          const el = document.getElementById(id);
+          if (!el || !row) return;
+          el.textContent = row.ok && row.amountUsd != null ? formatMoney(row.amountUsd) : "—";
+        };
+        setAmt("priceRegular", p.regular);
+        setAmt("pricePremium", p.premiumBundle);
+        const lb = document.getElementById("lblPremiumBundle");
+        const la = document.getElementById("lblPremiumAddon");
+        if (lb && p.premiumBundle) {
+          lb.textContent =
+            p.premiumBundle.ok && p.premiumBundle.amountUsd != null
+              ? formatMoney(p.premiumBundle.amountUsd) + "/mo"
+              : "—";
+        }
+        if (la && p.premiumAddon) {
+          la.textContent =
+            p.premiumAddon.ok && p.premiumAddon.amountUsd != null
+              ? formatMoney(p.premiumAddon.amountUsd) + "/mo"
+              : "—";
+        }
+        setAmt("priceBruce", p.bruce);
+        setAmt("priceGiap", p.giap);
+        setAmt("priceAiCredits", p.aiCredits);
+        const hint = document.getElementById("stripeSetupHint");
+        if (hint && p.regular && p.regular.ok === false) {
+          hint.style.color = "#ffb38a";
+        }
+      } catch (_) {
+        /* offline / API down — static — stays */
+      }
+    }
+
+    loadCatalogPrices();
     renderSessionHint();
+    window.addEventListener("pageshow", renderSessionHint);
   </script>
   <script src="/js/pages-elite.js"></script>
 </body>
