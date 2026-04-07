@@ -90,7 +90,7 @@
         <div class="feature">Full analytics boards, props, games, Elite Desk, alerts</div>
         <div class="feature">AI engine: <strong>5 included requests / month</strong> (counter in app) — upgrade to Premium for unlimited</div>
         <div class="feature">Bruce / Giap pick <strong>feeds are not included</strong> (separate below)</div>
-        <button onclick="startCheckout('regular')">Subscribe Regular</button>
+        <button type="button" onclick="startCheckout('regular')">Subscribe Regular</button>
       </article>
       <article class="card">
         <span class="badge">Premium AI</span>
@@ -101,7 +101,7 @@
         <div class="feature"><strong>Already on Regular?</strong> The same button starts the <strong>AI add-on</strong> subscription (second line item) — no duplicate base fee when your Stripe prices are set up that way.</div>
         <div class="feature"><strong>Unlimited</strong> AI picks, Copilot, parlay math</div>
         <div class="feature">Bruce &amp; Giap pick <strong>feeds stay separate</strong> below</div>
-        <button onclick="startCheckout('premium')">Subscribe Premium</button>
+        <button type="button" onclick="startCheckout('premium')">Subscribe Premium</button>
       </article>
     </section>
 
@@ -113,7 +113,7 @@
         <div class="price"><span class="price-amt" id="priceBruce">—</span><span class="unit">/mo</span></div>
         <div class="feature">Unlocks Bruce daily + Bruce premium boards in the app</div>
         <div class="feature">Requires Regular or Premium app plan to view in product</div>
-        <button onclick="startCheckout('bruce')">Subscribe Bruce picks</button>
+        <button type="button" onclick="startCheckout('bruce')">Subscribe Bruce picks</button>
       </article>
       <article class="card">
         <span class="badge">Giap</span>
@@ -121,7 +121,7 @@
         <div class="price"><span class="price-amt" id="priceGiap">—</span><span class="unit">/mo</span></div>
         <div class="feature">Separate from Bruce — own pick feed</div>
         <div class="feature">Requires Regular or Premium app plan</div>
-        <button onclick="startCheckout('giap')">Subscribe Giap picks</button>
+        <button type="button" onclick="startCheckout('giap')">Subscribe Giap picks</button>
       </article>
     </section>
 
@@ -132,7 +132,7 @@
         <h2>+50 AI requests</h2>
         <div class="price" style="font-size:22px;margin:6px 0;"><span class="price-amt" id="priceAiCredits">—</span><span class="unit"> one-time</span></div>
         <p class="hint" style="margin-top:0;">One-time pack for Regular members who hit the monthly cap (webhook must be enabled for <code>checkout.session.completed</code>).</p>
-        <button class="secondary" onclick="startAiCredits()">Buy +50 AI requests</button>
+        <button type="button" class="secondary" onclick="startAiCredits()">Buy +50 AI requests</button>
       </article>
     </section>
 

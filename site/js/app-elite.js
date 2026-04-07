@@ -5,6 +5,14 @@
 (function (global) {
   "use strict";
 
+  /** Works on root hosts and GitHub Pages project paths (e.g. /Hit-A-Lick/app.html). */
+  function sameDirectoryHref(file) {
+    const p = global.location.pathname || "/";
+    const i = p.lastIndexOf("/");
+    const dir = i <= 0 ? "/" : p.slice(0, i + 1);
+    return dir + file;
+  }
+
   const HitElite = {
     _api: null,
     _paletteMounted: false,
@@ -194,7 +202,7 @@
           label: "Open membership pricing",
           hint: "New tab",
           run: () => {
-            global.open("/pricing.html", "_blank", "noopener,noreferrer");
+            global.open(sameDirectoryHref("pricing.html"), "_blank", "noopener,noreferrer");
           },
         },
         {
@@ -202,7 +210,7 @@
           label: "Open account page",
           hint: "New tab",
           run: () => {
-            global.open("/account.html", "_blank", "noopener,noreferrer");
+            global.open(sameDirectoryHref("account.html"), "_blank", "noopener,noreferrer");
           },
         },
       ].concat(this._extraCommands());

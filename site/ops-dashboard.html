@@ -517,22 +517,24 @@
   /** Props tab: filtered list aligned with checkbox indices */
   var propsDeskList = [];
 
-  function isGitHubPagesHost() {
+  function isStaticSiteWithoutApiRewrite() {
     var h = (window.location.hostname || "").toLowerCase();
-    return h.indexOf("github.io") >= 0;
+    if (h.indexOf("github.io") >= 0) return true;
+    if (h === "hitalick.org" || h === "www.hitalick.org") return true;
+    return false;
   }
 
   function apiBase() {
     var s = (localStorage.getItem(STORAGE_API) || "").trim().replace(/\/$/, "");
     if (s) return s;
-    if (isGitHubPagesHost()) return DEFAULT_PROD_API;
+    if (isStaticSiteWithoutApiRewrite()) return DEFAULT_PROD_API;
     return "";
   }
 
   function apiBaseDisplay() {
     var b = apiBase();
     if (b) return b;
-    return "(same origin — Firebase Hosting + /api rewrite)";
+    return "(same origin — Firebase Hosting /api rewrite)";
   }
 
   function getPin() {
