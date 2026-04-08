@@ -176,9 +176,15 @@
       </div>
       <h1>HitALick Account Hub</h1>
       <p id="checkoutSuccessBanner" class="hint" style="display:none;border:1px solid rgba(138,255,212,0.45);border-radius:12px;padding:12px;background:rgba(19,40,28,0.55);margin-bottom:12px;">
-        <strong>Payment received.</strong> You were on Stripe’s secure checkout. Your plan usually activates within a few seconds — open the <a href="/app.html" style="color:#8affd4;">web app</a> and tap <strong>Refresh Data</strong> on Home if your access doesn’t update right away.
+        <strong>Payment received.</strong> You were on Stripe’s secure checkout. Your plan usually activates within a few seconds — open the <a href="app.html" style="color:#8affd4;">web app</a> and tap <strong>Refresh Data</strong> on Home if your access doesn’t update right away.
       </p>
-      <p class="hint">Secure web-first access. After you sign in, open <a href="/pricing.html" style="color:#8affd4;">Pricing</a> in <strong>this same browser</strong> to pay (Stripe). If checkout fails, use Safari or Chrome — not Instagram/Facebook’s in-app browser. <strong>Owner/curator accounts</strong> configured in the app (e.g. <code>brucebrian50@gmail.com</code>) get the full web desk and staff tools <strong>without</strong> paying Stripe — use your existing Firebase login; no need to delete or remake the account. <strong>Apple App Store:</strong> no in-app purchases — subscribe in Safari on this site when you need a consumer plan, then open the app.</p>
+      <p class="hint">Secure web-first access. After you sign in, open <a href="pricing.html" style="color:#8affd4;">Pricing</a> in <strong>this same browser</strong> to pay (Stripe). If checkout fails, use Safari or Chrome — not Instagram/Facebook’s in-app browser. <strong>Owner/curator accounts</strong> configured in the app (e.g. <code>brucebrian50@gmail.com</code>) get the full web desk and staff tools <strong>without</strong> paying Stripe — use your existing Firebase login; no need to delete or remake the account. <strong>Apple App Store:</strong> no in-app purchases — subscribe in Safari on this site when you need a consumer plan, then open the app.</p>
+      <p class="hint" style="margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(8,16,36,0.55);">
+        <label style="cursor:pointer;display:flex;gap:12px;align-items:flex-start;margin:0;">
+          <input type="checkbox" id="authRememberDevice" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;" />
+          <span><strong>Keep me signed in</strong> on this browser (stay logged in after closing the tab). Leave <strong>unchecked</strong> to sign out when you close the tab — and the web app will sign you out after a long idle period.</span>
+        </label>
+      </p>
     </section>
 
     <section class="grid">
@@ -187,7 +193,7 @@
         <input id="signupEmail" type="email" placeholder="Email" />
         <input id="signupPassword" type="password" placeholder="Password (min 6 chars)" />
         <button id="signupBtn">Create Account</button>
-        <p class="hint">Accounts use <strong>Firebase Authentication</strong>. Billing and the live board are tied to your UID after you subscribe on <a href="/pricing.html" style="color:#8affd4;">Pricing</a>.</p>
+        <p class="hint">Accounts use <strong>Firebase Authentication</strong>. Billing and the live board are tied to your UID after you subscribe on <a href="pricing.html" style="color:#8affd4;">Pricing</a>.</p>
       </article>
 
       <article class="card">
@@ -211,7 +217,7 @@
       <article class="card">
         <h2>Curator Quick Path</h2>
         <p class="hint">1) Log in here with curator credentials.</p>
-        <p class="hint">2) Open <a class="link-btn" style="padding:6px 10px;margin-left:4px;" href="/app.html">App</a> and go to <strong>Posts</strong>.</p>
+        <p class="hint">2) Open <a class="link-btn" style="padding:6px 10px;margin-left:4px;" href="app.html">App</a> and go to <strong>Posts</strong>.</p>
         <p class="hint">3) Curator workbench appears at top: choose lane, load pool, save board, then publish post.</p>
       </article>
     </section>
@@ -226,15 +232,15 @@
       <div id="signedInCta" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
         <p class="hint" style="margin-top:0;">You’re signed in. Stay on this page to manage account, billing links, or device reset. <strong>Odds API “free/paid” in the app desk</strong> is server data coverage — not your Stripe membership.</p>
         <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;align-items:center;">
-          <a class="link-btn" href="/app.html">Open web app</a>
+          <a class="link-btn" href="app.html">Open web app</a>
           <button type="button" id="refreshBillingBtn" class="btn-secondary">Refresh membership from server</button>
-          <a class="link-btn btn-secondary" href="/app.html?logout=1" style="background:#2a3f63;color:#dce9ff;">Sign out in app (this browser)</a>
+          <a class="link-btn btn-secondary" href="app.html?logout=1" style="background:#2a3f63;color:#dce9ff;">Sign out in app (this browser)</a>
         </div>
         <p class="hint" style="margin-top:8px;">Wrong account stuck in the app? Use <strong>Sign out in app</strong> or <strong>Log Out</strong> above — you are not forced to stay signed in.</p>
         <p class="hint" id="billingEntStatus" style="margin-top:10px;min-height:1.2em;"></p>
       </div>
-      <a class="link-btn" href="/pricing.html">Continue to Membership Plans</a>
-      <a class="link-btn logout-link-red" href="/app.html?logout=1" style="margin-left:8px;">Force Sign Out In App</a>
+      <a class="link-btn" href="pricing.html">Continue to Membership Plans</a>
+      <a class="link-btn logout-link-red" href="app.html?logout=1" style="margin-left:8px;">Force Sign Out In App</a>
       <p class="hint" style="margin-top:14px;">
         Hit a <strong>device limit</strong> in the app? This resets the server-side device list for your account. Sign in again on each phone or browser you still use.
       </p>
@@ -269,10 +275,27 @@
       statusEl.textContent = msg;
     }
 
+    function siteRel(name) {
+      const p = location.pathname || "/";
+      const i = p.lastIndexOf("/");
+      const base = i <= 0 ? "/" : p.slice(0, i + 1);
+      return base + String(name || "").replace(/^\//, "");
+    }
+
     function routeToWebApp(delayMs = 80) {
       setTimeout(() => {
-        window.location.href = "/app.html";
+        window.location.href = siteRel("app.html");
       }, delayMs);
+    }
+
+    function readAuthKey(key) {
+      try {
+        const s = sessionStorage.getItem(key);
+        if (s != null && String(s).length > 0) return s;
+        return localStorage.getItem(key) || "";
+      } catch {
+        return "";
+      }
     }
 
     function ensureHitDeviceId() {
@@ -287,30 +310,31 @@
     }
 
     const AUTH_KEYS = ["hitalick_email", "hitalick_uid", "hitalick_token"];
-    /** Older account hub used sessionStorage only; app.html reads localStorage. Keep both in sync. */
-    function migrateSessionTokenToLocalIfNeeded() {
-      try {
-        if (sessionStorage.getItem("hitalick_token") && !localStorage.getItem("hitalick_token")) {
-          for (const k of AUTH_KEYS) {
-            const v = sessionStorage.getItem(k);
-            if (v) localStorage.setItem(k, v);
-          }
-        }
-      } catch (_) {}
-    }
 
     function persistSession(email, uid, idToken) {
       const normEmail = String(email || "")
         .trim()
         .toLowerCase();
+      const remember = Boolean(document.getElementById("authRememberDevice")?.checked);
       try {
-        localStorage.setItem("hitalick_email", normEmail);
-        localStorage.setItem("hitalick_uid", uid);
-        localStorage.setItem("hitalick_token", idToken);
         for (const k of AUTH_KEYS) {
           try {
-            sessionStorage.setItem(k, localStorage.getItem(k));
+            sessionStorage.removeItem(k);
           } catch (_) {}
+        }
+        sessionStorage.setItem("hitalick_email", normEmail);
+        sessionStorage.setItem("hitalick_uid", uid);
+        sessionStorage.setItem("hitalick_token", idToken);
+        if (remember) {
+          localStorage.setItem("hitalick_email", normEmail);
+          localStorage.setItem("hitalick_uid", uid);
+          localStorage.setItem("hitalick_token", idToken);
+        } else {
+          for (const k of AUTH_KEYS) {
+            try {
+              localStorage.removeItem(k);
+            } catch (_) {}
+          }
         }
       } catch (_) {}
       ensureHitDeviceId();
@@ -332,11 +356,10 @@
     }
 
     function renderSession() {
-      migrateSessionTokenToLocalIfNeeded();
       ensureHitDeviceId();
-      const email = localStorage.getItem("hitalick_email") || sessionStorage.getItem("hitalick_email");
-      const uid = localStorage.getItem("hitalick_uid") || sessionStorage.getItem("hitalick_uid");
-      const token = localStorage.getItem("hitalick_token") || sessionStorage.getItem("hitalick_token");
+      const email = readAuthKey("hitalick_email");
+      const uid = readAuthKey("hitalick_uid");
+      const token = readAuthKey("hitalick_token");
       const active = Boolean(email && uid && token);
       sessionStateEl.textContent = active ? "Connected" : "Offline";
       sessionStateEl.classList.toggle("on", active);
@@ -352,8 +375,8 @@
     }
 
     async function refreshBillingEntitlementQuiet() {
-      const uid = localStorage.getItem("hitalick_uid") || sessionStorage.getItem("hitalick_uid");
-      const token = localStorage.getItem("hitalick_token") || sessionStorage.getItem("hitalick_token");
+      const uid = readAuthKey("hitalick_uid");
+      const token = readAuthKey("hitalick_token");
       const el = document.getElementById("billingEntStatus");
       if (!uid || !token) return;
       ensureHitDeviceId();
@@ -385,8 +408,8 @@
     }
 
     async function refreshBillingEntitlement() {
-      const uid = localStorage.getItem("hitalick_uid") || sessionStorage.getItem("hitalick_uid");
-      const token = localStorage.getItem("hitalick_token") || sessionStorage.getItem("hitalick_token");
+      const uid = readAuthKey("hitalick_uid");
+      const token = readAuthKey("hitalick_token");
       const el = document.getElementById("billingEntStatus");
       if (!uid || !token) {
         setStatus("Log in first.", true);
@@ -458,8 +481,7 @@
         if (!email || !password) return setStatus("Enter email and password.", true);
         const data = await authRequest(signUpUrl, email, password);
         persistSession(data.email, data.localId, data.idToken);
-        setStatus("Account created. Opening HitALick Web App...");
-        routeToWebApp();
+        setStatus("Account created. Use Open web app below when you’re ready (no automatic redirect).");
       } catch (e) {
         setStatus(e.message, true);
       }
@@ -472,8 +494,7 @@
         if (!email || !password) return setStatus("Enter email and password.", true);
         const data = await authRequest(signInUrl, email, password);
         persistSession(data.email, data.localId, data.idToken);
-        setStatus("Logged in. Opening HitALick Web App...");
-        routeToWebApp();
+        setStatus("Logged in. Open the web app or Pricing from this page when you’re ready.");
       } catch (e) {
         setStatus(e.message, true);
       }
@@ -511,8 +532,7 @@
     if (refreshBillingBtn) refreshBillingBtn.addEventListener("click", () => void refreshBillingEntitlement());
 
     document.getElementById("clearDeviceSlotsBtn").addEventListener("click", async () => {
-      migrateSessionTokenToLocalIfNeeded();
-      const token = localStorage.getItem("hitalick_token") || sessionStorage.getItem("hitalick_token");
+      const token = readAuthKey("hitalick_token");
       if (!token) {
         setStatus("Log in first.", true);
         return;

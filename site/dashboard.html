@@ -127,11 +127,20 @@
       if (window.PageElite && typeof PageElite.toast === "function") PageElite.toast(msg, kind || "ok");
     }
 
+    function readAuthKey(key) {
+      try {
+        const s = sessionStorage.getItem(key);
+        if (s != null && String(s).length > 0) return s;
+        return localStorage.getItem(key) || "";
+      } catch {
+        return "";
+      }
+    }
     function getSession() {
       return {
-        email: localStorage.getItem("hitalick_email") || "",
-        token: localStorage.getItem("hitalick_token") || "",
-        uid: localStorage.getItem("hitalick_uid") || "",
+        email: readAuthKey("hitalick_email"),
+        token: readAuthKey("hitalick_token"),
+        uid: readAuthKey("hitalick_uid"),
       };
     }
 

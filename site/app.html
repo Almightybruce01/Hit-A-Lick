@@ -11,11 +11,11 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <link rel="dns-prefetch" href="https://api-lifnvql5aa-uc.a.run.app" />
-  <link rel="preload" href="/css/app-shell.css?v=202604091" as="style" />
-  <link rel="preload" href="/js/app-elite.js?v=202604091" as="script" />
+  <link rel="preload" href="/css/app-shell.css?v=202604092" as="style" />
+  <link rel="preload" href="/js/app-elite.js?v=202604092" as="script" />
   <title>Hit-A-Lick | Web App</title>
-  <link rel="stylesheet" href="/css/app-shell.css?v=202604091" />
-  <link rel="stylesheet" href="/css/app-elite.css?v=202604091" />
+  <link rel="stylesheet" href="/css/app-shell.css?v=202604092" />
+  <link rel="stylesheet" href="/css/app-elite.css?v=202604092" />
   <script>
     (function () {
       function hitalickUnblockUiEarly() {
@@ -486,7 +486,7 @@
     </div>
   </div>
 
-  <script src="/js/app-elite.js?v=202604091"></script>
+  <script src="/js/app-elite.js?v=202604092"></script>
   <script>
     if (typeof Promise !== "undefined" && !Promise.allSettled) {
       Promise.allSettled = function (iterable) {
@@ -760,21 +760,11 @@
       return Boolean(maxCoverageToggle && maxCoverageToggle.checked);
     }
 
-    const AUTH_KEYS_SESSION = ["hitalick_email", "hitalick_uid", "hitalick_token"];
-    (function syncLegacySessionStorageAuthToLocal() {
-      try {
-        if (sessionStorage.getItem("hitalick_token") && !localStorage.getItem("hitalick_token")) {
-          for (const k of AUTH_KEYS_SESSION) {
-            const v = sessionStorage.getItem(k);
-            if (v) localStorage.setItem(k, v);
-          }
-        }
-      } catch (_) {}
-    })();
-
     function readAuthStorageKey(key) {
       try {
-        return localStorage.getItem(key) || sessionStorage.getItem(key) || "";
+        const s = sessionStorage.getItem(key);
+        if (s != null && String(s).length > 0) return s;
+        return localStorage.getItem(key) || "";
       } catch {
         return "";
       }
@@ -8064,7 +8054,7 @@
     if (bootLogout) {
       logoutSession();
       try {
-        history.replaceState({}, "", "/app.html");
+        history.replaceState({}, "", siteRel("app.html"));
       } catch {}
     } else {
       hydrateEntitlementFromStorage();
@@ -8114,6 +8104,25 @@
         { once: true },
       );
     }
+
+    (function setupIdleLogout() {
+      const IDLE_MS = 45 * 60 * 1000;
+      let lastActivityAt = Date.now();
+      const bump = () => {
+        lastActivityAt = Date.now();
+      };
+      for (const ev of ["pointerdown", "keydown", "scroll", "touchstart", "click"]) {
+        document.addEventListener(ev, bump, { passive: true, capture: true });
+      }
+      window.addEventListener("pageshow", bump);
+      setInterval(() => {
+        if (document.hidden) return;
+        if (!getSession().token) return;
+        if (Date.now() - lastActivityAt < IDLE_MS) return;
+        logoutSession();
+        setStatus("Signed out after inactivity. Open Account to sign in again.", false);
+      }, 60 * 1000);
+    })();
 
     setInterval(() => {
       if (document.hidden) return;
