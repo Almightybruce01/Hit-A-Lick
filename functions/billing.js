@@ -36,8 +36,8 @@ function checkoutPriceError(label) {
  * Default return URLs for Stripe checkout success/cancel (override with APP_SUCCESS_URL / APP_CANCEL_URL).
  * Primary: Firebase Hosting for this project. GitHub Pages users: set APP_PAGES_ORIGIN or the three APP_* URLs.
  */
-const HITALICK_PAGES_ORIGIN =
-  process.env.APP_PAGES_ORIGIN || "https://hit-a-lick-database.web.app";
+/** Prefer custom domain so Stripe success/cancel URLs match where users sign in (override with APP_PAGES_ORIGIN). */
+const HITALICK_PAGES_ORIGIN = process.env.APP_PAGES_ORIGIN || "https://hitalick.org";
 
 /**
  * Hit-A-Lick only — Price IDs from Firebase secrets / env (no hard-coded price_ fallbacks).

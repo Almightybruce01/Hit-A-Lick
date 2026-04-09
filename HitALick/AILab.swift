@@ -113,7 +113,15 @@ struct AILab: View {
     @State private var billingEntitlement: BillingEntitlementPayload?
     @State private var billingLoaded = false
     @State private var aiMeterExhausted = false
+    /// Website-only billing (no in-app Stripe): which Safari link to show under the quota line.
+    @State private var websiteBillingLink: WebsiteBillingLink = .none
     @AppStorage("hitalick_ai_cart_touch") private var cartLastTouchEpoch: Double = 0
+
+    private enum WebsiteBillingLink {
+        case none
+        case subscribe
+        case aiTopUp
+    }
 
     private let sports = ["nba", "nfl", "mlb", "wnba"]
     private let cartStaleSeconds: TimeInterval = 48 * 3600
@@ -219,6 +227,19 @@ struct AILab: View {
                                 Text(quotaText)
                                     .font(.caption.weight(.semibold))
                                     .foregroundColor(.cyan.opacity(0.95))
+                            }
+                            if websiteBillingLink == .subscribe {
+                                Link(destination: APIConfig.membershipPurchaseURL) {
+                                    Text("Open membership pricing (Safari)")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundColor(.orange)
+                                }
+                            } else if websiteBillingLink == .aiTopUp {
+                                Link(destination: APIConfig.membershipAiTopUpURL) {
+                                    Text("Buy +50 AI requests on the website (Safari)")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundColor(.orange)
+                                }
                             }
                             Text("Generate ranked picks from your filters and build a parlay instantly.")
                                 .font(.subheadline)
@@ -851,6 +872,8 @@ struct AILab: View {
     private func refreshAiQuota() async {
         guard let user = Auth.auth().currentUser else {
             quotaText = ""
+            websiteBillingLink = .none
+            aiMeterExhausted = false
             return
         }
         do {
@@ -860,10 +883,12 @@ struct AILab: View {
             let (data, response) = try await URLSession.shared.data(for: req)
             guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
                 quotaText = ""
+                websiteBillingLink = .none
                 return
             }
             let q = try JSONDecoder().decode(AIQuotaResponse.self, from: data)
             aiMeterExhausted = false
+            websiteBillingLink = .none
             if q.unlimited == true {
                 if q.staff == "owner" {
                     quotaText = "AI: unlimited (owner)"
@@ -875,19 +900,22 @@ struct AILab: View {
             } else if q.locked == true {
                 quotaText = "AI locked — subscribe on the website (Regular includes 5 AI requests/mo; Premium adds unlimited)."
                 aiMeterExhausted = true
+                websiteBillingLink = .subscribe
             } else if let lim = q.limit, lim > 0 {
                 let used = q.used ?? 0
                 let rem = q.remaining ?? max(0, lim - used)
                 quotaText = "AI this month: \(used) / \(lim) used (\(rem) left). Premium = unlimited."
                 if rem <= 0 {
                     aiMeterExhausted = true
-                    quotaText = "AI cap reached (\(used)/\(lim)). Open pricing to add Premium AI or buy +50 requests on the site."
+                    quotaText = "AI cap reached (\(used)/\(lim)). Use the website for Stripe checkout — Premium (unlimited) or +50 request pack."
+                    websiteBillingLink = .aiTopUp
                 }
             } else {
                 quotaText = ""
             }
         } catch {
             quotaText = ""
+            websiteBillingLink = .none
         }
     }
 

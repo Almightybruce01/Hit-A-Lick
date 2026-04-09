@@ -3,13 +3,17 @@ import Foundation
 /// Single place to configure API origin (prod vs staging). Override in **Debug** Account settings, or UserDefaults:
 /// `UserDefaults.standard.set("https://your-cloud-run-url", forKey: APIConfig.baseURLKey)`
 enum APIConfig {
-    /// Website where Stripe checkout runs (Firebase Hosting — same `/api` rewrite as production).
-    /// Mirror: `https://almightybruce01.github.io/Hit-A-Lick` (checkout uses Cloud Run directly on github.io).
-    static let websiteOrigin = "https://hit-a-lick-database.web.app"
+    /// Canonical marketing domain (Firebase Hosting). Same site as `hit-a-lick-database.web.app`; use this for auth/session continuity with Safari.
+    static let websiteOrigin = "https://hitalick.org"
 
-    /// Website-only subscriptions (App Store compliance — no IAP for membership). Always open in Safari/in-app browser.
+    /// Website-only subscriptions (App Store compliance — no IAP). Open in Safari / `SFSafariViewController` — Stripe Checkout runs only on these pages.
     static var membershipPurchaseURL: URL {
         URL(string: "\(websiteOrigin)/pricing.html")!
+    }
+
+    /// One-time AI credit packs (Regular members) — same page, anchored section; app does not call Stripe APIs.
+    static var membershipAiTopUpURL: URL {
+        URL(string: "\(websiteOrigin)/pricing.html#ai-topup")!
     }
 
     /// Sign in on the web before checkout (shared session keys with Safari if user completes flow there).

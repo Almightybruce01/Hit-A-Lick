@@ -271,7 +271,7 @@
       hidden
     >
       <div class="hl-paywall-shield-msg">
-        Tap to upgrade — Regular unlocks the app (5 included AI requests/mo). Premium adds unlimited AI. Bruce &amp; Giap picks are separate. No in-app purchases.
+        Tap to upgrade — pay on the <strong>Pricing</strong> page (Stripe Checkout). Regular unlocks the app (5 AI requests/mo). Premium adds unlimited AI. Bruce &amp; Giap picks are separate. No in-app purchases.
       </div>
     </div>
     <section class="quick-actions">
@@ -865,6 +865,8 @@
       return base + String(name || "").replace(/^\//, "");
     }
     const PRICING_PAGE_URL = siteRel("pricing.html");
+    /** Deep link for AI credit packs — Stripe Checkout only starts from pricing.html (App Store / policy alignment). */
+    const PRICING_AI_TOPUP_URL = `${PRICING_PAGE_URL}#ai-topup`;
     const ACCOUNT_PAGE_URL = siteRel("account.html");
 
     /** Mirrors `hydrateEntitlementForApi` / iOS `effectiveHasAppAccess` (legacy rows may omit `hasAppAccess`). */
@@ -1144,7 +1146,7 @@
         if (needSub) {
           dock.hidden = false;
           dock.innerHTML = `
-            <div class="dock-msg"><strong>Upgrade on the website</strong> — Subscribe to <strong>Regular</strong> to unlock the app (5 included AI requests/mo). Add <strong>Premium</strong> for unlimited AI. Bruce &amp; Giap pick feeds are <strong>separate</strong> subscriptions. Use <strong>HITALICK25</strong> for 25% off Regular &amp; Premium (see pricing page). One-time VIP codes are issued privately and work once each at checkout.</div>
+            <div class="dock-msg"><strong>Upgrade on the website</strong> — Stripe Checkout runs only on the <strong>pricing</strong> page, not inside this app. Subscribe to <strong>Regular</strong> to unlock the app (5 included AI requests/mo). Add <strong>Premium</strong> for unlimited AI. Bruce &amp; Giap pick feeds are <strong>separate</strong> subscriptions. Use <strong>HITALICK25</strong> for 25% off Regular &amp; Premium. One-time VIP codes work once each at checkout.</div>
             <a class="btn btn-primary" href="${PRICING_PAGE_URL}">Membership &amp; pricing</a>
             <a class="btn" href="${ACCOUNT_PAGE_URL}">Account</a>
           `;
@@ -1201,37 +1203,15 @@
         }
         el.style.display = "block";
         const rem = q.remaining != null ? q.remaining : Math.max(0, (q.limit || 0) - (q.used || 0));
-        el.innerHTML = `AI requests this month: <strong>${q.used ?? 0}</strong> / <strong>${q.limit ?? q.freeMonthly ?? 5}</strong> used (${rem} left). <a href="${PRICING_PAGE_URL}" style="color:#8affd4;">Upgrade to Premium</a> for unlimited AI, or <button type="button" class="inline-link" onclick="startAiCreditsCheckout()">buy +50 requests</button>.`;
+        el.innerHTML = `AI requests this month: <strong>${q.used ?? 0}</strong> / <strong>${q.limit ?? q.freeMonthly ?? 5}</strong> used (${rem} left). <a href="${PRICING_PAGE_URL}" style="color:#8affd4;">Upgrade to Premium</a> for unlimited AI, or <a href="${PRICING_AI_TOPUP_URL}" style="color:#8affd4;">buy +50 requests on the website</a> (Stripe opens from Pricing only).`;
       } catch {
         el.style.display = "none";
       }
     }
 
-    async function startAiCreditsCheckout() {
-      const s = getSession();
-      if (!s.uid || !s.token) {
-        setStatus("Log in first, then buy AI credits on the website.", true);
-        return;
-      }
-      try {
-        const res = await fetch(hitBillingApiUrl("/api/billing/create-ai-credits-session"), {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${s.token}`,
-            "X-Hit-Device-Id": getHitDeviceId(),
-          },
-          body: JSON.stringify({ uid: s.uid, email: s.email }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.url) {
-          setStatus(data.error || "AI credits checkout unavailable — set STRIPE_PRICE_AI_CREDITS_50 in Functions.", true);
-          return;
-        }
-        window.location.href = data.url;
-      } catch (e) {
-        setStatus(e.message || "Credits checkout failed.", true);
-      }
+    /** AI credits use the same Stripe Checkout as subscriptions — only pricing.html calls the billing API (no in-app / in-web-app purchase flow). */
+    function startAiCreditsCheckout() {
+      window.location.href = PRICING_AI_TOPUP_URL;
     }
 
     function loadUserState() {
