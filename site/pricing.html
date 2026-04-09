@@ -79,6 +79,7 @@
       <p class="hint"><strong>Promo:</strong> at checkout use <code style="background:rgba(0,0,0,.35);padding:2px 8px;border-radius:6px;">HITALICK25</code> for <strong>25% off</strong> — valid only on <strong>Regular</strong> and <strong>Premium</strong> (app subscription lines), not Bruce/Giap picks or AI credit packs. <strong>One-time VIP codes</strong> (25% off the first invoice, monthly or yearly) are created in Stripe and shared privately — each code redeems once.</p>
       <p class="hint"><a href="app.html" style="color:#8affd4;">Open web app</a></p>
       <p class="hint" id="stripeSetupHint"><strong>Stripe:</strong> prices below load from your live Stripe account. If something shows “—”, run <code>node scripts/stripe_hit_a_lick_catalog.js</code> with your secret key, then set the printed <code>STRIPE_PRICE_*</code> values in <strong>Firebase → Functions → Secrets</strong> and redeploy. Never use placeholder IDs like <code>price_19_99_regular</code>.</p>
+      <p class="hint"><strong>Pay vs webhook:</strong> Subscribe should take you to <strong>Stripe’s hosted page</strong> first. If nothing happens or you never leave this site, the API step failed (secrets, price IDs, or sign-in) — that is <em>not</em> the webhook. The webhook only runs <em>after</em> Stripe confirms payment to turn on access in the app.</p>
     </section>
 
     <div class="section-title">App access (required for props, desk, games, alerts)</div>
@@ -136,7 +137,8 @@
       </article>
     </section>
 
-    <p class="hint" id="sessionHint" style="border:1px solid rgba(137,255,215,0.35);border-radius:12px;padding:12px 14px;background:rgba(8,22,40,0.55);"></p>
+      <p class="hint" id="sessionHint" style="border:1px solid rgba(137,255,215,0.35);border-radius:12px;padding:12px 14px;background:rgba(8,22,40,0.55);"></p>
+      <p class="hint" id="checkoutStatus" style="display:none;margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(40,22,8,0.55);border:1px solid rgba(255,180,120,0.35);color:#ffd4b8;line-height:1.45;"></p>
   </main>
 
   <script>
@@ -153,6 +155,54 @@
     }
 
     const sessionHint = document.getElementById("sessionHint");
+    const checkoutStatusEl = document.getElementById("checkoutStatus");
+
+    function setCheckoutStatus(msg) {
+      if (!checkoutStatusEl) return;
+      if (!msg) {
+        checkoutStatusEl.style.display = "none";
+        checkoutStatusEl.textContent = "";
+        return;
+      }
+      checkoutStatusEl.style.display = "block";
+      checkoutStatusEl.textContent = msg;
+    }
+
+    function checkoutFailureHint(data, status) {
+      const code = data && data.code ? String(data.code) : "";
+      const base = (data && data.error) || `HTTP ${status || "error"}`;
+      if (code === "STRIPE_PRICE_INVALID") {
+        return (
+          base +
+          "\n\nThis is not your webhook — the server rejected checkout before Stripe opened. Set real Stripe Price IDs (STRIPE_PRICE_*) in Firebase Functions secrets and redeploy the API."
+        );
+      }
+      if (code === "STRIPE_SECRET_MISSING") {
+        return base + "\n\nStripe is not configured on the server (missing STRIPE_SECRET_KEY).";
+      }
+      if (code === "STRIPE_PRICE_NOT_FOUND") {
+        return base + "\n\nA price ID in secrets does not exist in your Stripe account (wrong mode or typo).";
+      }
+      if (code === "DEVICE_LIMIT" || code === "DEVICE_ID_REQUIRED") {
+        return (
+          base +
+          (code === "DEVICE_LIMIT"
+            ? "\n\nOpen Account hub → Reset device slots, then try again."
+            : "\n\nRefresh this page after signing in from Account hub.")
+        );
+      }
+      if (code === "TOKEN_INVALID" || code === "AUTH_REQUIRED") {
+        return base + "\n\nSign in again on account.html (same browser tab), then return to Pricing.";
+      }
+      if (code === "NEEDS_APP_SUBSCRIPTION") {
+        return base;
+      }
+      return (
+        base +
+        (code ? `\n\nCode: ${code}` : "") +
+        "\n\nAfter you pay, the webhook updates your access — but first the site must open Stripe’s checkout page. If you never see Stripe, the problem is this API step, not the webhook."
+      );
+    }
 
     function readAuthKey(key) {
       try {
@@ -201,6 +251,7 @@
     }
 
     async function startCheckout(tier) {
+      setCheckoutStatus("");
       const { uid, email } = readSession();
       if (!uid || !email) {
         alert("Create/login on the website first so we can attach your entitlement.");
@@ -214,6 +265,7 @@
 
       let res;
       try {
+        setCheckoutStatus("Contacting payment server…");
         res = await fetch(hitApiPath("/api/billing/create-checkout-session"), {
           method: "POST",
           headers: {
@@ -224,32 +276,41 @@
           body: JSON.stringify({ uid, email, tier }),
         });
       } catch (e) {
+        setCheckoutStatus("");
         alert(
           "Could not reach the payment server. Use https://hitalick.org in Safari or Chrome (not an in-app browser). If you’re on Wi‑Fi/VPN, try another network.\n\n" +
             (e && e.message ? e.message : ""),
         );
         return;
       }
-      const data = await res.json().catch(() => ({}));
+      const rawText = await res.text();
+      let data = {};
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        data = { error: rawText.slice(0, 280) || "Non-JSON response from server", code: "BAD_RESPONSE" };
+      }
       if (!res.ok) {
-        const code = data.code ? ` (${data.code})` : "";
-        const hint =
-          data.code === "DEVICE_LIMIT"
-            ? " Too many devices: open Account hub → Reset device slots, then try again."
-            : data.code === "DEVICE_ID_REQUIRED"
-              ? " Refresh this page and sign in again from Account hub."
-              : "";
-        alert((data.error || "Checkout failed") + code + hint);
+        setCheckoutStatus("");
+        alert(checkoutFailureHint(data, res.status));
         return;
       }
-      if (!data.url) {
-        alert(data.error || "Checkout did not return a payment link. Check Stripe price configuration on the server.");
+      if (!data.url || typeof data.url !== "string" || !data.url.startsWith("http")) {
+        setCheckoutStatus("");
+        alert(
+          checkoutFailureHint(
+            { error: "Server returned OK but no Stripe checkout URL.", code: data.code || "NO_CHECKOUT_URL" },
+            res.status,
+          ),
+        );
         return;
       }
+      setCheckoutStatus("Opening Stripe checkout…");
       window.location.href = data.url;
     }
 
     async function startAiCredits() {
+      setCheckoutStatus("");
       const { uid, email } = readSession();
       if (!uid || !email) {
         alert("Log in on account.html first.");
@@ -262,6 +323,7 @@
       }
       let res;
       try {
+        setCheckoutStatus("Contacting payment server…");
         res = await fetch(hitApiPath("/api/billing/create-ai-credits-session"), {
           method: "POST",
           headers: {
@@ -272,17 +334,25 @@
           body: JSON.stringify({ uid, email }),
         });
       } catch (e) {
+        setCheckoutStatus("");
         alert(
           "Could not reach the payment server. Use Safari or Chrome on https://hitalick.org.\n\n" + (e && e.message ? e.message : ""),
         );
         return;
       }
-      const data = await res.json().catch(() => ({}));
+      const rawText = await res.text();
+      let data = {};
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        data = { error: rawText.slice(0, 280) || "Non-JSON response", code: "BAD_RESPONSE" };
+      }
       if (!res.ok || !data.url) {
-        const code = data.code ? ` (${data.code})` : "";
-        alert((data.error || "Credits checkout not configured.") + code);
+        setCheckoutStatus("");
+        alert(checkoutFailureHint(data, res.status));
         return;
       }
+      setCheckoutStatus("Opening Stripe checkout…");
       window.location.href = data.url;
     }
 

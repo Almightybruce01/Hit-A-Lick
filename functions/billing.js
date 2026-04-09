@@ -12,6 +12,25 @@ function firstPriceId(...candidates) {
   return "";
 }
 
+/**
+ * Stripe Price IDs look like `price_1AbCdEfGhIjKlMnO` (alphanumeric only after `price_`).
+ * Placeholder strings such as `price_19_99_regular` are NOT valid and must never be set in secrets.
+ */
+export function isValidStripePriceId(id) {
+  const s = String(id || "").trim();
+  if (!s.startsWith("price_")) return false;
+  const tail = s.slice(6);
+  return tail.length >= 14 && /^[a-zA-Z0-9]+$/.test(tail);
+}
+
+function checkoutPriceError(label) {
+  return (
+    `Invalid Stripe price for ${label}. Run \`node scripts/stripe_hit_a_lick_catalog.js\` with STRIPE_SECRET_KEY, ` +
+    `then set the printed STRIPE_PRICE_* values in Firebase Secret Manager (Functions → secrets) and redeploy. ` +
+    `Do not use placeholder IDs like price_19_99_regular.`
+  );
+}
+
 /** Checkout uses these keys; set secrets in Firebase (see `functions/.env.example`). */
 /**
  * Default return URLs for Stripe checkout success/cancel (override with APP_SUCCESS_URL / APP_CANCEL_URL).
@@ -26,22 +45,20 @@ const HITALICK_PAGES_ORIGIN =
  * premium checkout → `premium_bundle` (standalone) or `premium_ai_addon` (second sub after Regular)
  * bruce / giap = separate curator feeds (no combined Bruce+Giap SKU)
  */
-const priceRegular = firstPriceId(
-  process.env.STRIPE_PRICE_REGULAR_MONTHLY,
-  process.env.STRIPE_PRICE_CORE_MONTHLY,
-  process.env.STRIPE_PRICE_BRUCE_MONTHLY,
-);
-const pricePremiumAi = firstPriceId(
-  process.env.STRIPE_PRICE_PREMIUM_AI_MONTHLY,
+/** Hit-A-Lick catalog only — narrow fallbacks (no cross-product SKU mixing). */
+const priceRegular = firstPriceId(process.env.STRIPE_PRICE_REGULAR_MONTHLY, process.env.STRIPE_PRICE_CORE_MONTHLY);
+const pricePremiumBundle = firstPriceId(
+  process.env.STRIPE_PRICE_PREMIUM_BUNDLE_MONTHLY,
   process.env.STRIPE_PRICE_PREMIUM_MONTHLY,
-  process.env.STRIPE_PRICE_BRUCE_PREMIUM_MONTHLY,
-  process.env.STRIPE_PRICE_BRUCE_ELITE_VIP,
+);
+const pricePremiumAddon = firstPriceId(
+  process.env.STRIPE_PRICE_PREMIUM_AI_ADDON_MONTHLY,
+  process.env.STRIPE_PRICE_PREMIUM_AI_MONTHLY,
 );
 const priceBrucePicks = firstPriceId(
   process.env.STRIPE_PRICE_BRUCE_PICKS_MONTHLY,
   process.env.STRIPE_PRICE_BRUCE_PICKS_SUB,
   process.env.STRIPE_PRICE_CURATOR_BRUCE,
-  process.env.STRIPE_PRICE_BRUCE_ANNUAL,
 );
 const priceGiapPicks = firstPriceId(
   process.env.STRIPE_PRICE_GIAP_PICKS_MONTHLY,
@@ -52,7 +69,7 @@ const priceGiapPicks = firstPriceId(
 const PRICE_IDS = {
   regular: priceRegular,
   core: priceRegular,
-  premium: pricePremiumAi,
+  premium: pricePremiumBundle,
   bruce: priceBrucePicks,
   giap: priceGiapPicks,
 };
@@ -335,6 +352,24 @@ function curatorMetaForTier(tierRaw) {
 /** Normalize Firestore entitlement for API clients (legacy rows before boolean fields). */
 export function hydrateEntitlementForApi(ent = {}) {
   const e = { ...ent };
+  const tierEarly = String(e.tier || "").toLowerCase();
+  const sr = String(e.staffRole || "").toLowerCase();
+  /** Owner / Giap / curator staff: always active full access — survives stale Stripe or bad merges. */
+  if (tierEarly === "staff" || sr === "owner" || sr === "giap" || sr === "bruce") {
+    const cr = Array.isArray(e.curatorIds) && e.curatorIds.length ? e.curatorIds.map((x) => String(x).toLowerCase()) : [...ALL_CURATOR_IDS];
+    return {
+      ...e,
+      active: true,
+      status: e.status || "active",
+      tier: "staff",
+      hasRegular: true,
+      hasPremium: true,
+      hasAppAccess: true,
+      aiUnlimited: true,
+      curatorAllAccess: true,
+      curatorIds: cr,
+    };
+  }
   if (e.hasRegular !== undefined && e.hasPremium !== undefined) {
     e.hasAppAccess = Boolean(e.hasRegular);
     e.aiUnlimited = Boolean(e.aiUnlimited || (e.hasPremium && e.hasRegular));
@@ -481,22 +516,22 @@ router.post("/create-checkout-session", requireUidBearerForCheckout, async (req,
         priceId = firstPriceId(
           process.env.STRIPE_PRICE_PREMIUM_AI_ADDON_MONTHLY,
           process.env.STRIPE_PRICE_PREMIUM_AI_MONTHLY,
-          pricePremiumAi,
+          pricePremiumAddon,
         );
       } else {
         meta = { tier: "premium_bundle", curators: "" };
         priceId = firstPriceId(
           process.env.STRIPE_PRICE_PREMIUM_BUNDLE_MONTHLY,
-          process.env.STRIPE_PRICE_PREMIUM_AI_MONTHLY,
-          process.env.STRIPE_PRICE_BRUCE_PREMIUM_MONTHLY,
-          pricePremiumAi,
+          process.env.STRIPE_PRICE_PREMIUM_MONTHLY,
+          pricePremiumBundle,
         );
       }
     }
 
-    if (!priceId) {
-      return res.status(400).json({
-        error: `Invalid or unconfigured tier: ${tier}. Set the matching STRIPE_PRICE_* secret for this product.`,
+    if (!priceId || !isValidStripePriceId(priceId)) {
+      return res.status(503).json({
+        error: checkoutPriceError(tier),
+        code: "STRIPE_PRICE_INVALID",
       });
     }
 
@@ -506,10 +541,24 @@ router.post("/create-checkout-session", requireUidBearerForCheckout, async (req,
     const cancelUrl =
       process.env.APP_CANCEL_URL || `${HITALICK_PAGES_ORIGIN}/pricing.html?checkout=cancel`;
 
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .set(
+        {
+          email: String(email).toLowerCase(),
+          firebaseUid: uid,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
       customer_email: email,
+      client_reference_id: uid,
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: promoCode ? undefined : true,
       discounts: promoCode ? [{ promotion_code: promoCode }] : undefined,
@@ -523,7 +572,11 @@ router.post("/create-checkout-session", requireUidBearerForCheckout, async (req,
 
     return res.json({ url: session.url, sessionId: session.id });
   } catch (error) {
-    return res.status(500).json({ error: error.message || "Checkout session failed" });
+    const msg = String(error?.message || error || "Checkout session failed");
+    let code = "CHECKOUT_FAILED";
+    if (/STRIPE_SECRET_KEY|Missing STRIPE/i.test(msg)) code = "STRIPE_SECRET_MISSING";
+    else if (/No such price|resource_missing/i.test(msg)) code = "STRIPE_PRICE_NOT_FOUND";
+    return res.status(500).json({ error: msg, code });
   }
 });
 
@@ -549,18 +602,36 @@ router.post("/create-ai-credits-session", requireUidBearerForCheckout, async (re
       });
     }
     const priceId = String(process.env.STRIPE_PRICE_AI_CREDITS_50 || "").trim();
-    if (!priceId) {
-      return res.status(503).json({ error: "AI credits product not configured (STRIPE_PRICE_AI_CREDITS_50)." });
+    if (!priceId || !isValidStripePriceId(priceId)) {
+      return res.status(503).json({
+        error: checkoutPriceError("ai_credits"),
+        code: "STRIPE_PRICE_INVALID",
+      });
     }
     const stripe = getStripeClient();
     const successUrl =
       process.env.APP_SUCCESS_URL || `${HITALICK_PAGES_ORIGIN}/account.html?checkout=success`;
     const cancelUrl =
       process.env.APP_CANCEL_URL || `${HITALICK_PAGES_ORIGIN}/pricing.html?checkout=cancel`;
+
+    await admin
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .set(
+        {
+          email: String(email).toLowerCase(),
+          firebaseUid: uid,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       customer_email: email,
+      client_reference_id: uid,
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: { uid, kind: "ai_credits", creditCount: "50" },
       success_url: successUrl,
@@ -568,7 +639,10 @@ router.post("/create-ai-credits-session", requireUidBearerForCheckout, async (re
     });
     return res.json({ url: session.url, sessionId: session.id });
   } catch (error) {
-    return res.status(500).json({ error: error.message || "AI credits checkout failed" });
+    const msg = String(error?.message || error || "AI credits checkout failed");
+    let code = "CHECKOUT_FAILED";
+    if (/STRIPE_SECRET_KEY|Missing STRIPE/i.test(msg)) code = "STRIPE_SECRET_MISSING";
+    return res.status(500).json({ error: msg, code });
   }
 });
 
@@ -599,6 +673,8 @@ function mergeStaffEntitlement(base, email) {
     return {
       ...ent,
       active: true,
+      status: "active",
+      source: "staff_allowlist",
       tier: "staff",
       hasRegular: true,
       hasPremium: true,
@@ -613,6 +689,8 @@ function mergeStaffEntitlement(base, email) {
     return {
       ...ent,
       active: true,
+      status: "active",
+      source: "staff_allowlist",
       tier: "staff",
       hasRegular: true,
       hasPremium: true,
@@ -668,8 +746,10 @@ router.get("/pricing-status", async (_req, res) => {
     const prices = {};
     for (const k of keys) {
       const raw = PRICE_IDS[k];
+      const trimmed = String(raw || "").trim();
       prices[k] = {
-        configured: Boolean(String(raw || "").trim()),
+        configured: Boolean(trimmed),
+        validFormat: isValidStripePriceId(trimmed),
         priceIdPreview: maskPriceId(raw),
       };
     }
@@ -681,11 +761,71 @@ router.get("/pricing-status", async (_req, res) => {
       prices,
       aiCreditsPack: {
         configured: Boolean(aiCredits),
+        validFormat: isValidStripePriceId(aiCredits),
         priceIdPreview: maskPriceId(aiCredits),
       },
     });
   } catch (error) {
     return res.status(500).json({ error: error.message || "pricing status failed" });
+  }
+});
+
+/**
+ * Public: live USD amounts from Stripe for the pricing page (no auth).
+ * Fails softly if secrets hold placeholder IDs until ops runs `scripts/stripe_hit_a_lick_catalog.js`.
+ */
+router.get("/catalog-prices", async (_req, res) => {
+  try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return res.status(503).json({ ok: false, error: "Stripe is not configured on the API." });
+    }
+    const stripe = getStripeClient();
+    const fetchOne = async (id, key) => {
+      const raw = String(id || "").trim();
+      if (!raw || !isValidStripePriceId(raw)) {
+        return {
+          key,
+          ok: false,
+          code: "INVALID_OR_PLACEHOLDER_ID",
+          amountUsd: null,
+          interval: null,
+          error: checkoutPriceError(key),
+        };
+      }
+      try {
+        const p = await stripe.prices.retrieve(raw);
+        const unit = p.unit_amount != null ? Number(p.unit_amount) / 100 : null;
+        return {
+          key,
+          ok: true,
+          currency: p.currency || "usd",
+          amountUsd: unit,
+          interval: p.recurring?.interval || (p.type === "one_time" ? "one_time" : null),
+        };
+      } catch (e) {
+        return {
+          key,
+          ok: false,
+          code: "STRIPE_RETRIEVE_FAILED",
+          amountUsd: null,
+          interval: null,
+          error: String(e?.message || e || "retrieve failed"),
+        };
+      }
+    };
+    const out = await Promise.all([
+      fetchOne(priceRegular, "regular"),
+      fetchOne(pricePremiumBundle, "premiumBundle"),
+      fetchOne(pricePremiumAddon, "premiumAddon"),
+      fetchOne(priceBrucePicks, "bruce"),
+      fetchOne(priceGiapPicks, "giap"),
+      fetchOne(String(process.env.STRIPE_PRICE_AI_CREDITS_50 || "").trim(), "aiCredits"),
+    ]);
+    const prices = {};
+    for (const row of out) prices[row.key] = row;
+    return res.json({ ok: true, prices });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.message || "catalog-prices failed" });
   }
 });
 
@@ -719,8 +859,28 @@ async function handleStripeWebhook(req, res) {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
-      const uid = String(session.metadata?.uid || "").trim();
+      const uidFromSession = String(session.metadata?.uid || "").trim();
+
+      /** Subscription checkouts: Stripe fires this in addition to customer.subscription.* — sync here so entitlements land even if subscription events are delayed or misconfigured. */
+      if (session.mode === "subscription" && session.subscription) {
+        const subId =
+          typeof session.subscription === "string" ? session.subscription : session.subscription?.id || "";
+        if (subId) {
+          try {
+            const sub = await stripe.subscriptions.retrieve(subId);
+            const uid = String(sub.metadata?.uid || uidFromSession || "").trim();
+            if (uid) {
+              await syncStripeSubscriptionDoc(uid, sub);
+              await recomputeEntitlementFromSubscriptions(uid);
+            }
+          } catch (e) {
+            console.error("checkout.session.completed subscription sync failed:", e?.message || e);
+          }
+        }
+      }
+
       const kind = String(session.metadata?.kind || "").trim();
+      const uid = uidFromSession;
       if (uid && kind === "ai_credits" && session.mode === "payment") {
         const add = Math.max(0, Math.min(500, Number(session.metadata?.creditCount || 50)));
         if (add > 0) {
