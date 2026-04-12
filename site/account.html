@@ -234,6 +234,7 @@
         <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;align-items:center;">
           <a class="link-btn" href="app.html">Open web app</a>
           <button type="button" id="refreshBillingBtn" class="btn-secondary">Refresh membership from server</button>
+          <button type="button" id="stripePortalBtn" class="btn-secondary" style="display:none;">Manage billing in Stripe</button>
           <a class="link-btn btn-secondary" href="app.html?logout=1" style="background:#2a3f63;color:#dce9ff;">Sign out in app (this browser)</a>
         </div>
         <p class="hint" style="margin-top:8px;">Wrong account stuck in the app? Use <strong>Sign out in app</strong> or <strong>Log Out</strong> above — you are not forced to stay signed in.</p>
@@ -400,10 +401,23 @@
         if (ent.hasAppAccess === true) bits.push("App access: yes");
         if (ent.hasRegular === true) bits.push("Regular: yes");
         if (ent.hasPremium === true) bits.push("Premium: yes");
+        if (Array.isArray(ent.curatorIds) && ent.curatorIds.length)
+          bits.push("Curator feeds: " + ent.curatorIds.map(String).join(", "));
         if (!bits.length) bits.push("No active membership flags from billing (subscribe on Pricing or check Stripe customer email matches this login).");
         if (el) el.textContent = bits.join(" · ");
+        const portal = document.getElementById("stripePortalBtn");
+        if (portal) {
+          const cid = ent.stripeCustomerId ? String(ent.stripeCustomerId).trim() : "";
+          portal.style.display = cid ? "inline-block" : "none";
+          portal.dataset.customerId = cid;
+        }
       } catch (e) {
         if (el) el.textContent = "";
+        const portal = document.getElementById("stripePortalBtn");
+        if (portal) {
+          portal.style.display = "none";
+          portal.dataset.customerId = "";
+        }
       }
     }
 
@@ -436,8 +450,16 @@
         if (ent.hasAppAccess === true) bits.push("App access: yes");
         if (ent.hasRegular === true) bits.push("Regular: yes");
         if (ent.hasPremium === true) bits.push("Premium: yes");
+        if (Array.isArray(ent.curatorIds) && ent.curatorIds.length)
+          bits.push("Curator feeds: " + ent.curatorIds.map(String).join(", "));
         if (!bits.length) bits.push("No active membership flags from billing (subscribe on Pricing or check Stripe customer email matches this login).");
         if (el) el.textContent = bits.join(" · ");
+        const portal = document.getElementById("stripePortalBtn");
+        if (portal) {
+          const cid = ent.stripeCustomerId ? String(ent.stripeCustomerId).trim() : "";
+          portal.style.display = cid ? "inline-block" : "none";
+          portal.dataset.customerId = cid;
+        }
         setStatus("Membership refreshed. Open the web app — use Refresh Data on Home if gates look stale.", false);
       } catch (e) {
         if (el) el.textContent = "";
@@ -530,6 +552,50 @@
 
     const refreshBillingBtn = document.getElementById("refreshBillingBtn");
     if (refreshBillingBtn) refreshBillingBtn.addEventListener("click", () => void refreshBillingEntitlement());
+
+    async function openStripeCustomerPortal() {
+      const uid = readAuthKey("hitalick_uid");
+      const token = readAuthKey("hitalick_token");
+      const btn = document.getElementById("stripePortalBtn");
+      const customerId = btn && btn.dataset ? String(btn.dataset.customerId || "").trim() : "";
+      if (!uid || !token) {
+        setStatus("Log in first.", true);
+        return;
+      }
+      if (!customerId) {
+        setStatus("No Stripe billing profile yet — complete a purchase on the Pricing page, then tap Refresh membership.", true);
+        return;
+      }
+      ensureHitDeviceId();
+      const deviceId = localStorage.getItem("hitalick_device_id") || "";
+      let returnUrl;
+      try {
+        returnUrl = new URL("account.html", window.location.href).href;
+      } catch (_) {
+        returnUrl = `${window.location.origin}/account.html`;
+      }
+      try {
+        setStatus("Opening Stripe billing portal…", false);
+        const res = await fetch(hitApiPath("/api/billing/customer-portal"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "X-Hit-Device-Id": deviceId,
+          },
+          body: JSON.stringify({ uid, customerId, returnUrl }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Portal failed (${res.status})`);
+        if (!data.url || !String(data.url).startsWith("http")) throw new Error("No portal URL returned");
+        window.location.href = data.url;
+      } catch (e) {
+        setStatus(e.message || "Could not open billing portal.", true);
+      }
+    }
+
+    const stripePortalBtn = document.getElementById("stripePortalBtn");
+    if (stripePortalBtn) stripePortalBtn.addEventListener("click", () => void openStripeCustomerPortal());
 
     document.getElementById("clearDeviceSlotsBtn").addEventListener("click", async () => {
       const token = readAuthKey("hitalick_token");

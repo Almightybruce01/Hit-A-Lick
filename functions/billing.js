@@ -87,6 +87,36 @@ function requireField(value, field) {
   }
 }
 
+/** Reuse Stripe Customer on repeat checkouts so subscriptions group under one customer in Stripe. */
+async function getExistingStripeCustomerId(uid) {
+  const userRef = admin.firestore().collection("users").doc(uid);
+  const userSnap = await userRef.get();
+  const ent = userSnap.exists ? userSnap.data()?.entitlement || {} : {};
+  const fromEnt = String(ent.stripeCustomerId || "").trim();
+  if (fromEnt) return fromEnt;
+  const subsSnap = await userRef.collection("stripeSubscriptions").limit(40).get();
+  for (const d of subsSnap.docs) {
+    const c = String(d.data()?.stripeCustomerId || "").trim();
+    if (c) return c;
+  }
+  return "";
+}
+
+/** Portal / customer-id checks: Firebase uid must own this Stripe customer id in Firestore. */
+async function uidOwnsStripeCustomer(uid, customerId) {
+  const want = String(customerId || "").trim();
+  if (!want) return false;
+  const userRef = admin.firestore().collection("users").doc(uid);
+  const userSnap = await userRef.get();
+  const ent = userSnap.exists ? userSnap.data()?.entitlement || {} : {};
+  if (String(ent.stripeCustomerId || "").trim() === want) return true;
+  const subsSnap = await userRef.collection("stripeSubscriptions").get();
+  for (const d of subsSnap.docs) {
+    if (String(d.data()?.stripeCustomerId || "").trim() === want) return true;
+  }
+  return false;
+}
+
 async function requireUidBearerForCheckout(req, res, next) {
   try {
     const uid = String(req.body?.uid || "").trim();
@@ -541,6 +571,8 @@ router.post("/create-checkout-session", requireUidBearerForCheckout, async (req,
     const cancelUrl =
       process.env.APP_CANCEL_URL || `${HITALICK_PAGES_ORIGIN}/pricing.html?checkout=cancel`;
 
+    const existingCustomerId = await getExistingStripeCustomerId(uid);
+
     await admin
       .firestore()
       .collection("users")
@@ -557,7 +589,9 @@ router.post("/create-checkout-session", requireUidBearerForCheckout, async (req,
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
-      customer_email: email,
+      ...(existingCustomerId
+        ? { customer: existingCustomerId }
+        : { customer_email: email }),
       client_reference_id: uid,
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: promoCode ? undefined : true,
@@ -614,6 +648,8 @@ router.post("/create-ai-credits-session", requireUidBearerForCheckout, async (re
     const cancelUrl =
       process.env.APP_CANCEL_URL || `${HITALICK_PAGES_ORIGIN}/pricing.html?checkout=cancel`;
 
+    const existingCustomerId = await getExistingStripeCustomerId(uid);
+
     await admin
       .firestore()
       .collection("users")
@@ -630,7 +666,9 @@ router.post("/create-ai-credits-session", requireUidBearerForCheckout, async (re
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      customer_email: email,
+      ...(existingCustomerId
+        ? { customer: existingCustomerId }
+        : { customer_email: email }),
       client_reference_id: uid,
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: { uid, kind: "ai_credits", creditCount: "50" },
@@ -646,15 +684,23 @@ router.post("/create-ai-credits-session", requireUidBearerForCheckout, async (re
   }
 });
 
-router.post("/customer-portal", async (req, res) => {
+router.post("/customer-portal", requireUidBearerForCheckout, async (req, res) => {
   try {
-    const { customerId, returnUrl } = req.body || {};
+    const { uid, customerId, returnUrl } = req.body || {};
     requireField(customerId, "customerId");
+    const ok = await uidOwnsStripeCustomer(uid, customerId);
+    if (!ok) {
+      return res.status(403).json({
+        error:
+          "That Stripe customer does not match this signed-in account. Subscribe on the Pricing page first, then refresh membership.",
+        code: "CUSTOMER_MISMATCH",
+      });
+    }
     const stripe = getStripeClient();
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: returnUrl || `${HITALICK_PAGES_ORIGIN}/pricing.html`,
+      return_url: returnUrl || `${HITALICK_PAGES_ORIGIN}/account.html`,
     });
 
     return res.json({ url: session.url });
@@ -829,6 +875,15 @@ router.get("/catalog-prices", async (_req, res) => {
   }
 });
 
+function stripeWebhookPayloadBuffer(req) {
+  if (req.rawBody) {
+    if (Buffer.isBuffer(req.rawBody)) return req.rawBody;
+    if (typeof req.rawBody === "string") return Buffer.from(req.rawBody, "utf8");
+  }
+  if (Buffer.isBuffer(req.body)) return req.body;
+  return null;
+}
+
 async function handleStripeWebhook(req, res) {
   try {
     const stripe = getStripeClient();
@@ -839,7 +894,13 @@ async function handleStripeWebhook(req, res) {
       return res.status(400).send("Missing Stripe signature or webhook secret");
     }
 
-    const event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+    const payload = stripeWebhookPayloadBuffer(req);
+    if (!payload || !payload.length) {
+      console.error("stripeWebhook: missing raw body for signature verification");
+      return res.status(400).send("Missing raw body for Stripe signature verification");
+    }
+
+    const event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
 
     if (
       event.type === "customer.subscription.created" ||
