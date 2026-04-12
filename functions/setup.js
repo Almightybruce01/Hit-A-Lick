@@ -47,6 +47,20 @@ function buildReadiness() {
       rapidApiConfigured: rapidApiKey && rapidApiHost,
       primaryOddsProviderReady: Boolean((rapidApiKey && rapidApiHost) || oddsKey),
     },
+    /** Stripe Dashboard must send events to this URL; signing secret must match STRIPE_WEBHOOK_SECRET in Firebase. */
+    billing: {
+      expectedStripeWebhookUrl: "https://stripewebhook-lifnvql5aa-uc.a.run.app",
+      publicSiteUrls: {
+        account: "https://hitalick.org/account.html",
+        pricing: "https://hitalick.org/pricing.html",
+      },
+      webhookEventsRequired: [
+        "checkout.session.completed",
+        "customer.subscription.created",
+        "customer.subscription.updated",
+        "customer.subscription.deleted",
+      ],
+    },
     bookmakers: books,
     readinessScore: `${score}/7`,
     notes: [
