@@ -11,11 +11,11 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <link rel="dns-prefetch" href="https://api-lifnvql5aa-uc.a.run.app" />
-  <link rel="preload" href="/css/app-shell.css?v=202604092" as="style" />
-  <link rel="preload" href="/js/app-elite.js?v=202604092" as="script" />
+  <link rel="preload" href="/css/app-shell.css?v=202604122" as="style" />
+  <link rel="preload" href="/js/app-elite.js?v=202604122" as="script" />
   <title>Hit-A-Lick | Web App</title>
-  <link rel="stylesheet" href="/css/app-shell.css?v=202604092" />
-  <link rel="stylesheet" href="/css/app-elite.css?v=202604092" />
+  <link rel="stylesheet" href="/css/app-shell.css?v=202604122" />
+  <link rel="stylesheet" href="/css/app-elite.css?v=202604122" />
   <script>
     (function () {
       function hitalickUnblockUiEarly() {
@@ -486,7 +486,7 @@
     </div>
   </div>
 
-  <script src="/js/app-elite.js?v=202604092"></script>
+  <script src="/js/app-elite.js?v=202604122"></script>
   <script>
     if (typeof Promise !== "undefined" && !Promise.allSettled) {
       Promise.allSettled = function (iterable) {
@@ -996,9 +996,12 @@
         return;
       }
       try {
-        const data = await fetchJson(`/api/billing/entitlements/${encodeURIComponent(s.uid)}`, {
-          headers: { Authorization: `Bearer ${s.token}` },
-        });
+        const data = await fetchJson(
+          `/api/billing/entitlements/${encodeURIComponent(s.uid)}`,
+          { headers: { Authorization: `Bearer ${s.token}` } },
+          2,
+          8000,
+        );
         state.subscriptionEntitlement = data.entitlement || null;
         state.deviceSessionBlocked = null;
         writeCachedEntitlement(s.uid, state.subscriptionEntitlement);
@@ -1503,9 +1506,12 @@
       const s = getSession();
       if (!s.uid || !s.token) return;
       try {
-        const data = await fetchJson(`/api/elite/bootstrap?uid=${encodeURIComponent(s.uid)}`, {
-          headers: { Authorization: `Bearer ${s.token}` },
-        });
+        const data = await fetchJson(
+          `/api/elite/bootstrap?uid=${encodeURIComponent(s.uid)}`,
+          { headers: { Authorization: `Bearer ${s.token}` } },
+          2,
+          7000,
+        );
         const ent = state.subscriptionEntitlement;
         const subTier = Boolean(ent && (ent.hasAppAccess === true || ent.hasRegular === true || ent.hasPremium === true));
         if (!subTier && data?.tier && TIERS.includes(String(data.tier))) {
@@ -5193,13 +5199,14 @@
               rosterUrl: `/api/players?sport=${sport}&limit=${limRoster}`,
             }));
 
-      const playerFetchTimeout = 52000;
+      /** Keep under ~22s/sport so refresh never “dead” for a minute when APIs stall (panels still render from props). */
+      const playerFetchTimeout = maxCovOn() ? 26000 : 18000;
       const chunks = await Promise.all(
         requests.map(async (req) => {
           try {
             const [statsRes, rosterRes] = await Promise.all([
-              fetchJson(req.statsUrl, {}, 3, playerFetchTimeout),
-              fetchJson(req.rosterUrl, {}, 3, playerFetchTimeout),
+              fetchJson(req.statsUrl, {}, 2, playerFetchTimeout),
+              fetchJson(req.rosterUrl, {}, 2, playerFetchTimeout),
             ]);
             const byKey = new Map();
             const playerRows = Array.isArray(statsRes) ? statsRes : (Array.isArray(statsRes.rows) ? statsRes.rows : []);
@@ -7575,6 +7582,10 @@
       try {
         setStatusWarn("Refreshing data feeds…");
         renderSkeletons();
+        /**
+         * Critical path only — team stats can take 30s+ per sport batch and was blocking finalize/render
+         * (frozen tabs, “nothing clickable” until it finished). Props + players + health first; team stats follows async.
+         */
         await Promise.all([
           (async () => {
             try {
@@ -7589,8 +7600,7 @@
               failures.push(`Props/Games: ${e?.message || e || "failed"}`);
             }
           })(),
-          timed("Health", () => loadApiHealth(), 20000),
-          timed("Team stats", () => loadTeamStats(), 55000),
+          timed("Health", () => loadApiHealth(), 12000),
           (async () => {
             try {
               await loadPlayers({ skipRender: true });
@@ -7643,6 +7653,21 @@
         persistUserState();
         saveCloudState();
         void loadSubscriptionEntitlement();
+        void (async () => {
+          try {
+            await timed("Team stats", () => loadTeamStats(), 32000);
+            try {
+              finalizeDerivedBoardState();
+              renderVisiblePanels();
+              renderCommandCenter();
+              refreshHeroPills();
+            } catch (e3) {
+              pushDiagnostic({ type: "warn", message: String(e3?.message || e3 || "post team-stats render") });
+            }
+          } catch {
+            /* non-fatal — desk charts may lack team rows until next refresh */
+          }
+        })();
       } catch (e) {
         pushDiagnostic({ type: "error", message: String(e?.message || e || "refresh finalize failed") });
         setStatus("Board draw failed — tap Refresh Data again.", true);
@@ -7664,18 +7689,29 @@
     /** Render only active heavy panel to prevent UI freezes. */
     function renderVisiblePanels() {
       const key = activeTabKey();
-      if (key === "home") renderHome();
-      else if (key === "players") renderPlayers();
-      else if (key === "games") renderGames();
-      else if (key === "props") renderPropsHub();
-      else if (key === "ai") renderAI();
-      else if (key === "alerts") renderAlerts();
-      else if (key === "account") renderAccount();
-      else if (key === "integrity") renderIntegrityCenter();
-      else if (key === "dash") renderEliteDashboard();
-      else if (key === "posts") renderCuratorPostsPanel();
+      const safe = (fn) => {
+        try {
+          fn();
+        } catch (e) {
+          pushDiagnostic({ type: "warn", message: `Panel ${key}: ${e?.message || e || "render failed"}` });
+        }
+      };
+      if (key === "home") safe(() => renderHome());
+      else if (key === "players") safe(() => renderPlayers());
+      else if (key === "games") safe(() => renderGames());
+      else if (key === "props") safe(() => renderPropsHub());
+      else if (key === "ai") safe(() => renderAI());
+      else if (key === "alerts") safe(() => renderAlerts());
+      else if (key === "account") safe(() => renderAccount());
+      else if (key === "integrity") safe(() => renderIntegrityCenter());
+      else if (key === "dash") safe(() => renderEliteDashboard());
+      else if (key === "posts") safe(() => renderCuratorPostsPanel());
       else if (key === "premium") void loadPremium();
-      renderCommandCenter();
+      try {
+        renderCommandCenter();
+      } catch (e) {
+        pushDiagnostic({ type: "warn", message: `Command center: ${e?.message || e}` });
+      }
     }
 
     function hydrateSharedSlipFromHash() {
@@ -7700,26 +7736,34 @@
       setActiveTab(key);
     }
 
+    function safeTabRender(label, fn) {
+      try {
+        fn();
+      } catch (e) {
+        pushDiagnostic({ type: "warn", message: `${label}: ${e?.message || e || "render failed"}` });
+      }
+    }
+
     function setActiveTab(key) {
       closeActionSheet();
       tabs.forEach((b) => b.classList.toggle("active", b.getAttribute("data-tab") === key));
       bottomTabs.forEach((b) => b.classList.toggle("active", b.getAttribute("data-tab") === key));
       Object.entries(panels).forEach(([panelKey, panel]) => panel.classList.toggle("active", panelKey === key));
-      if (key === "home") renderHome();
-      if (key === "players") renderPlayers();
-      if (key === "games") renderGames();
-      if (key === "alerts") renderAlerts();
-      if (key === "props") renderPropsHub();
-      if (key === "account") renderAccount();
-      if (key === "integrity") renderIntegrityCenter();
-      if (key === "dash") renderEliteDashboard();
+      if (key === "home") safeTabRender("home", () => renderHome());
+      if (key === "players") safeTabRender("players", () => renderPlayers());
+      if (key === "games") safeTabRender("games", () => renderGames());
+      if (key === "alerts") safeTabRender("alerts", () => renderAlerts());
+      if (key === "props") safeTabRender("props", () => renderPropsHub());
+      if (key === "account") safeTabRender("account", () => renderAccount());
+      if (key === "integrity") safeTabRender("integrity", () => renderIntegrityCenter());
+      if (key === "dash") safeTabRender("dash", () => renderEliteDashboard());
       if (key === "posts") {
-        renderCuratorPostsPanel();
+        safeTabRender("posts", () => renderCuratorPostsPanel());
         if (!state.curatorFeed.posts.length && !state.curatorFeed.loading) loadCuratorFeed(false);
       }
       if (key === "ai") {
-        renderAiPlaysOfTheDayBox();
-        renderAI();
+        safeTabRender("ai-plays", () => renderAiPlaysOfTheDayBox());
+        safeTabRender("ai", () => renderAI());
       }
       if (key === "premium") {
         void (async () => {
@@ -8071,6 +8115,16 @@
       void loadSubscriptionEntitlement().catch(() => {});
       void syncCloudBootstrap().catch(() => {});
       void refreshAll().catch(() => {});
+      /** Billing must never leave gates stuck forever if entitlements hang. */
+      setTimeout(() => {
+        if (!state.entitlementCheckComplete) {
+          state.entitlementCheckComplete = true;
+          try {
+            updateSubscriptionGates();
+            positionPaywallShield();
+          } catch (_) {}
+        }
+      }, 9000);
     }
     /** Let the shell paint before heavy JSON + enrich runs (avoids “frozen tab” on open). */
     if (document.readyState === "complete") {
